@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   type = "0"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.495643"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "621"
+            endingLineNumber = "621"
+            landmarkName = "databaseTableName"
+            landmarkType = "24">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.495988"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "171"
+            endingLineNumber = "171"
+            landmarkName = "configureModifyRecordsOperation(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CloudKitSynchronizer.CloudSyncronizer.configureModifyRecordsOperation(__C.CKModifyRecordsOperation) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.866001"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "172"
+                  endingLineNumber = "172"
+                  offsetFromSymbolStart = "37">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (__C.CKRecord, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in CloudKitSynchronizer.CloudSyncronizer.configureModifyRecordsOperation(__C.CKModifyRecordsOperation) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.87444"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "174"
+                  endingLineNumber = "174"
+                  offsetFromSymbolStart = "39">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.4967639"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "146"
+            endingLineNumber = "146"
+            landmarkName = "startObservingTable(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #3 (GRDB.FetchedRecordsController&lt;CloudKitSynchronizer.TableRow&gt;) -&gt; () in CloudKitSynchronizer.CloudSyncronizer.startObservingTable(Swift.String) throws -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.894883"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "147"
+                  endingLineNumber = "147"
+                  offsetFromSymbolStart = "1553">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #4 (__C.CKRecord) -&gt; __C.CKRecordID in closure #3 (GRDB.FetchedRecordsController&lt;CloudKitSynchronizer.TableRow&gt;) -&gt; () in CloudKitSynchronizer.CloudSyncronizer.startObservingTable(Swift.String) throws -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.897248"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "147"
+                  endingLineNumber = "147"
+                  offsetFromSymbolStart = "20">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.4970829"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "324"
+            endingLineNumber = "324"
+            landmarkName = "newCloudRecord(with:tableName:ckRecord:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.497395"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "294"
+            endingLineNumber = "294"
+            landmarkName = "checkoutRecord(with:from:for:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (GRDB.Database) throws -&gt; () in CloudKitSynchronizer.CloudSyncronizer.checkoutRecord(with: Swift.Array&lt;Swift.String&gt;, from: Swift.String, for: CloudKitSynchronizer.CloudRecordStatus) -&gt; Swift.Array&lt;__C.CKRecord&gt;"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.907759"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "295"
+                  endingLineNumber = "295"
+                  offsetFromSymbolStart = "2870">
+               </Location>
+               <Location
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (CloudKitSynchronizer.CloudRecord) -&gt; Swift.Optional&lt;__C.CKRecord&gt; in closure #1 (GRDB.Database) throws -&gt; () in CloudKitSynchronizer.CloudSyncronizer.checkoutRecord(with: Swift.Array&lt;Swift.String&gt;, from: Swift.String, for: CloudKitSynchronizer.CloudRecordStatus) -&gt; Swift.Array&lt;__C.CKRecord&gt;"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  timestampString = "578204890.909871"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "296"
+                  endingLineNumber = "296"
+                  offsetFromSymbolStart = "19">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.497699"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "309"
+            endingLineNumber = "309"
+            landmarkName = "checkoutRecord(with:from:for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578204890.498284"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "316"
+            endingLineNumber = "316"
+            landmarkName = "checkoutRecord(with:from:for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            timestampString = "578207160.207788"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "313"
+            endingLineNumber = "313"
+            landmarkName = "checkoutRecord(with:from:for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

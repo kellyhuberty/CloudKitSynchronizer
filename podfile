@@ -1,0 +1,9 @@
+use_frameworks!
+target 'CloudKitSynchronizer' do
+	platform :ios, '12.0'
+	pod 'GRDB.swift'
+end
+
+target 'CloudKitSynchronizerTests' do
+	pod 'GRDB.swift'
+end
