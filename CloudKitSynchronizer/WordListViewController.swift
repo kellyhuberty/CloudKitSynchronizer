@@ -19,7 +19,7 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
     
     lazy var resultsController:FetchedRecordsController<Item> = {
         
-        let request = SQLRequest<Item>("select * from Item")
+        let request = SQLRequest<Item>("select * from Item order by `text`")
         let resultsController = try! FetchedRecordsController<Item>(Repo.shared.databaseQueue, request: request)
         
         resultsController.trackChanges(willChange: { (item) in
@@ -122,9 +122,23 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         cell.textView.inputAccessoryView = editingToolbar
         cell.delegate = self
         
-        // Configure the cell...
-
         return cell
+    }
+    
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        guard editingStyle == .delete else {
+            return
+        }
+        
+        let section = Section.allCases[indexPath.section]
+        
+        switch section {
+        case .item:
+            let record = resultsController.record(at: indexPath)
+            removeItem(record)
+        default:
+            break
+        }
     }
     
     func editItem(_ item: Item) {
