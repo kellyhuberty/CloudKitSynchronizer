@@ -13,11 +13,15 @@ class Repo{
     
     static let shared = Repo()
     
-    let cloudSynchronizer:CloudSyncronizer!
+    let cloudSynchronizer:CloudSynchronizer!
     
     let databaseQueue:DatabasePool = {
         
         let directory = URL(string:Directories.documents)!.appendingPathComponent("data.db")
+        
+        print("Database Path: ")
+        print(directory.path + "\n")
+
         let dbPool = try! DatabasePool(path: directory.path)
         let migrator = setupMigrator()
         
@@ -29,9 +33,9 @@ class Repo{
     
     init() {
         
-        cloudSynchronizer = CloudSyncronizer(databasePool: databaseQueue)
-
-        cloudSynchronizer.synchronizedTables = ["Item"]
+        cloudSynchronizer = CloudSynchronizer(databasePool: databaseQueue)
+        cloudSynchronizer.synchronizedTables = [SynchronizedTable(table:"Item")]
+        
         
     }
     

@@ -26,6 +26,7 @@
 		C7653B9B2243F72C000CDABB /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B9A2243F72C000CDABB /* Item.swift */; };
 		C7653B9D2243F793000CDABB /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B9C2243F793000CDABB /* Model.swift */; };
 		C7653BA02243FB14000CDABB /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7653B9F2243FB14000CDABB /* CloudKit.framework */; };
+		C7E421F122876C79002E0392 /* TableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserver.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +68,7 @@
 		C7653B9C2243F793000CDABB /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
 		C7653B9E2243FB10000CDABB /* CloudKitSynchronizer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudKitSynchronizer.entitlements; sourceTree = "<group>"; };
 		C7653B9F2243FB14000CDABB /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
+		C7E421F022876C78002E0392 /* TableObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserver.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +166,7 @@
 			isa = PBXGroup;
 			children = (
 				C7653B8C2243F219000CDABB /* CloudSynchronizer.swift */,
+				C7E421F022876C78002E0392 /* TableObserver.swift */,
 				C7653B8D2243F219000CDABB /* CloudPullUpdateOperation.swift */,
 				C7653B8E2243F219000CDABB /* CloudOperation.swift */,
 				C7653B8F2243F219000CDABB /* CloudPushUpdateOperation.swift */,
@@ -401,6 +404,7 @@
 				C7653B952243F219000CDABB /* Repo.swift in Sources */,
 				C7653B932243F219000CDABB /* CloudOperation.swift in Sources */,
 				C7653B942243F219000CDABB /* CloudPushUpdateOperation.swift in Sources */,
+				C7E421F122876C79002E0392 /* TableObserver.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B912243F219000CDABB /* CloudSynchronizer.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,

@@ -7,3 +7,42 @@
 //
 
 import Foundation
+import CloudKit
+import GRDB
+
+class TableObserver {
+    
+    
+    let tableName:String
+    let columnNames:[String]
+    let mapper:CloudRecordMapper
+    
+    
+    
+    let resultsController:FetchedRecordsController<TableRow>
+    
+    var currentPushOperation:CKModifyRecordsOperation?
+    var currentRowsCreatingUp:[TableRow] = []
+    var currentRowsUpdatingUp:[TableRow] = []
+    var currentRowsDeletingUp:[TableRow] = []
+    
+    var isObserving: Bool = true
+
+    init(tableName:String, columnNames:[String], controller:FetchedRecordsController<TableRow>) {
+        self.tableName = tableName
+        self.columnNames = columnNames
+        self.resultsController = controller
+        self.mapper = CloudRecordMapper(tableName:tableName, columnNames:columnNames)
+    }
+    
+    
+    
+}
+
+extension TableObserver : TableObserverProtocol {
+
+}
+protocol TableObserverProtocol {
+    var tableName:String { get }
+}
+

@@ -56,8 +56,6 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        
-        
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -67,9 +65,26 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         tableView.register(WordListTableCell.self, forCellReuseIdentifier: Section.item.rawValue)
         tableView.register(WordListTableCell.self, forCellReuseIdentifier: Section.addItem.rawValue)
         
-        
+        let refreshControl = UIRefreshControl()
+        let title = NSLocalizedString("PullToRefresh", comment: "Pull to refresh")
+        refreshControl.attributedTitle = NSAttributedString(string: title)
+        refreshControl.addTarget(self,
+                                 action: #selector(refreshAction(_:)),
+                                 for: .valueChanged)
+        tableView.refreshControl = refreshControl
+                
     }
 
+    @objc func refreshAction(_ sender: Any) {
+        
+        Repo.shared.cloudSynchronizer.refreshFromCloud {
+            DispatchQueue.main.async {
+                (sender as? UIRefreshControl)?.endRefreshing()
+            }
+        }
+        
+    }
+    
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {

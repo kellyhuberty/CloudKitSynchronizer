@@ -10,27 +10,33 @@ import Foundation
 import CloudKit
 import GRDB
 
-
-
-class CloudSyncronizer {
+class SynchronizedTable : SynchronizedTableProtocol{
+    let tableName:String
     
-    class TableObserver{
-        
-        let tableName:String
-        
-        let resultsController:FetchedRecordsController<TableRow>?
-        
-        var currentPushOperation:CKModifyRecordsOperation?
-        var currentRowsCreatingUp:[TableRow] = []
-        var currentRowsUpdatingUp:[TableRow] = []
-        var currentRowsDeletingUp:[TableRow] = []
-        
-        init(tableName:String, controller:FetchedRecordsController<TableRow>) {
-            self.tableName = tableName
-            self.resultsController = controller
-        }
-        
+    init(table:String){
+        tableName = table
     }
+}
+
+protocol SynchronizedTableProtocol {
+    var tableName:String { get }
+}
+
+class CloudErrorPrototype : LocalizedError {
+    
+    var localizedDescription: String
+    
+    init(_ description:String) {
+        localizedDescription = description
+    }
+}
+
+typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
+
+
+class CloudSynchronizer {
+    
+    static let Domain: String = "com.kellyhuberty.CloudKitSynchronizer"
     
     struct TableNames{
         static let Migration = "SyncMigration"
@@ -42,6 +48,9 @@ class CloudSyncronizer {
     
     let container:CKContainer = CKContainer.default()
     let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
+    let zoneId = CKRecordZone.ID(zoneName: CloudSynchronizer.Domain,
+                                     ownerName: CKCurrentUserDefaultName)
+    
     let localDatabasePool:DatabasePool
 
     var observers:[TableObserver] = []
@@ -53,15 +62,17 @@ class CloudSyncronizer {
             try! runSynchronizerMigrations(db)
         }
         
+        initilizeZones()
+        
     }
     
-    var synchronizedTables:[String] = [] {
+    var synchronizedTables:[SynchronizedTableProtocol] = [] {
         didSet{
             setSyncRequest()
         }
     }
     
-    func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
+    public func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
         
         let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)
         //Do something
@@ -69,8 +80,7 @@ class CloudSyncronizer {
         
     }
     
-    
-    func setSyncRequest(){
+    private func setSyncRequest(){
         
         for table in synchronizedTables {
             
@@ -80,23 +90,60 @@ class CloudSyncronizer {
         
     }
     
-    func addTableObserver(_ tableObserver:TableObserver){
+    private func addTableObserver(_ tableObserver:TableObserver){
         
         observers.append(tableObserver)
         
     }
     
-    func tableObserver(for name:String) -> TableObserver?{
+    private func tableObserver(for name:String) -> TableObserver{
         
         for observer in observers {
             if observer.tableName == name {
                 return observer
             }
         }
-        return nil
+        
+        fatalError("Unable to find observed table \(name)")
+        
     }
     
-    func startObservingTable(_ table:String) throws {
+    private func startObservingTable(_ syncedTable:SynchronizedTableProtocol) throws {
+        
+        let table = syncedTable.tableName
+        
+//        let columnRequest = SQLRequest<Row>("PRAGMA table_info(table_name);", arguments:nil, adapter: nil, cached: false)
+//        do{
+
+        let columnNames = try localDatabasePool.read { (db) -> [String] in
+            let columns:[Row]
+
+            columns = try Row.fetchAll(db,  "PRAGMA table_info(\(table))")
+            return columns.compactMap({ (row) -> String in
+                return row["name"]
+            })
+        }
+//        } catch error {
+//            throw CloudErrorPrototype("Cannot pull column information")
+//        }
+
+            
+            
+//        try localDatabasePool.read { (db) in
+//            let columns:[Row]
+//
+//            let columns = try Row.fetchAll(db,  "PRAGMA table_info(\(table))")
+//
+//            for column in columns{
+//
+//            }
+//
+//            return nil
+//        }
+        
+
+        
+
         
         let request = SQLRequest<TableRow>("SELECT `\(table)`.* FROM `\(table)`", arguments: nil, adapter: nil, cached: false)
         
@@ -104,13 +151,21 @@ class CloudSyncronizer {
         
         try! controller.performFetch()
         
-        let tableObserver = TableObserver(tableName: table, controller: controller)
+        let tableObserver = TableObserver(tableName: table, columnNames:columnNames, controller: controller)
         
-        controller.trackChanges(willChange: { (contoller) in
+        controller.trackChanges(willChange: { [weak self] (contoller) in
+            
+            guard let self = self, tableObserver.isObserving else {
+                return
+            }
+            
             tableObserver.currentPushOperation = CKModifyRecordsOperation()
         
-        
-        }, onChange: { (controller, tableRow, change) in
+        }, onChange: { [weak self] (controller, tableRow, change) in
+            
+            guard let self = self, tableObserver.isObserving else {
+                return
+            }
             
             switch change{
             case .deletion:
@@ -125,29 +180,25 @@ class CloudSyncronizer {
             
         }) { [weak self] (controller) in
             
-            guard let self = self else {
+            guard let self = self, tableObserver.isObserving == true else {
                 return
             }
             
+            let deleteCkRecordIds = tableObserver.currentRowsDeletingUp.map{ $0.identifier }
+            let updateCkRecords = tableObserver.currentRowsUpdatingUp
+            let createCkRecords = tableObserver.currentRowsCreatingUp
             
-            
-            
-            
-            let deleteCkRecords = tableObserver.currentRowsDeletingUp.map{ $0.identifier }
-            let updateCkRecords = tableObserver.currentRowsUpdatingUp.map{ $0.identifier }
-            let createCkRecords = tableObserver.currentRowsCreatingUp.map{ $0.identifier }
-
-            
-            
-            let recordsToDelete = self.checkoutRecord(with: deleteCkRecords, from: table , for: .synced)
-            let recordsToUpdate = self.checkoutRecord(with: updateCkRecords, from: table , for: .synced)
-            let recordsToCreate = self.checkoutRecord(with: createCkRecords, from: table , for: .synced)
-
+            let recordsToDelete = self.checkoutRecord(with: deleteCkRecordIds, from: table , for: .synced)
+            let recordsToUpdate = self.mapAndCheckoutRecord(from: updateCkRecords, from: table, for: .synced)
+            let recordsToCreate = self.mapAndCheckoutRecord(from: createCkRecords, from: table , for: .synced)
             
             let deleteIds = recordsToDelete.map{ $0.recordID }
 
             let recordsToCreateOrUpdate = recordsToUpdate + recordsToCreate
 
+            // Map actual data here.
+            // TableRow -> CKRecord
+            
             let currentPushOperation = CKModifyRecordsOperation(recordsToSave: recordsToCreateOrUpdate, recordIDsToDelete: deleteIds)
             
             tableObserver.currentPushOperation = currentPushOperation
@@ -156,8 +207,9 @@ class CloudSyncronizer {
             
             currentPushOperation.start()
             
-            
-            
+            tableObserver.currentRowsDeletingUp = []
+            tableObserver.currentRowsUpdatingUp = []
+            tableObserver.currentRowsCreatingUp = []
             
         }
 
@@ -165,7 +217,7 @@ class CloudSyncronizer {
         
     }
     
-    func configureModifyRecordsOperation(_ operation:CKModifyRecordsOperation){
+    private func configureModifyRecordsOperation(_ operation:CKModifyRecordsOperation){
         
         operation.perRecordCompletionBlock = { [weak self] (record, error) in
             print("blah")
@@ -179,9 +231,9 @@ class CloudSyncronizer {
         
     }
     
-    func configureZoneRecordPullOperation(_ operation:CKFetchRecordZoneChangesOperation){
+    private func configureZoneRecordPullOperation(_ operation:CKFetchRecordZoneChangesOperation){
         
-        operation.recordZoneIDs = [CKRecordZone.default().zoneID]
+        operation.recordZoneIDs = [zoneId]
         
         operation.recordChangedBlock = { (record) in
             
@@ -199,6 +251,7 @@ class CloudSyncronizer {
         
         operation.fetchRecordZoneChangesCompletionBlock = { (error) in
             
+            try! self.propegatePulledChangesToDatabase()
             
         }
         
@@ -246,7 +299,41 @@ class CloudSyncronizer {
     
     
     
-    func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordStatus) -> [CKRecord] {
+    private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordStatus) -> [CKRecord] {
+        
+        let mapper = tableObserver(for: table).mapper
+        
+        let sortedRows = tableRows.sorted { $0.identifier < $1.identifier }
+        let rowIdentifers = tableRows.map { $0.identifier }
+
+        let ckRecords = checkoutRecord(with: rowIdentifers, from: table, for: status, sorted: true)
+        
+        let ckRecordsDictionary:[String:CKRecord] = ckRecords.reduce(into: [String:CKRecord]()) { return $0[$1.recordID.recordName] = $1 }
+        
+        var mappedCkRecords = [CKRecord]()
+        
+        for row in tableRows {
+            
+            guard let ckRecord = ckRecordsDictionary[row.identifier] else {
+                continue
+            }
+            
+            let mappedCKRecord = mapper.map(data: row.dict, to: ckRecord)
+            
+            mappedCkRecords.append(mappedCKRecord)
+            
+        }
+        
+        return mappedCkRecords
+        
+    }
+    
+    
+    private func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordStatus, sorted: Bool = true) -> [CKRecord] {
+        
+        guard ids.count > 0 else {
+            return []
+        }
         
         var bindingsArr = [String]()
         
@@ -263,8 +350,6 @@ class CloudSyncronizer {
         try! localDatabasePool.write { (db) in
 
             
-            
-           
             //UPDATE ACTIVE RECORDS
             var argumentsArr = [status.rawValue]
             
@@ -295,7 +380,7 @@ class CloudSyncronizer {
             let createIds = Set(ids).subtracting(updatedIds)
             
             for createId in createIds {
-                let newRecord = newCloudRecord(with: createId, tableName: table, ckRecord:nil)
+                let newRecord = newCloudRecord(with: createId, tableName: table, ckRecord:nil, status: .pushingUpdate)
                 try! newRecord.save(db)
                 //createCloudRecords.append( newRecord)
                 
@@ -315,9 +400,9 @@ class CloudSyncronizer {
         return updateRecords
     }
     
-    func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?) -> CloudRecord{
+    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordStatus) -> CloudRecord{
         
-        let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName)
+        let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: .pushingUpdate)
         
         if let ckRecord = ckRecord {
             cloudRecord.record = ckRecord
@@ -328,14 +413,14 @@ class CloudSyncronizer {
         return cloudRecord
     }
     
-    func createNewCKRecord(with identifier:String, tableName:String) -> CKRecord{
-        let ckId = CKRecord.ID(recordName: identifier)
+    private func createNewCKRecord(with identifier:String, tableName:String) -> CKRecord{
+        let ckId = CKRecord.ID(recordName: identifier, zoneID: zoneId)
         let ckRecord = CKRecord(recordType: tableName, recordID: ckId)
         return ckRecord
     }
     
     
-    func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordStatus) {
+    private func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordStatus) {
         //After a modification has completed, check in a record.
         
         
@@ -343,15 +428,17 @@ class CloudSyncronizer {
             leftRecord.recordID.recordName > rightRecord.recordID.recordName
         })
         
-        
         let allRecordIds = records.map { (record) -> CKRecord.ID in
             return record.recordID
         }
         
+        let allRecordIdNames = allRecordIds.map { (recordId) -> String in
+            return recordId.recordName
+        }
         
         var bindingsArr = [String]()
         
-        for _ in 0 ..< allRecordIds.count {
+        for _ in 0 ..< allRecordIdNames.count {
             bindingsArr.append("?")
         }
         
@@ -362,16 +449,17 @@ class CloudSyncronizer {
             
             let selectQuery = "SELECT * FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) ) ORDER BY `identifier` ASC"
             
-            let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(allRecordIds), adapter: nil, cached: false)
+            let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(allRecordIdNames), adapter: nil, cached: false)
             
             var availableCloudRecords = try! CloudRecord.fetchAll(db, request)
             
             for record in allRecords {
                 if record.recordID.recordName == availableCloudRecords.first?.identifier {
                     let cloudRecord = availableCloudRecords.removeFirst()
+                    cloudRecord.status = status
                     cloudRecordsToSave.append(cloudRecord)
                 }else{
-                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record)
+                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status:status)
                     cloudRecordsToSave.append(cloudRecord)
                 }
             }
@@ -384,7 +472,7 @@ class CloudSyncronizer {
         
     }
     
-    func checkinCloudRecordIds(_ recordIds:[CKRecord.ID], with status:CloudRecordStatus) {
+    private func checkinCloudRecordIds(_ recordIds:[CKRecord.ID], with status:CloudRecordStatus) {
         //After a modification has completed, check in a record.
         
         let recordIdStrings = recordIds.map { (recordIds) -> String in
@@ -397,7 +485,7 @@ class CloudSyncronizer {
             bindingsArr.append("?")
         }
         
-        let args = [status] + recordIdStrings
+        let args = [status.rawValue] + recordIdStrings
         
         try! localDatabasePool.write { (db) in
             
@@ -457,14 +545,15 @@ class CloudSyncronizer {
     
     */
     
-    func records(for rows:[Row], in table:String) -> [CKRecord] {
+    /*
+    private func records(for rows:[Row], in table:String) -> [CKRecord] {
         
         var recordsToModify:[CKRecord] = []
         
         for row in rows {
         
             let record:CKRecord
-            if let recordData:Data = row[CloudSyncronizer.Prefix + "Data"], let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: recordData), let serializedRecord = CKRecord(coder:unarchiver) {
+            if let recordData:Data = row[CloudSynchronizer.Prefix + "Data"], let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: recordData), let serializedRecord = CKRecord(coder:unarchiver) {
                 record = serializedRecord
             }else{
                 let identifier:String = row["identifier"]
@@ -474,8 +563,8 @@ class CloudSyncronizer {
             
             let dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
             
-            let valuesDict = dict.filter { (key: String, value: DatabaseValue) -> Bool in
-                return key.hasPrefix(CloudSyncronizer.Prefix) ? false : true
+            let valuesDict = dict.filter { (key: String, value: DatabaseValueConvertible) -> Bool in
+                return key.hasPrefix(CloudSynchronizer.Prefix) ? false : true
             }
             
             for (key, value) in valuesDict {
@@ -500,7 +589,7 @@ class CloudSyncronizer {
         
         return recordsToModify
     }
-    
+    */
     
     
 //    func rows(for records:[CKRecord]) -> [Row] {
@@ -539,9 +628,21 @@ class CloudSyncronizer {
 //
 //    }
 
-    func updateExistingRecords(){
+//    func updateExistingRecords(){
+//
+//
+//
+//    }
+    
+    func initilizeZones() {
         
+        let createZoneOperation = CKModifyRecordZonesOperation()
         
+        let zoneToCreate = CKRecordZone(zoneID: zoneId)
+        
+        createZoneOperation.recordZonesToSave = [zoneToCreate]
+    
+        createZoneOperation.start()
         
     }
     
@@ -569,7 +670,7 @@ class CloudSyncronizer {
                 table.column("tableName", Database.ColumnType.text)
                 table.column("ckRecordData", Database.ColumnType.blob)
                 table.column("cloudChangeTag", Database.ColumnType.text)
-                table.column("status", Database.ColumnType.text)
+                table.column("status", Database.ColumnType.text).notNull()
                 table.column("changeDate", Database.ColumnType.text)
             })
 
@@ -579,8 +680,146 @@ class CloudSyncronizer {
         
     }
     
+    private func propegatePulledChangesToDatabase() throws {
+        
+        try localDatabasePool.write { (db) in
+            
+            let deletedCRSQL =
+                """
+                    SELECT
+                        `\(CloudSynchronizer.TableNames.CloudRecords)`.*
+                    FROM
+                        `\(CloudSynchronizer.TableNames.CloudRecords)`
+                    WHERE
+                        `status` = "\(CloudRecordStatus.pullingDelete)"
+                """
+            
+            let deletedCRRequest = SQLRequest<CloudRecord>(deletedCRSQL, arguments: nil, adapter: nil, cached: false)
+            
+            let cloudRecordsToDelete = try CloudRecord.fetchAll(db, deletedCRRequest)
+            
+            
+            let updatedCRSQL =
+                """
+                    SELECT
+                    `\(CloudSynchronizer.TableNames.CloudRecords)`.*
+                    FROM
+                    `\(CloudSynchronizer.TableNames.CloudRecords)`
+                    WHERE
+                    `status` = ?
+                """
+            
+            let updatedCRRequest = SQLRequest<CloudRecord>(updatedCRSQL, arguments: StatementArguments([CloudRecordStatus.pullingUpdate.rawValue]), adapter: nil, cached: false)
+            
+            let cloudRecordsToUpdate = try CloudRecord.fetchAll(db, updatedCRRequest)
+            
+            //Deletes
+            var cloudRecordsToDeleteGrouped = [String:[String]]()
+            
+            for cloudRecord in cloudRecordsToDelete {
+                var recordGroup = cloudRecordsToDeleteGrouped[cloudRecord.tableName] ?? [String]()
+                recordGroup.append(cloudRecord.identifier)
+                cloudRecordsToDeleteGrouped[cloudRecord.tableName] = recordGroup
+            }
+            
+            for (tableName, group) in cloudRecordsToDeleteGrouped {
+
+                disableCloudObservers(for:tableName)
+                propegatesDeletesToDatabase(group, in: tableName, database: db)
+                enableCloudObservers(for:tableName)
+
+            }
+        
+            
+
+            
+            //Updates
+            var cloudRecordsToUpdateGrouped = [String:[CKRecord]]()
+
+            for cloudRecord in cloudRecordsToUpdate {
+                var recordGroup = cloudRecordsToUpdateGrouped[cloudRecord.tableName] ?? [CKRecord]()
+                guard let ckRecord = cloudRecord.record else {continue}
+                recordGroup.append(ckRecord)
+                cloudRecordsToUpdateGrouped[cloudRecord.tableName] = recordGroup
+            }
+            
+            for (tableName, group) in cloudRecordsToUpdateGrouped {
+
+                disableCloudObservers(for:tableName)
+                propegatesUpdatesToDatabase(group, in: tableName, database: db)
+                enableCloudObservers(for:tableName)
+
+            }
+            
+            // Map actual data here.
+            // CKRecord -> TableRow
+            
+            
+            
+        }
+        
+        
+    }
     
     
+    
+    private func propegatesDeletesToDatabase(_ identifiers:[String], in tableName:String, database:Database) {
+        
+        let args = StatementArguments(identifiers)
+        
+        //Clean up from CloudRecordTable
+        try! database.execute("DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier IN `\(identifiers.sqlPlaceholderString())", arguments: args)
+        
+        
+        
+        //Delete From Table
+        try! database.execute("DELETE FROM `\(tableName)` WHERE `identifier IN `\(identifiers.sqlPlaceholderString())", arguments: args)
+        
+    }
+    
+    private func propegatesUpdatesToDatabase(_ ckRecords:[CKRecord], in tableName:String, database:Database) {
+        
+        
+        let mapper = tableObserver(for:tableName).mapper
+        
+        let sortedSqlColumnString = mapper.sortedSqlColumnString()
+        
+        let sqlValues = mapper.sqlValues(forRecords: ckRecords)
+        
+        let sqlValuesString = mapper.sqlValuesString(forRecords: ckRecords)
+
+        let arguments = StatementArguments(sqlValues)
+        
+        //Update cloud record table
+        try! database.execute("""
+                                INSERT OR REPLACE INTO \(tableName) \(mapper.sortedSqlColumnString()) VALUES \(sqlValuesString) 
+                              """
+            , arguments: arguments)
+        
+        
+        
+        //Clean up from CloudRecordTable
+        
+    }
+    
+    private func disableCloudObservers(for table:String) {
+        let observer = tableObserver(for: table)
+        observer.isObserving = false
+    }
+    
+    private func enableCloudObservers(for table:String) {
+        let observer = tableObserver(for: table)
+        observer.isObserving = true
+    }
+    
+    public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
+        let operation = CKFetchRecordZoneChangesOperation()
+        operation.completionBlock = {
+            completion()
+        }
+        configureZoneRecordPullOperation(operation)
+        operation.start()
+    }
     
 }
 
@@ -589,9 +828,8 @@ class TableRow : FetchableRecord{
     
     //let _row:Row
     
-    var dict:[String: DatabaseValue?] = [:]
+    let dict:[String: DatabaseValue?]
 
-    
     
     required init(row: Row){
         //let keys = row.columnNames
@@ -599,6 +837,15 @@ class TableRow : FetchableRecord{
         dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
         
     }
+    
+//    required init(ckRecord: CKRecord){
+//        //let keys = row.columnNames
+//
+//
+//
+////        dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
+//
+//    }
     
     var identifier:String {
         
@@ -611,13 +858,14 @@ class TableRow : FetchableRecord{
         return stringValue
     }
     
+    
 }
 
 
 class CloudRecord : Model, Codable{
     
     static var databaseTableName: String {
-        return CloudSyncronizer.TableNames.CloudRecords
+        return CloudSynchronizer.TableNames.CloudRecords
     }
     
     struct Identifier{
@@ -631,11 +879,13 @@ class CloudRecord : Model, Codable{
         case ckRecordData
         case cloudChangeTag
         case changeDate
+        case status
     }
     
-    init(identifier:String, tableName:String) {
+    init(identifier:String, tableName:String, status: CloudRecordStatus) {
         self.identifier = identifier
         self.tableName = tableName
+        self.status = status
     }
 //
 //    init(identifier:String, tableName:String) {
@@ -648,6 +898,7 @@ class CloudRecord : Model, Codable{
     var ckRecordData:Data? = nil
     var cloudChangeTag:String? = nil
     var changeDate:Date? = nil
+    var status: CloudRecordStatus
     
     private var _record:CKRecord? = nil
     
@@ -681,7 +932,6 @@ class CloudRecord : Model, Codable{
     
 }
 
-//static let Domain = "com.kellyhuberty.CloudKitSynchronizer"
 
 enum UserDefaultsKeys : CustomStringConvertible {
     var description: String {
@@ -740,3 +990,161 @@ class CloudPullOperation : Operation {
     
     
 }
+
+
+class CloudRecordMapper {
+    
+    let columns:[String]
+    let tableName:String
+    
+    let sortedColumns:[String]
+    
+    init(tableName:String, columnNames:[String]) {
+        self.columns = columnNames
+        self.tableName = tableName
+        
+        var newColumns = columns
+        newColumns.sort()
+        if let index = newColumns.index(of: "identifier") {
+            newColumns.remove(at: index)
+            newColumns.insert("identifier", at: 0)
+        }
+        sortedColumns = newColumns
+            }
+    
+    func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord{
+
+        for (key, value) in data{
+            guard let value = value else{
+                record.setValue(nil, forKey: key)
+                continue
+            }
+            
+            switch value.storage {
+            case .blob(let data):
+                record.setValue(data, forKey: key)
+            case .double(let double):
+                record.setValue(double, forKey: key)
+            case .int64(let integer):
+                record.setValue(integer, forKey: key)
+            case .string(let string):
+                record.setValue(string, forKey: key)
+            case .null:
+                record.setValue(nil, forKey: key)
+            }
+            
+        }
+
+        return record
+    }
+    
+    func map(record:CKRecord) -> [String:DatabaseValue?]{
+        
+        var allValues = [String:DatabaseValue?]()
+        
+        for key in record.allKeys() {
+
+            guard let value = record[key] else{
+                allValues[key] = nil
+                continue
+            }
+            
+            switch value {
+            case let value as Data:
+                allValues[key] = DatabaseValue(value: value)
+            case let value as Double:
+                allValues[key] = DatabaseValue(value: value)
+            case let value as Int:
+                allValues[key] = DatabaseValue(value: value)
+            case let value as String:
+                allValues[key] = DatabaseValue(value: value)
+            default:
+                fatalError("Unsupported CKRecord Type")
+            }
+            
+        }
+        
+        return allValues
+    }
+    
+    func sortedSqlColumnString() -> String {
+        
+        return "(" + sortedColumns.joined(separator: ", ") + ")"
+        
+    }
+    
+    func sortedSqlValues(_ sqlValues:[String:DatabaseValueConvertible?]) -> [DatabaseValueConvertible?] {
+        
+        return sortedColumns.map { (key) -> DatabaseValueConvertible? in
+            return sqlValues[key] ?? nil
+        }
+        
+    }
+    
+    func sqlValues(forRecords records:[CKRecord]) -> [DatabaseValueConvertible?] {
+        
+        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
+            return map(record: record)
+        }
+        
+        return sqlValues(forRows: rows)
+    }
+    
+    func sqlValues(forRows dictionaries:[[String:DatabaseValueConvertible?]]) -> [DatabaseValueConvertible?]{
+        
+        var valuesArray = [DatabaseValueConvertible?]()
+        
+        for dictionary in dictionaries {
+            
+            let sortedValues = sortedSqlValues(dictionary)
+            valuesArray.append(contentsOf: sortedValues)
+            
+        }
+        return valuesArray
+    }
+    
+    func sqlValuesString(forRecords records:[CKRecord]) -> String {
+        
+        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
+            return map(record: record)
+        }
+        
+        return sqlValuesString(rows:rows)
+    }
+    
+    func sqlValuesString(rows:[[String:DatabaseValueConvertible?]]) -> String {
+        
+        let placeholderArray = sortedColumns.map { (_) -> String in
+            return "?"
+        }
+        
+        let recordPlaceholderArray = rows.map { (_) -> String in
+            return "(" + placeholderArray.joined(separator: ", ") + ")"
+        }
+        
+        return recordPlaceholderArray.joined(separator: ", ")
+    }
+    
+}
+
+
+extension Array where Element == String {
+
+    func sqlPlaceholderString() -> String{
+        
+        var quoteArr = [String]()
+        
+        for _ in 0 ..< self.count{
+            quoteArr.append("?")
+        }
+        
+        return quoteArr.joined(separator: ",")
+        
+    }
+
+
+}
+
+
+
+
