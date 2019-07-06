@@ -457,6 +457,7 @@ class CloudSynchronizer {
                 if record.recordID.recordName == availableCloudRecords.first?.identifier {
                     let cloudRecord = availableCloudRecords.removeFirst()
                     cloudRecord.status = status
+                    cloudRecord.record = record
                     cloudRecordsToSave.append(cloudRecord)
                 }else{
                     let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status:status)
