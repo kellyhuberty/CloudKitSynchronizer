@@ -118,6 +118,7 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         case .addItem:
             cell.textView.text = nil
             cell.textView.placeholder = NSLocalizedString("Add Item", comment: "Add Item")
+            cell.item = nil
         }
         cell.textView.inputAccessoryView = editingToolbar
         cell.delegate = self
