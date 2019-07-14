@@ -33,7 +33,6 @@ class CloudErrorPrototype : LocalizedError {
 
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
-
 class CloudSynchronizer {
     
     static let Domain: String = "com.kellyhuberty.CloudKitSynchronizer"
@@ -46,7 +45,7 @@ class CloudSynchronizer {
     
     static let Prefix = "cloudRecord"
     
-    
+    //Constants
     let container:CKContainer = CKContainer.default()
     let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
     let zoneId = CKRecordZone.ID(zoneName: CloudSynchronizer.Domain,
@@ -112,17 +111,14 @@ class CloudSynchronizer {
     public func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
         
         let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)
-        //Do something
-        
+        //TODO: Support for push notification changes
         
     }
     
     private func setSyncRequest(){
         
         for table in synchronizedTables {
-            
             try! startObservingTable(table)
-            
         }
         
     }
@@ -148,9 +144,6 @@ class CloudSynchronizer {
     private func startObservingTable(_ syncedTable:SynchronizedTableProtocol) throws {
         
         let table = syncedTable.tableName
-        
-//        let columnRequest = SQLRequest<Row>("PRAGMA table_info(table_name);", arguments:nil, adapter: nil, cached: false)
-//        do{
 
         let columnNames = try localDatabasePool.read { (db) -> [String] in
             let columns:[Row]
@@ -160,27 +153,6 @@ class CloudSynchronizer {
                 return row["name"]
             })
         }
-//        } catch error {
-//            throw CloudErrorPrototype("Cannot pull column information")
-//        }
-
-            
-            
-//        try localDatabasePool.read { (db) in
-//            let columns:[Row]
-//
-//            let columns = try Row.fetchAll(db,  "PRAGMA table_info(\(table))")
-//
-//            for column in columns{
-//
-//            }
-//
-//            return nil
-//        }
-        
-
-        
-
         
         let request = SQLRequest<TableRow>("SELECT `\(table)`.* FROM `\(table)`", arguments: nil, adapter: nil, cached: false)
         
@@ -315,54 +287,8 @@ class CloudSynchronizer {
             try! self.propegatePulledChangesToDatabase()
 
             self.currentChangeTag = serverChangeToken
-            
         }
-        
-        
-        
     }
-    
-    
-    /*
-    func syncRows(on tableName: String, rows:[Row]){
-        
-        var rowsToCreate = [Row]()
-        var rowsToUpdate = [Row]()
-        var rowsToDelete = [Row]()
-
-        for row in rows {
-            
-            guard let syncStatus = CloudRecordStatus(rawValue: (row["cloudRecordStatus"] as? String) ?? "") else{
-                continue
-            }
-            
-            switch syncStatus{
-            case .pendingUpdate:
-                rowsToUpdate.append(row)
-            case .pendingDelete:
-                rowsToDelete.append(row)
-            default:
-                noop()
-            }
-        
-        }
-        
-        
-        let recordsToUpdate = records(for: rowsToUpdate, in: tableName)
-        let recordsToDelete = records(for: rowsToDelete, in: tableName)
-        
-        let deleteIds = recordsToDelete.map { (record) -> CKRecord.ID in
-            return record.recordID
-        }
-        
-        let operation = CloudPushUpdateOperation(updateRecords: recordsToUpdate, deleteRecordIds: deleteIds)
-        
-        scheduleModificationOperation(operation)
-        
-    }
-    */
-    
-    
     
     private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordStatus) -> [CKRecord] {
         
@@ -567,143 +493,6 @@ class CloudSynchronizer {
     
     }
     
-    /*
-    func processCloudRecordError(){
-        
-    }
-    
-    func push(to record:CKRecord, from tableRow:TableRow){
-        
-        let valuesDict = tableRow.dict
-        
-        for (key, value) in valuesDict {
-            
-            switch value?.storage ?? .null {
-            case .null:
-                record.setObject(nil, forKey: key)
-            case .double(let double):
-                record.setObject(NSNumber(value: double), forKey: key)
-            case .int64(let int):
-                record.setObject(NSNumber(value: int), forKey: key)
-            case .blob(let data):
-                record.setObject(data as NSData, forKey: key)
-            case .string(let str):
-                record.setObject(str as NSString, forKey: key)
-            }
-            
-        }
-        
-    }
-    
-    func pull(from record:CKRecord, into tableRow:TableRow){
-        
-        let keys = record.allKeys()
-        
-        var dict:[String: DatabaseValue?] = [:]
-        
-        for key in keys {
-        
-            let value = DatabaseValue(value: record.object(forKey: key) as Any)
-            
-            dict[key] = value
-            
-        }
-        
-        tableRow.dict = dict
-        
-    }
-    
-    */
-    
-    /*
-    private func records(for rows:[Row], in table:String) -> [CKRecord] {
-        
-        var recordsToModify:[CKRecord] = []
-        
-        for row in rows {
-        
-            let record:CKRecord
-            if let recordData:Data = row[CloudSynchronizer.Prefix + "Data"], let unarchiver = try? NSKeyedUnarchiver(forReadingFrom: recordData), let serializedRecord = CKRecord(coder:unarchiver) {
-                record = serializedRecord
-            }else{
-                let identifier:String = row["identifier"]
-                let newRecord = CKRecord(recordType: table, recordID: CKRecord.ID(recordName: identifier))
-                record = newRecord
-            }
-            
-            let dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
-            
-            let valuesDict = dict.filter { (key: String, value: DatabaseValueConvertible) -> Bool in
-                return key.hasPrefix(CloudSynchronizer.Prefix) ? false : true
-            }
-            
-            for (key, value) in valuesDict {
-                
-                switch value.storage {
-                case .null:
-                    record.setObject(nil, forKey: key)
-                case .double(let double):
-                    record.setObject(NSNumber(value: double), forKey: key)
-                case .int64(let int):
-                    record.setObject(NSNumber(value: int), forKey: key)
-                case .blob(let data):
-                    record.setObject(data as NSData, forKey: key)
-                case .string(let str):
-                    record.setObject(str as NSString, forKey: key)
-                }
-                
-            }
-            
-            recordsToModify.append(record)
-        }
-        
-        return recordsToModify
-    }
-    */
-    
-    
-//    func rows(for records:[CKRecord]) -> [Row] {
-//
-//        var newRecords:[CKRecord] = []
-//
-//        for row in rows {
-//
-//            let record = CKRecord(recordType:table , recordID: CKRecord.ID(recordName: row["identifier"]))
-//
-//            let dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
-//
-//            for (key, value) in dict {
-//
-//                switch value.storage {
-//                case .null:
-//                    record.setObject(nil, forKey: key)
-//                case .double(let double):
-//                    record.setObject(NSNumber(value: double), forKey: key)
-//                case .int64(let int):
-//                    record.setObject(NSNumber(value: int), forKey: key)
-//                case .blob(let data):
-//                    record.setObject(data as NSData, forKey: key)
-//                case .string(let str):
-//                    record.setObject(str as NSString, forKey: key)
-//                }
-//
-//                //record.setObject(value.storage as? __CKRecordObjCValue, forKey: key)
-//
-//            }
-//
-//            newRecords.append(record)
-//        }
-//
-//        return newRecords
-//
-//    }
-
-//    func updateExistingRecords(){
-//
-//
-//
-//    }
-    
     func initilizeZones() {
         
         let createZoneOperation = CKModifyRecordZonesOperation()
@@ -845,8 +634,6 @@ class CloudSynchronizer {
         //Clean up from CloudRecordTable
         try! database.execute("DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
         
-        
-        
         //Delete From Table
         try! database.execute("DELETE FROM `\(tableName)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
     }
@@ -866,7 +653,7 @@ class CloudSynchronizer {
         
         //Update cloud record table
         try! database.execute("""
-                                INSERT OR REPLACE INTO \(tableName) \(mapper.sortedSqlColumnString()) VALUES \(sqlValuesString) 
+                                INSERT OR REPLACE INTO \(tableName) \(sortedSqlColumnString) VALUES \(sqlValuesString)
                               """
             , arguments: arguments)
         
@@ -901,26 +688,12 @@ class CloudSynchronizer {
 class TableRow : FetchableRecord {
     
     
-    //let _row:Row
-    
     let dict:[String: DatabaseValue?]
 
     
     required init(row: Row){
-        //let keys = row.columnNames
-        
         dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
-        
     }
-    
-//    required init(ckRecord: CKRecord){
-//        //let keys = row.columnNames
-//
-//
-//
-////        dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
-//
-//    }
     
     var identifier:String {
         
@@ -1047,7 +820,6 @@ enum UserDefaultsKeys : CustomStringConvertible {
             return UserDefaultsKeys.Domain + ".migrationVersion"
         }
         
-        
     }
     
     static let Domain = "com.kellyhuberty.CloudKitSynchronizer"
@@ -1072,24 +844,24 @@ enum UserDefaultsKeys : CustomStringConvertible {
 //}
 //
 
-//class CloudPushOperation : NSOperation {
-//
-//    var currentPushOperation:CKModifyRecordsOperation?
-//    var currentRowsCreatingUp:[TableRow] = []
-//    var currentRowsUpdatingUp:[TableRow] = []
-//    var currentRowsDeletingUp:[TableRow] = []
-//
-//
-//
-//}
+protocol CloudPushOperation : Operation {
+
+    //var currentPushOperation:CKModifyRecordsOperation?
+    var currentRowsCreatingUp:[TableRow] { get set }
+    var currentRowsUpdatingUp:[TableRow] { get set }
+    var currentRowsDeletingUp:[TableRow] { get set }
 
 
-class CloudPullOperation : Operation {
+
+}
+
+
+protocol CloudPullOperation : Operation {
     
-    var currentPullOperation:CKFetchRecordZoneChangesOperation?
-//    var currentRowsCreatingDown:[TableRow] = []
-//    var currentRowsUpdatingDown:[TableRow] = []
-//    var currentRowsDeletingDown:[TableRow] = []
+//    var currentPullOperation:CKFetchRecordZoneChangesOperation?
+//    var currentRowsCreatingDown:[TableRow] { get set }
+//    var currentRowsUpdatingDown:[TableRow] { get set }
+//    var currentRowsDeletingDown:[TableRow]
 
     
     
@@ -1246,7 +1018,6 @@ extension Array where Element == String {
         return quoteArr.joined(separator: ",")
         
     }
-
 
 }
 
