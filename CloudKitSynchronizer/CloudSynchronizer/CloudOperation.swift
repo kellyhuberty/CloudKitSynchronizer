@@ -11,7 +11,7 @@ import CloudKit
 
 class CloudOperation : Operation {
     
-    private let _operation:CKOperation
+    private var _operation:CKOperation!
     
     private var _isExecuting:Bool = false{
         willSet{
@@ -21,6 +21,7 @@ class CloudOperation : Operation {
             self.didChangeValue(for: \.isExecuting )
         }
     }
+    
     private var _isFinished:Bool = false{
         willSet{
             self.willChangeValue(for: \.isFinished)
@@ -30,19 +31,32 @@ class CloudOperation : Operation {
         }
     }
     
-    init(operation:CKOperation) {
-        _operation = operation
-        
+//    init(operation:CKOperation) {
+//        _operation = operation
+//
 //        _operation.completionBlock = { [weak self] in
 //            self?.finish()
 //        }
-            
-        super.init()
-    }
-    
+//
+//        super.init()
+//    }
+
     override func start() {
+
         _isExecuting = true
+
+        
+        _operation = createOperation()
+        _operation.completionBlock = { [weak self] in
+            self?.finish()
+        }
         _operation.start()
+    }
+
+    func createOperation() -> CKOperation {
+
+        fatalError("Operation not configured")
+
     }
     
     override var isAsynchronous: Bool{

@@ -21,7 +21,7 @@ class TableObserver {
     
     let resultsController:FetchedRecordsController<TableRow>
     
-    var currentPushOperation:CKModifyRecordsOperation?
+    var currentPushOperation:CloudRecordPushOperation?
     var currentRowsCreatingUp:[TableRow] = []
     var currentRowsUpdatingUp:[TableRow] = []
     var currentRowsDeletingUp:[TableRow] = []

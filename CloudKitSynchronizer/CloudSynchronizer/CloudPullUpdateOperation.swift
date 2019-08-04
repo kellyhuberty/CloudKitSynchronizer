@@ -10,8 +10,25 @@ import Foundation
 import CloudKit
 
 
-class CloudPullUpdateOperation : CloudOperation {
+
+
+class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
     
+    var zoneID: CKRecordZone.ID?
     
+    var previousServerChangeToken: CKServerChangeToken?
+    
+    weak var delegate: CloudRecordPullOperationDelegate?
+
+    init(delegate: CloudRecordPullOperationDelegate){
+        self.delegate = delegate
+        super.init()
+    }
+    
+    override func createOperation() -> CKOperation {
+    
+        fatalError("Unable to load")
+    
+    }
     
 }

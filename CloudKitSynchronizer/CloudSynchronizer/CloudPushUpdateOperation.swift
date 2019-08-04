@@ -9,32 +9,46 @@
 import Foundation
 import CloudKit
 
-class CloudPushUpdateOperation : CloudOperation {
+class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
 
-    let _pushOperation:CKModifyRecordsOperation
     
-    private var updated:[CKRecord] = []
-    private var errors:[CloudRecordError] = []
+    weak var delegate: CloudRecordPushOperationDelegate?
     
-    init(updateRecords: [CKRecord], deleteRecordIds: [CKRecord.ID]) {
-        _pushOperation = CKModifyRecordsOperation(recordsToSave: updateRecords, recordIDsToDelete: deleteRecordIds)
-        
-        
-        super.init(operation: _pushOperation)
-        configurePush()
+    var updates:[CKRecord] = []
+    
+    var deleteIds:[CKRecord.ID] = []
+
+    private var _pushOperation:CKModifyRecordsOperation!
+    
+//    var currentRowsCreatingUp:[TableRow] = []
+//    var currentRowsUpdatingUp:[TableRow] = []
+//    var currentRowsDeletingUp:[TableRow] = []
+
+    init(delegate: CloudRecordPushOperationDelegate) {
+        self.delegate = delegate
+        super.init()
     }
+    //private var errors:[CloudRecordError] = []
     
-    @available(*, unavailable)
-    override init(operation: CKOperation) {
-        fatalError()
-    }
+//    init(updateRecords: [CKRecord], deleteRecordIds: [CKRecord.ID]) {
+//        _pushOperation = CKModifyRecordsOperation(recordsToSave: updateRecords, recordIDsToDelete: deleteRecordIds)
+//        
+//        
+//        super.init(operation: _pushOperation)
+//    }
+//    
+//    @available(*, unavailable)
+//    override init(operation: CKOperation) {
+//        fatalError()
+//    }
     
-    private func configurePush(){
+    override func createOperation() -> CKOperation {
         
+        _pushOperation = CKModifyRecordsOperation(recordsToSave: updates, recordIDsToDelete: deleteIds)
+        /*
         _pushOperation.perRecordCompletionBlock = { [weak self] (record, error) in
-            guard let self = self else {return}
-
             
+            guard let self = self else {return}
             
             if let error = error {
                 
@@ -45,25 +59,33 @@ class CloudPushUpdateOperation : CloudOperation {
                 self.updated.append(record)
             }
             
-            
-            
-            
         }
         
         _pushOperation.modifyRecordsCompletionBlock = { [weak self] (ckRecords, ckRecordIds, error) in
             guard let self = self else {return}
-            self.process()
-            self.finish()
         }
+        */
+        
+        
+        
+        _pushOperation.perRecordCompletionBlock = { [weak self] (record, error) in
+
+            guard let self = self else { return }
+
+            //self?.checkinCloudRecords([record], with: .synced)
+            
+            self.delegate?.cloudPushOperation(self, processedRecords: [record], status: .success)
+        }
+        
+        // Completion
+        _pushOperation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
+            
+        }
+        
+        return _pushOperation
         
     }
     
-    func process(){
-        
-        
-        
-    }
-
 }
 
 

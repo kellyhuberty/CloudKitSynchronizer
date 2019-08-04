@@ -33,7 +33,7 @@ class Repo{
     
     init() {
         
-        cloudSynchronizer = CloudSynchronizer(databasePool: databaseQueue)
+        cloudSynchronizer = try! CloudSynchronizer(databasePool: databaseQueue)
         cloudSynchronizer.synchronizedTables = [SynchronizedTable(table:"Item")]
         
         
