@@ -11,12 +11,7 @@ import CloudKit
 import GRDB
 
 protocol CloudModel {
-    
-//    var cloudChangeTag:String? { get }
-//    var changedDate:Date? { get }
-//    var cloudRecordData:Data? { get }
     var cloudRecordStatus:CloudRecordStatus { get }
-    
 }
 
 enum CloudRecordStatus : String, Codable {
@@ -32,32 +27,7 @@ enum CloudRecordStatus : String, Codable {
 extension CloudModel{
     
     static func addCloudDatabaseAttributes(_ table:TableAlteration){
-//        table.add(column:"cloudChangeTag", Database.ColumnType.text)
-//        table.add(column:"changedDate", Database.ColumnType.date)
-//        table.add(column:"cloudRecordData", Database.ColumnType.date)
         table.add(column:"cloudRecordStatus", Database.ColumnType.text)
     }
     
 }
-
-
-//protocol CloudModelInline {
-//    
-//    var cloudChangeTag:String? { get }
-//    var changedDate:Date? { get }
-//    var cloudRecordData:Data? { get }
-//    var cloudRecordStatus:Data? { get }
-//
-//}
-//
-//extension CloudModelInline{
-//    
-//    static func addCloudDatabaseAttributes(_ table:TableAlteration){
-//        table.add(column:"cloudChangeTag", Database.ColumnType.text)
-//        table.add(column:"changedDate", Database.ColumnType.date)
-//        table.add(column:"cloudRecordData", Database.ColumnType.date)
-//        table.add(column:"cloudRecordStatus", Database.ColumnType.text)
-//    }
-//}
-//
-

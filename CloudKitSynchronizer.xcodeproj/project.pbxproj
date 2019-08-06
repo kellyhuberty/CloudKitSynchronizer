@@ -118,7 +118,6 @@
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
-				C7800EA122E52F57008D96D0 /* CloudKitOperations.swift */,
 				C7653B602243390B000CDABB /* CloudKitSynchronizer */,
 				C7653B752243390D000CDABB /* CloudKitSynchronizerTests */,
 				C7653B5F2243390B000CDABB /* Products */,
@@ -168,6 +167,7 @@
 		C7653B8B2243F219000CDABB /* CloudSynchronizer */ = {
 			isa = PBXGroup;
 			children = (
+				C7800EA122E52F57008D96D0 /* CloudKitOperations.swift */,
 				C7653B8C2243F219000CDABB /* CloudSynchronizer.swift */,
 				C7E421F022876C78002E0392 /* TableObserver.swift */,
 				C7653B8D2243F219000CDABB /* CloudPullUpdateOperation.swift */,
