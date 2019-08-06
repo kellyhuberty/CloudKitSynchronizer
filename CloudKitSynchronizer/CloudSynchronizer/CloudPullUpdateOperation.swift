@@ -14,21 +14,91 @@ import CloudKit
 
 class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
     
-    var zoneID: CKRecordZone.ID?
+    var zoneId: CKRecordZone.ID?
     
     var previousServerChangeToken: CKServerChangeToken?
     
     weak var delegate: CloudRecordPullOperationDelegate?
 
+    private var _pullOperation: CKFetchRecordZoneChangesOperation!
+    
     init(delegate: CloudRecordPullOperationDelegate){
         self.delegate = delegate
         super.init()
     }
     
     override func createOperation() -> CKOperation {
-    
-        fatalError("Unable to load")
-    
+        
+        var zoneIds = [CKRecordZone.ID]()
+        var zoneIdsConfigurations =
+            [CKRecordZone.ID: CKFetchRecordZoneChangesOperation.ZoneConfiguration]()
+
+        if let zoneId = zoneId {
+            zoneIds.append(zoneId)
+            
+            let configuration = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
+            configuration.previousServerChangeToken = previousServerChangeToken
+            
+            zoneIdsConfigurations = [zoneId: configuration]
+            
+        }
+        
+        let configuration = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
+        configuration.previousServerChangeToken = previousServerChangeToken
+
+        _pullOperation = CKFetchRecordZoneChangesOperation(
+            recordZoneIDs: zoneIds,
+            configurationsByRecordZoneID: zoneIdsConfigurations
+        )
+        
+        _pullOperation.recordChangedBlock = { [weak self] (record) in
+            
+            guard let self = self else {
+                return
+            }
+         
+            self.delegate?.cloudPullOperation(self,
+                                              processedUpdatedRecords: [record],
+                                              status: .success)
+        }
+        
+        _pullOperation.recordWithIDWasDeletedBlock = { (recordId, recordType) in
+            
+            
+            self.delegate?.cloudPullOperation(self,
+                                              processedDeletedRecordIds: [recordId],
+                                              status: .success)
+            
+        }
+        
+        _pullOperation.recordZoneChangeTokensUpdatedBlock = { (_, serverChangeToken, _) in
+            
+            self.delegate?.cloudPullOperation(
+                self,
+                pulledNewChangeTag: serverChangeToken
+            )
+            
+        }
+        
+        _pullOperation.fetchRecordZoneChangesCompletionBlock = { (error) in
+            
+        }
+        
+        _pullOperation.recordZoneFetchCompletionBlock = { (_, serverChangeToken, _, _, _) in
+            
+            
+            self.delegate?.cloudPullOperationDidComplete(self)
+            
+            self.delegate?.cloudPullOperation(
+                self,
+                pulledNewChangeTag: serverChangeToken
+            )
+            
+        }
+        
+        
+        return _pullOperation
+        
     }
     
 }

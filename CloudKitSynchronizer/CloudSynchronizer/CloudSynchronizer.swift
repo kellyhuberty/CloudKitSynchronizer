@@ -250,11 +250,6 @@ class CloudSynchronizer {
             let deleteIds = recordsToDelete.map{ $0.recordID }
 
             let recordsToCreateOrUpdate = recordsToUpdate + recordsToCreate
-
-            // Map actual data here.
-            // TableRow -> CKRecord
-            
-//            let currentPushOperation = CKModifyRecordsOperation(recordsToSave: recordsToCreateOrUpdate, recordIDsToDelete: deleteIds)
             
             guard let currentPushOperation = tableObserver.currentPushOperation else {
                 fatalError("Push operation not initialized.")
@@ -262,8 +257,6 @@ class CloudSynchronizer {
             
             currentPushOperation.updates = recordsToCreateOrUpdate
             currentPushOperation.deleteIds = deleteIds
-
-            //self.configureModifyRecordsOperation(currentPushOperation)
             
             currentPushOperation.start()
             
@@ -277,66 +270,10 @@ class CloudSynchronizer {
         
     }
     
-    private func configureModifyRecordsOperation(_ operation:CKModifyRecordsOperation){
-        
-        operation.perRecordCompletionBlock = { [weak self] (record, error) in
-            print("blah")
-            self?.checkinCloudRecords([record], with: .synced)
-        }
-
-        // Completion
-        operation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
-
-        }
-        
-    }
-    
-    private func configureZoneRecordPullOperation(_ operation:CKFetchRecordZoneChangesOperation){
-        
-        operation.recordZoneIDs = [zoneId]
-        
-        let configuration = CKFetchRecordZoneChangesOperation.ZoneConfiguration()
-        
-        configuration.previousServerChangeToken = currentChangeTag
-        
-        operation.configurationsByRecordZoneID = [zoneId:configuration]
-        
-        operation.recordChangedBlock = { (record) in
-            
-            self.checkinCloudRecords([record], with: .pullingUpdate)
-            
-        }
-        
-        operation.recordWithIDWasDeletedBlock = { (recordId, recordType) in
-            
-            self.checkinCloudRecordIds([recordId], with: .pullingDelete)
-
-        }
-        
-        operation.recordZoneChangeTokensUpdatedBlock = { (_, serverChangeToken, _) in
-            
-            self.currentChangeTag = serverChangeToken
-        }
-        
-        operation.fetchRecordZoneChangesCompletionBlock = { (error) in
-            
-        }
-        
-        operation.recordZoneFetchCompletionBlock = { (_, serverChangeToken, _, _, _) in
-            
-            
-            //Error: database push error
-            try! self.propegatePulledChangesToDatabase()
-
-            self.currentChangeTag = serverChangeToken
-        }
-    }
-    
     private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordStatus) -> [CKRecord] {
         
         let mapper = tableObserver(for: table).mapper
         
-        let sortedRows = tableRows.sorted { $0.identifier < $1.identifier }
         let rowIdentifers = tableRows.map { $0.identifier }
 
         let ckRecords = checkoutRecord(with: rowIdentifers, from: table, for: status, sorted: true)
@@ -724,11 +661,14 @@ class CloudSynchronizer {
     }
     
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
-        let operation = CKFetchRecordZoneChangesOperation()
+        let operation = operationFactory.newPullOperation(delegate: self)
+        
+        operation.zoneId = zoneId
+        operation.previousServerChangeToken = currentChangeTag
+        
         operation.completionBlock = {
             completion()
         }
-        configureZoneRecordPullOperation(operation)
         operation.start()
     }
     
@@ -746,6 +686,26 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
         //TODO: If possible, and if in makes sense,
         //See if we can add some kind of consolidated changes here
         //To improve performance.
+    }
+    
+}
+
+extension CloudSynchronizer: CloudRecordPullOperationDelegate {
+    
+    func cloudPullOperation(_ operation: CloudRecordPullOperation, processedUpdatedRecords: [CKRecord], status: CloudRecordOperationStatus) {
+        self.checkinCloudRecords(processedUpdatedRecords, with: .pullingUpdate)
+    }
+    
+    func cloudPullOperation(_ operation: CloudRecordPullOperation, processedDeletedRecordIds: [CKRecord.ID], status: CloudRecordOperationStatus) {
+        self.checkinCloudRecordIds(processedDeletedRecordIds, with: .pullingDelete)
+    }
+    
+    func cloudPullOperation(_ operation: CloudRecordPullOperation, pulledNewChangeTag: CKServerChangeToken?) {
+        self.currentChangeTag = pulledNewChangeTag
+    }
+    
+    func cloudPullOperationDidComplete(_ operation: CloudRecordPullOperation) {
+        try! self.propegatePulledChangesToDatabase()
     }
     
 }

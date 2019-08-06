@@ -32,19 +32,23 @@ protocol CloudRecordPushOperation : Operation {
 
 protocol CloudRecordPullOperationDelegate: class {
     func cloudPullOperation(_ operation:CloudRecordPullOperation,
-                            processedRecords:[CKRecord],
+                            processedUpdatedRecords:[CKRecord],
+                            status:CloudRecordOperationStatus)
+    
+    func cloudPullOperation(_ operation:CloudRecordPullOperation,
+                            processedDeletedRecordIds:[CKRecord.ID],
                             status:CloudRecordOperationStatus)
     
     func cloudPullOperation(_ operation:CloudRecordPullOperation,
                             pulledNewChangeTag:CKServerChangeToken?)
     
-    func cloudPullOperationDidComplete(_operation:CloudRecordPullOperation)
+    func cloudPullOperationDidComplete(_ operation:CloudRecordPullOperation)
 }
 
 
 protocol CloudRecordPullOperation : Operation {
     
-    var zoneID:CKRecordZone.ID? { get set }
+    var zoneId:CKRecordZone.ID? { get set }
     var previousServerChangeToken:CKServerChangeToken? { get set }
 
     var delegate: CloudRecordPullOperationDelegate? { get set }
