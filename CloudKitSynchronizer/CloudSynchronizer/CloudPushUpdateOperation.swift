@@ -9,61 +9,41 @@
 import Foundation
 import CloudKit
 
-class CloudPushUpdateOperation : CloudOperation {
+class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
 
-    let _pushOperation:CKModifyRecordsOperation
     
-    private var updated:[CKRecord] = []
-    private var errors:[CloudRecordError] = []
+    weak var delegate: CloudRecordPushOperationDelegate?
     
-    init(updateRecords: [CKRecord], deleteRecordIds: [CKRecord.ID]) {
-        _pushOperation = CKModifyRecordsOperation(recordsToSave: updateRecords, recordIDsToDelete: deleteRecordIds)
-        
-        
-        super.init(operation: _pushOperation)
-        configurePush()
+    var updates:[CKRecord] = []
+    
+    var deleteIds:[CKRecord.ID] = []
+
+    private var _pushOperation:CKModifyRecordsOperation!
+
+    init(delegate: CloudRecordPushOperationDelegate) {
+        self.delegate = delegate
+        super.init()
     }
     
-    @available(*, unavailable)
-    override init(operation: CKOperation) {
-        fatalError()
-    }
-    
-    private func configurePush(){
+    override func createOperation() -> CKOperation {
         
+        _pushOperation = CKModifyRecordsOperation(recordsToSave: updates, recordIDsToDelete: deleteIds)
+
         _pushOperation.perRecordCompletionBlock = { [weak self] (record, error) in
-            guard let self = self else {return}
 
-            
-            
-            if let error = error {
-                
-                let cloudError = CloudRecordError(record: record, error: error)
-                self.errors.append(cloudError)
-                
-            }else{
-                self.updated.append(record)
-            }
-            
-            
+            guard let self = self else { return }
+            self.delegate?.cloudPushOperation(self, processedRecords: [record], status: .success)
+        }
+        
+        // Completion
+        _pushOperation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
             
             
         }
         
-        _pushOperation.modifyRecordsCompletionBlock = { [weak self] (ckRecords, ckRecordIds, error) in
-            guard let self = self else {return}
-            self.process()
-            self.finish()
-        }
-        
+        return _pushOperation
     }
     
-    func process(){
-        
-        
-        
-    }
-
 }
 
 

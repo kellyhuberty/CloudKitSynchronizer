@@ -9,11 +9,7 @@
 import Foundation
 import GRDB
 
-protocol Model : Codable, FetchableRecord, TableRecord, PersistableRecord{
-    
-//    func save(_ completion:((ModelSaveStatus) -> Void)? )
-//    
-//    func delete(_ completion:((ModelSaveStatus) -> Void)? )
+protocol Model : Codable, FetchableRecord, TableRecord, PersistableRecord {
 
 }
 

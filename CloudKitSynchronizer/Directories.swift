@@ -9,17 +9,7 @@
 import Foundation
 
 class Directories {
-    
-    
-    
-    
     static var documents: String {
-        
         return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
-        
-        
     }
-    
-    
-    
 }
