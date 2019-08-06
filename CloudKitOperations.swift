@@ -45,77 +45,14 @@ protocol CloudRecordPullOperationDelegate: class {
     func cloudPullOperationDidComplete(_ operation:CloudRecordPullOperation)
 }
 
-
 protocol CloudRecordPullOperation : Operation {
     
     var zoneId:CKRecordZone.ID? { get set }
     var previousServerChangeToken:CKServerChangeToken? { get set }
 
     var delegate: CloudRecordPullOperationDelegate? { get set }
-
-    
-    //    var currentPullOperation:CKFetchRecordZoneChangesOperation?
-    //    var currentRowsCreatingDown:[TableRow] { get set }
-    //    var currentRowsUpdatingDown:[TableRow] { get set }
-    //    var currentRowsDeletingDown:[TableRow]
     
 }
-
-
-//class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
-//    
-//    private let currentPushOperation:CKModifyRecordsOperation?
-//
-//    weak var delegate: CloudRecordPushOperationDelegate?
-//    var currentRowsCreatingUp:[TableRow] = []
-//    var currentRowsUpdatingUp:[TableRow] = []
-//    var currentRowsDeletingUp:[TableRow] = []
-//    
-//    init(delegate: CloudRecordPushOperationDelegate){
-//        
-//        self.delegate = delegate
-//
-//    }
-//    
-//    private func configureModifyRecordsOperation(_ operation:CKModifyRecordsOperation){
-//        
-//        operation.perRecordCompletionBlock = { [weak self] (record, error) in
-//            print("blah")
-//            //self?.checkinCloudRecords([record], with: .synced)
-//        }
-//        
-//        // Completion
-//        operation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
-//            
-//        }
-//        
-//    }
-//    
-//}
-
-//protocol CloudRecordPullOperationDelegate: class {
-//    func cloudPullOperation(_ operation:CloudRecordPullOperationDelegate,                                    processedRecords:[CKRecord],
-//                            status:CloudRecordOperationStatus)
-//
-//    func cloudPullOperation(_ operation:CloudRecordPullOperationDelegate, pulledNewChangeTag:CKServerChangeToken?)
-//
-//    func cloudPullOperationDidComplete(_ operation:CloudRecordPullOperationDelegate)
-//}
-
-//class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
-//
-//    weak var delegate: CloudRecordPullOperationDelegate?
-//
-//    private let currentPullOperation:CKFetchRecordZoneChangesOperation?
-//
-//    init(delegate: CloudRecordPullOperationDelegate){
-//
-//        self.delegate = delegate
-//
-//    }
-//
-//}
-
 
 class CloudKitOperationFactory: OperationFactory {
 
