@@ -12,6 +12,9 @@
 		C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */; };
 		C744A7EE2309BEC9004C163A /* AsynchronousOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */; };
 		C744A7F2231378F8004C163A /* SQLLiteTableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F1231378F8004C163A /* SQLLiteTableObserver.swift */; };
+		C744A7F52313804B004C163A /* TableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F42313804B004C163A /* TableRow.swift */; };
+		C744A7F7231380B1004C163A /* CloudChangeTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F6231380B1004C163A /* CloudChangeTag.swift */; };
+		C744A7F923138136004C163A /* CloudRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F823138136004C163A /* CloudRecord.swift */; };
 		C7653B622243390B000CDABB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B612243390B000CDABB /* AppDelegate.swift */; };
 		C7653B642243390B000CDABB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C7653B692243390D000CDABB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
@@ -53,6 +56,9 @@
 		C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitZoneAvailablityOperation.swift; sourceTree = "<group>"; };
 		C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsynchronousOperation.swift; sourceTree = "<group>"; };
 		C744A7F1231378F8004C163A /* SQLLiteTableObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLLiteTableObserver.swift; sourceTree = "<group>"; };
+		C744A7F42313804B004C163A /* TableRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableRow.swift; sourceTree = "<group>"; };
+		C744A7F6231380B1004C163A /* CloudChangeTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChangeTag.swift; sourceTree = "<group>"; };
+		C744A7F823138136004C163A /* CloudRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecord.swift; sourceTree = "<group>"; };
 		C7653B5E2243390B000CDABB /* CloudKitSynchronizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7653B612243390B000CDABB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C7653B632243390B000CDABB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -143,6 +149,16 @@
 			path = TableObserver;
 			sourceTree = "<group>";
 		};
+		C744A7F323138020004C163A /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				C744A7F42313804B004C163A /* TableRow.swift */,
+				C744A7F6231380B1004C163A /* CloudChangeTag.swift */,
+				C744A7F823138136004C163A /* CloudRecord.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
@@ -199,6 +215,7 @@
 				C744A7EF231377CA004C163A /* Operations */,
 				C744A7F023137814004C163A /* TableObserver */,
 				C7653B982243F3C8000CDABB /* CloudModel.swift */,
+				C744A7F323138020004C163A /* Models */,
 			);
 			path = CloudSynchronizer;
 			sourceTree = "<group>";
@@ -434,12 +451,15 @@
 				C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */,
 				C7653B952243F219000CDABB /* Repo.swift in Sources */,
 				C7653B932243F219000CDABB /* CloudOperation.swift in Sources */,
+				C744A7F7231380B1004C163A /* CloudChangeTag.swift in Sources */,
 				C7653B942243F219000CDABB /* CloudKitRecordPushOperation.swift in Sources */,
 				C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */,
 				C7E421F122876C79002E0392 /* TableObserver.swift in Sources */,
+				C744A7F52313804B004C163A /* TableRow.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B912243F219000CDABB /* CloudSynchronizer.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,
+				C744A7F923138136004C163A /* CloudRecord.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
