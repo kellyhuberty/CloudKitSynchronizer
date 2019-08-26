@@ -84,7 +84,7 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
             
         }
         
-        _pullOperation.recordZoneFetchCompletionBlock = { (_, serverChangeToken, _, _, _) in
+        _pullOperation.recordZoneFetchCompletionBlock = { (_, serverChangeToken, _, _, error) in
             
             
             self.delegate?.cloudPullOperationDidComplete(self)

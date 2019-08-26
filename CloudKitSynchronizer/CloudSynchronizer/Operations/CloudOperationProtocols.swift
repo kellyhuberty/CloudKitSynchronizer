@@ -10,7 +10,7 @@ import CloudKit
 
 enum CloudRecordOperationStatus{
     case success
-    case error
+    case error(_ error:CloudKitError)
 }
 
 protocol CloudRecordPushOperationDelegate: class {
@@ -54,8 +54,31 @@ protocol CloudRecordPullOperation : Operation {
     
 }
 
-class CloudKitOperationFactory: OperationFactory {
 
+//protocol CloudZoneAvailablityOperationDelegate: class {
+//
+//}
+
+protocol CloudZoneAvailablityOperation : Operation {
+
+// Modifying and syncing record zones.
+//    class CKFetchRecordZonesOperation
+//    class CKModifyRecordZonesOperation
+//    
+    
+    var zoneIds:[CKRecordZone.ID] { get set }
+    
+    //var delegate: CloudZoneAvailablityOperationDelegate? { get set }
+    
+}
+
+
+class CloudKitOperationFactory: OperationFactory {
+    
+    func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation {
+        return CloudKitZoneAvailablityOperation()
+    }
+    
     func newPullOperation(delegate:CloudRecordPullOperationDelegate) -> CloudRecordPullOperation {
         return CloudKitRecordPullOperation(delegate: delegate)
     }

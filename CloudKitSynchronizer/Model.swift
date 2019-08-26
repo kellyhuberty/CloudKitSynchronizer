@@ -20,7 +20,7 @@ enum ModelSaveStatus {
 
 extension Model {
     
-    var databasePool:DatabasePool {
+    var databaseQueue:DatabaseQueue {
         
         return Repo.shared.databaseQueue
         
@@ -29,7 +29,7 @@ extension Model {
     func save(_ completion:((ModelSaveStatus) -> Void)? ) {
 
         do {
-            try databasePool.writeInTransaction { (database) -> Database.TransactionCompletion in
+            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
                 do{
                     try self.save(database)
                     completion?(.success)
@@ -48,7 +48,7 @@ extension Model {
     func delete(_ completion:((ModelSaveStatus) -> Void)? ) {
         
         do {
-            try databasePool.writeInTransaction { (database) -> Database.TransactionCompletion in
+            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
                 do{
                     try self.delete(database)
                     completion?(.success)

@@ -17,11 +17,16 @@ protocol CloudModel {
 enum CloudRecordStatus : String, Codable {
     case pushingUpdate = "pushing.update"
     case pushingDelete = "pushing.delete"
-
+    
     case pullingUpdate = "pulling.update"
     case pullingDelete = "pulling.delete"
 
     case synced = "synced"
+}
+
+enum CloudRecordErrorStatus : String, Codable {
+    case conflict = "conflict"
+    case retryLater = "retryLater"
 }
 
 extension CloudModel{

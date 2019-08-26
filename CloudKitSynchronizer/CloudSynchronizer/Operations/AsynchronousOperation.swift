@@ -1,17 +1,29 @@
 //
-//  CloudOperation.swift
-//  VHX
+//  AsynchronousOperation.swift
+//  CloudKitSynchronizer
 //
-//  Created by Kelly Huberty on 3/17/19.
+//  Created by Kelly Huberty on 8/18/19.
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
 import Foundation
-import CloudKit
 
-class CloudOperation : Operation {
+class AsynchronousOperation : Operation {
     
-    private var _operation:CKOperation!
+    class Token {
+        
+        weak var operation: AsynchronousOperation?
+        
+        init(operation: AsynchronousOperation) {
+            self.operation = operation
+        }
+        
+        func finish(){
+            operation?.finish()
+        }
+        
+    }
+    
     
     private var _isExecuting:Bool = false{
         willSet{
@@ -31,32 +43,13 @@ class CloudOperation : Operation {
         }
     }
     
-//    init(operation:CKOperation) {
-//        _operation = operation
-//
-//        _operation.completionBlock = { [weak self] in
-//            self?.finish()
-//        }
-//
-//        super.init()
-//    }
-
     override func start() {
-
         _isExecuting = true
-
-        
-        _operation = createOperation()
-        _operation.completionBlock = { [weak self] in
-            self?.finish()
-        }
-        _operation.start()
+        self.start(completionToken: Token(operation: self))
     }
-
-    func createOperation() -> CKOperation {
-
-        fatalError("Operation not configured")
-
+    
+    func start(completionToken:Token){
+        fatalError("func \(#function) on subclass of \(type(of: self)) Requires overriding.")
     }
     
     override var isAsynchronous: Bool{
@@ -75,11 +68,9 @@ class CloudOperation : Operation {
         }
     }
     
-    func finish(){
+    private func finish(){
         _isExecuting = false
         _isFinished = true
     }
     
-    
 }
-
