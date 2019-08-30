@@ -495,7 +495,7 @@ class CloudSynchronizer {
         UserDefaults.standard.set(version, forKey: UserDefaultsKeys.migrationVersion.description)
     }
     
-    private func propegatePulledChangesToDatabase() throws {
+    private func propagatePulledChangesToDatabase() throws {
         
         try localDatabasePool.write { (db) in
             
@@ -694,7 +694,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
     }
     
     func cloudPullOperationDidComplete(_ operation: CloudRecordPullOperation) {
-        try! self.propegatePulledChangesToDatabase()
+        try! self.propagatePulledChangesToDatabase()
     }
     
 }
@@ -719,7 +719,6 @@ extension CloudSynchronizer: TableObserverDelegate {
             self.operationFactory?.newPushOperation(delegate: self) else {
                 return
         }
-        
         
         currentPushOperation.updates = recordsToCreateOrUpdate
         currentPushOperation.deleteIds = deleteIds
