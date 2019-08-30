@@ -276,6 +276,7 @@
 				TargetAttributes = {
 					C7653B5D2243390B000CDABB = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1100;
 						SystemCapabilities = {
 							com.apple.Push = {
 								enabled = 1;
@@ -287,6 +288,7 @@
 					};
 					C7653B712243390D000CDABB = {
 						CreatedOnToolsVersion = 10.1;
+						LastSwiftMigration = 1100;
 						TestTargetID = C7653B5D2243390B000CDABB;
 					};
 				};
@@ -624,7 +626,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -644,7 +646,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
@@ -665,7 +667,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CloudKitSynchronizer.app/CloudKitSynchronizer";
 			};
@@ -687,7 +689,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
+				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CloudKitSynchronizer.app/CloudKitSynchronizer";
 			};

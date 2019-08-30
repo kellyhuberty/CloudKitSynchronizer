@@ -207,7 +207,7 @@ class CloudSynchronizer {
     
     public func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
         
-        let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)
+        let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)!
         //TODO: Support for push notification changes
         
     }
@@ -766,7 +766,7 @@ class CloudRecordMapper {
         
         var newColumns = columns
         newColumns.sort()
-        if let index = newColumns.index(of: "identifier") {
+        if let index = newColumns.firstIndex(of: "identifier") {
             newColumns.remove(at: index)
             newColumns.insert("identifier", at: 0)
         }
