@@ -9,8 +9,10 @@
 import XCTest
 @testable import CloudKitSynchronizer
 
-class CloudKitSynchronizerTests: XCTestCase {
+class CloudSynchronizerTests: XCTestCase {
 
+    var subject: CloudSynchronizer? = nil
+    
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }

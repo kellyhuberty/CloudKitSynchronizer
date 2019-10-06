@@ -72,8 +72,13 @@ class CloudSynchronizer {
     static let Prefix = "cloudRecord"
     
     //Constants
-    let container:CKContainer = CKContainer.default()
-    let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
+    
+    /// These two vars are currently unused, but I imagine tey will be at some point (And were previously.) Because they are both
+    /// Default, they are usually assumed by CloudKit.
+    /**
+     let container:CKContainer = CKContainer.default()
+     let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
+     */
     let zoneId = CKRecordZone.ID(zoneName: CloudSynchronizer.Domain,
                                      ownerName: CKCurrentUserDefaultName)
     
@@ -140,6 +145,7 @@ class CloudSynchronizer {
     
     var observers:[TableObserver] = []
     
+    ///Unused
     weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue:DatabaseQueue,
@@ -235,6 +241,7 @@ class CloudSynchronizer {
             }
         }
         
+        //TODO: Lets not fatal error here
         fatalError("Unable to find observed table \(name)")
         
     }
@@ -246,6 +253,25 @@ class CloudSynchronizer {
         tableObserver.delegate = self
         addTableObserver(tableObserver)
         
+    }
+    
+    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordStatus) -> CloudRecord{
+        
+        let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
+        
+        if let ckRecord = ckRecord {
+            cloudRecord.record = ckRecord
+        }else{
+            cloudRecord.record = createNewCKRecord(with:identifier, tableName:tableName)
+        }
+        
+        return cloudRecord
+    }
+    
+    private func createNewCKRecord(with identifier:String, tableName:String) -> CKRecord{
+        let ckId = CKRecord.ID(recordName: identifier, zoneID: zoneId)
+        let ckRecord = CKRecord(recordType: tableName, recordID: ckId)
+        return ckRecord
     }
     
     private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordStatus) -> [CKRecord] {
@@ -276,7 +302,7 @@ class CloudSynchronizer {
         
     }
     
-    
+    //MARK:- Cloud Record Checkout/Checkin
     private func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordStatus, sorted: Bool = true) -> [CKRecord] {
         
         guard ids.count > 0 else {
@@ -344,26 +370,8 @@ class CloudSynchronizer {
         return updateRecords
     }
     
-    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordStatus) -> CloudRecord{
-        
-        let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
-        
-        if let ckRecord = ckRecord {
-            cloudRecord.record = ckRecord
-        }else{
-            cloudRecord.record = createNewCKRecord(with:identifier, tableName:tableName)
-        }
-        
-        return cloudRecord
-    }
     
-    private func createNewCKRecord(with identifier:String, tableName:String) -> CKRecord{
-        let ckId = CKRecord.ID(recordName: identifier, zoneID: zoneId)
-        let ckRecord = CKRecord(recordType: tableName, recordID: ckId)
-        return ckRecord
-    }
-    
-    private func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordStatus) {
+    private func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordStatus, using db:Database) throws {
         //After a modification has completed, check in a record.
         
         
@@ -386,37 +394,35 @@ class CloudSynchronizer {
         }
         
         //Error: Cloud Checkin Error
-        try! localDatabasePool.write { (db) in
         
-            var cloudRecordsToSave:[CloudRecord] = []
-            
-            let selectQuery = "SELECT * FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) ) ORDER BY `identifier` ASC"
-            
-            let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(allRecordIdNames), adapter: nil, cached: false)
-            
-            var availableCloudRecords = try CloudRecord.fetchAll(db, request)
-            
-            for record in allRecords {
-                if record.recordID.recordName == availableCloudRecords.first?.identifier {
-                    let cloudRecord = availableCloudRecords.removeFirst()
-                    cloudRecord.status = status
-                    cloudRecord.record = record
-                    cloudRecordsToSave.append(cloudRecord)
-                }else{
-                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status:status)
-                    cloudRecordsToSave.append(cloudRecord)
-                }
+        var cloudRecordsToSave:[CloudRecord] = []
+        
+        let selectQuery = "SELECT * FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) ) ORDER BY `identifier` ASC"
+        
+        let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(allRecordIdNames), adapter: nil, cached: false)
+        
+        var availableCloudRecords = try CloudRecord.fetchAll(db, request)
+        
+        for record in allRecords {
+            if record.recordID.recordName == availableCloudRecords.first?.identifier {
+                let cloudRecord = availableCloudRecords.removeFirst()
+                cloudRecord.status = status
+                cloudRecord.record = record
+                cloudRecordsToSave.append(cloudRecord)
+            }else{
+                let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status:status)
+                cloudRecordsToSave.append(cloudRecord)
             }
-            
-            for cloudRecord in cloudRecordsToSave {
-                try cloudRecord.save(db)
-            }
-            
         }
+        
+        for cloudRecord in cloudRecordsToSave {
+            try cloudRecord.save(db)
+        }
+            
         
     }
     
-    private func checkinCloudRecordIds(_ recordIds:[CKRecord.ID], with status:CloudRecordStatus) {
+    private func checkinCloudRecordIds(_ recordIds:[CKRecord.ID], with status:CloudRecordStatus, using db:Database) throws {
         //After a modification has completed, check in a record.
         
         let recordIdStrings = recordIds.map { (recordIds) -> String in
@@ -424,12 +430,10 @@ class CloudSynchronizer {
         }
         
         //Error: Cloud Checkin Error
-        try! localDatabasePool.write { (db) in
-            try checkinCloudRecords(identifiers:recordIdStrings, with: status, database: db)
-        }
+        try checkinCloudRecords(identifiers:recordIdStrings, with: status, using: db)
     }
     
-    private func checkinCloudRecords(identifiers:[String], with status:CloudRecordStatus, database:Database) throws {
+    private func checkinCloudRecords(identifiers:[String], with status:CloudRecordStatus, using db:Database) throws {
         //After a modification has completed, check in a record.
         
         var bindingsArr = [String]()
@@ -442,8 +446,27 @@ class CloudSynchronizer {
     
         let updateQuery = "UPDATE `\(TableNames.CloudRecords)` SET `status` = ? WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
         
-        try database.execute(updateQuery, arguments: StatementArguments(args) )
+        try db.execute(updateQuery, arguments: StatementArguments(args) )
     
+    }
+    
+    private func cloudRecords(with status:CloudRecordStatus, using db:Database) throws -> [CloudRecord] {
+        
+        let sql =
+            """
+                SELECT
+                    `\(CloudSynchronizer.TableNames.CloudRecords)`.*
+                FROM
+                    `\(CloudSynchronizer.TableNames.CloudRecords)`
+                WHERE
+                    `status` = ?
+            """
+        
+        let cloudRecordRequest = SQLRequest<CloudRecord>(sql, arguments: StatementArguments([status.rawValue]), adapter: nil, cached: false)
+        
+        let cloudRecords = try CloudRecord.fetchAll(db, cloudRecordRequest)
+        
+        return cloudRecords
     }
     
     func initilizeZones(completion:@escaping ()->Void) {
@@ -499,34 +522,9 @@ class CloudSynchronizer {
         
         try localDatabasePool.write { (db) in
             
-            let deletedCRSQL =
-                """
-                    SELECT
-                        `\(CloudSynchronizer.TableNames.CloudRecords)`.*
-                    FROM
-                        `\(CloudSynchronizer.TableNames.CloudRecords)`
-                    WHERE
-                        `status` = ?
-                """
+            let cloudRecordsToDelete = try cloudRecords(with: .pullingDelete, using: db)
             
-            let deletedCRRequest = SQLRequest<CloudRecord>(deletedCRSQL, arguments: StatementArguments([CloudRecordStatus.pullingDelete.rawValue]), adapter: nil, cached: false)
-            
-            let cloudRecordsToDelete = try CloudRecord.fetchAll(db, deletedCRRequest)
-            
-            
-            let updatedCRSQL =
-                """
-                    SELECT
-                    `\(CloudSynchronizer.TableNames.CloudRecords)`.*
-                    FROM
-                    `\(CloudSynchronizer.TableNames.CloudRecords)`
-                    WHERE
-                    `status` = ?
-                """
-            
-            let updatedCRRequest = SQLRequest<CloudRecord>(updatedCRSQL, arguments: StatementArguments([CloudRecordStatus.pullingUpdate.rawValue]), adapter: nil, cached: false)
-            
-            let cloudRecordsToUpdate = try CloudRecord.fetchAll(db, updatedCRRequest)
+            let cloudRecordsToUpdate = try cloudRecords(with: .pullingUpdate, using: db)
             
             //Deletes
             var cloudRecordsToDeleteGrouped = [String:[String]]()
@@ -545,9 +543,7 @@ class CloudSynchronizer {
 
             }
         
-            
 
-            
             //Updates
             var cloudRecordsToUpdateGrouped = [String:[CKRecord]]()
 
@@ -573,7 +569,7 @@ class CloudSynchronizer {
             })
             
             //Error: Cloud Checkin Error
-            try checkinCloudRecords(identifiers:allIdentifiers, with: .synced, database: db)
+            try checkinCloudRecords(identifiers:allIdentifiers, with: .synced, using: db)
             
         }
         
@@ -608,8 +604,6 @@ class CloudSynchronizer {
                                 INSERT OR REPLACE INTO \(tableName) \(sortedSqlColumnString) VALUES \(sqlValuesString)
                               """
             , arguments: arguments)
-        
-        
         
         //Clean up from CloudRecordTable
         
@@ -651,7 +645,10 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
         case .error(let error):
             break
         case .success:
-            self.checkinCloudRecords(processedRecords, with: .synced)
+            //Error:
+            try? localDatabasePool.write { (db) in
+                try? self.checkinCloudRecords(processedRecords, with: .synced, using:db)
+            }
         }
 
     }
@@ -668,13 +665,16 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
 extension CloudSynchronizer: CloudRecordPullOperationDelegate {
     
     func cloudPullOperation(_ operation: CloudRecordPullOperation, processedUpdatedRecords: [CKRecord], status: CloudRecordOperationStatus) {
-        self.checkinCloudRecords(processedUpdatedRecords, with: .pullingUpdate)
         
         switch status {
         case .error(let error):
             break
         case .success:
-            self.checkinCloudRecords(processedUpdatedRecords, with: .pullingUpdate)
+            
+            //Error:
+            try? localDatabasePool.write { (db) in
+                try? self.checkinCloudRecords(processedUpdatedRecords, with: .pullingUpdate, using: db)
+            }
         }
     }
     
@@ -684,7 +684,10 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
         case .error(let error):
             break
         case .success:
-            self.checkinCloudRecordIds(processedDeletedRecordIds, with: .pullingDelete)
+            //Error:
+            try? localDatabasePool.write { (db) in
+                try? self.checkinCloudRecordIds(processedDeletedRecordIds, with: .pullingDelete, using:db)
+            }
         }
         
     }
