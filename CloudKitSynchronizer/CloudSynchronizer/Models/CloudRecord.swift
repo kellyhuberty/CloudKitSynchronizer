@@ -15,7 +15,7 @@ import CloudKit
 class CloudRecord : Model, Codable{
     
     static var databaseTableName: String {
-        return CloudSynchronizer.TableNames.CloudRecords
+        return TableNames.CloudRecords
     }
     
     struct Identifier{

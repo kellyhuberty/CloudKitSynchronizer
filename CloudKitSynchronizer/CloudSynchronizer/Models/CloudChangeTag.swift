@@ -12,7 +12,7 @@ import CloudKit
 class CloudChangeTag : Model, Codable{
     
     static var databaseTableName: String {
-        return CloudSynchronizer.TableNames.ChangeTags
+        return TableNames.ChangeTags
     }
     
     var changeTokenData: Data
