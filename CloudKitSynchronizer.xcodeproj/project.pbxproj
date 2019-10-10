@@ -19,7 +19,7 @@
 		C7653B642243390B000CDABB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C7653B692243390D000CDABB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
 		C7653B6C2243390D000CDABB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */; };
-		C7653B772243390D000CDABB /* CloudKitSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B762243390D000CDABB /* CloudKitSynchronizerTests.swift */; };
+		C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */; };
 		C7653B832243396F000CDABB /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
 		C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
 		C7653B912243F219000CDABB /* CloudSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8C2243F219000CDABB /* CloudSynchronizer.swift */; };
@@ -34,6 +34,7 @@
 		C7653BA02243FB14000CDABB /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C7653B9F2243FB14000CDABB /* CloudKit.framework */; };
 		C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */; };
 		C7E421F122876C79002E0392 /* TableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserver.swift */; };
+		C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -66,7 +67,7 @@
 		C7653B6B2243390D000CDABB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		C7653B6D2243390D000CDABB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C7653B722243390D000CDABB /* CloudKitSynchronizerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CloudKitSynchronizerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C7653B762243390D000CDABB /* CloudKitSynchronizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitSynchronizerTests.swift; sourceTree = "<group>"; };
+		C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudSynchronizerTests.swift; sourceTree = "<group>"; };
 		C7653B782243390D000CDABB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		C7653B812243396F000CDABB /* WordListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListViewController.swift; sourceTree = "<group>"; };
 		C7653B8722434191000CDABB /* WordListTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListTableCell.swift; sourceTree = "<group>"; };
@@ -83,6 +84,7 @@
 		C7653B9F2243FB14000CDABB /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
 		C7E421F022876C78002E0392 /* TableObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserver.swift; sourceTree = "<group>"; };
+		C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -202,7 +204,7 @@
 		C7653B752243390D000CDABB /* CloudKitSynchronizerTests */ = {
 			isa = PBXGroup;
 			children = (
-				C7653B762243390D000CDABB /* CloudKitSynchronizerTests.swift */,
+				C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */,
 				C7653B782243390D000CDABB /* Info.plist */,
 			);
 			path = CloudKitSynchronizerTests;
@@ -215,6 +217,7 @@
 				C744A7EF231377CA004C163A /* Operations */,
 				C744A7F023137814004C163A /* TableObserver */,
 				C7653B982243F3C8000CDABB /* CloudModel.swift */,
+				C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */,
 				C744A7F323138020004C163A /* Models */,
 			);
 			path = CloudSynchronizer;
@@ -449,6 +452,7 @@
 				C744A7EE2309BEC9004C163A /* AsynchronousOperation.swift in Sources */,
 				C7653B622243390B000CDABB /* AppDelegate.swift in Sources */,
 				C744A7F2231378F8004C163A /* SQLLiteTableObserver.swift in Sources */,
+				C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */,
 				C7653B9D2243F793000CDABB /* Model.swift in Sources */,
 				C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */,
 				C7653B952243F219000CDABB /* Repo.swift in Sources */,
@@ -469,7 +473,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7653B772243390D000CDABB /* CloudKitSynchronizerTests.swift in Sources */,
+				C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
