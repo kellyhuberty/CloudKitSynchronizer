@@ -40,7 +40,7 @@ class SQLiteTableObserver {
         let columnNames = try databaseQueue.read { (db) -> [String] in
             let columns:[Row]
             
-            columns = try Row.fetchAll(db,  "PRAGMA table_info(\(table))")
+            columns = try Row.fetchAll(db,  sql: "PRAGMA table_info(\(table))")
             return columns.compactMap({ (row) -> String in
                 return row["name"]
             })
@@ -51,7 +51,7 @@ class SQLiteTableObserver {
     private func setupResultsController(_ table:String, queue:DatabaseQueue ) throws ->
         FetchedRecordsController<TableRow> {
             
-            let request = SQLRequest<TableRow>("SELECT `\(table)`.* FROM `\(table)`", arguments: nil, adapter: nil, cached: false)
+            let request = SQLRequest<TableRow>(sql: "SELECT `\(table)`.* FROM `\(table)`")
             
             let controller = try FetchedRecordsController<TableRow>(queue, request: request)
             

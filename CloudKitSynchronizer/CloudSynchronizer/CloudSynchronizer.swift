@@ -118,7 +118,7 @@ class CloudSynchronizer {
             //Error: .changeTokenSaveError
             let tag = try! localDatabasePool.read { (db) -> CloudChangeTag? in
                 return try CloudChangeTag.fetchOne(db,
-                                                    """
+                                                   sql: """
                                                     SELECT *
                                                     FROM \(TableNames.ChangeTags)
                                                    """)
@@ -380,7 +380,7 @@ class CloudSynchronizer {
         let args = StatementArguments(identifiers)
         
         //Delete From Table
-        try database.execute("DELETE FROM `\(tableName)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
+        try database.execute(sql: "DELETE FROM `\(tableName)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
         
         try cloudRecordStore.removeCloudRecords(identifiers: identifiers, using: database)
     }
@@ -399,7 +399,7 @@ class CloudSynchronizer {
         let arguments = StatementArguments(sqlValues)
         
         //Update cloud record table
-        try database.execute("""
+        try database.execute(sql: """
                                 INSERT OR REPLACE INTO \(tableName) \(sortedSqlColumnString) VALUES \(sqlValuesString)
                               """
             , arguments: arguments)

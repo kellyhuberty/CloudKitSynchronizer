@@ -72,12 +72,12 @@ class CloudRecordStore : CloudRecordStoring {
         
         let updateQuery = "UPDATE `\(TableNames.CloudRecords)` SET `status` = ? WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
         
-        try db.execute(updateQuery, arguments: StatementArguments( argumentsArr ) )
+        try db.execute(sql: updateQuery, arguments: StatementArguments( argumentsArr ) )
         
         let selectQuery = "SELECT * FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
         
         //QUERY RECORDS
-        let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(ids), adapter: nil, cached: false)
+        let request = SQLRequest<CloudRecord>(sql: selectQuery, arguments: StatementArguments(ids), adapter: nil, cached: false)
         let results = try request.fetchAll(db)
         
         updateRecords = results.compactMap({ (cloudRecord) -> CKRecord? in
@@ -133,7 +133,7 @@ class CloudRecordStore : CloudRecordStoring {
         //Error: Cloud Checkin Error
         var cloudRecordsToSave:[CloudRecord] = []
         let selectQuery = "SELECT * FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) ) ORDER BY `identifier` ASC"
-        let request = SQLRequest<CloudRecord>(selectQuery, arguments: StatementArguments(allRecordIdNames), adapter: nil, cached: false)
+        let request = SQLRequest<CloudRecord>(sql: selectQuery, arguments: StatementArguments(allRecordIdNames), adapter: nil, cached: false)
         var availableCloudRecords = try CloudRecord.fetchAll(db, request)
         
         for record in allRecords {
@@ -173,7 +173,7 @@ class CloudRecordStore : CloudRecordStoring {
         
         let args = [status.rawValue] + identifiers
         let updateQuery = "UPDATE `\(TableNames.CloudRecords)` SET `status` = ? WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
-        try db.execute(updateQuery, arguments: StatementArguments(args) )
+        try db.execute(sql: updateQuery, arguments: StatementArguments(args) )
     }
     
     func removeCloudRecords(identifiers:[String], using db:Database) throws {
@@ -181,7 +181,7 @@ class CloudRecordStore : CloudRecordStoring {
         let args = StatementArguments(identifiers)
 
         //Clean up from CloudRecordTable
-        try db.execute("DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
+        try db.execute(sql: "DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
     }
     
     func cloudRecords(with status:CloudRecordStatus, using db:Database) throws -> [CloudRecord] {
@@ -195,7 +195,7 @@ class CloudRecordStore : CloudRecordStoring {
                     `status` = ?
             """
         
-        let cloudRecordRequest = SQLRequest<CloudRecord>(sql, arguments: StatementArguments([status.rawValue]), adapter: nil, cached: false)
+        let cloudRecordRequest = SQLRequest<CloudRecord>(sql: sql, arguments: StatementArguments([status.rawValue]), adapter: nil, cached: false)
         let cloudRecords = try CloudRecord.fetchAll(db, cloudRecordRequest)
         return cloudRecords
     }

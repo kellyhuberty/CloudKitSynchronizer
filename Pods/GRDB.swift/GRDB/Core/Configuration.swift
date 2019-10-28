@@ -1,9 +1,11 @@
 import Foundation
 import Dispatch
 #if SWIFT_PACKAGE
-    import CSQLite
+import CSQLite
+#elseif GRDBCIPHER
+import SQLCipher
 #elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-    import SQLite3
+import SQLite3
 #endif
 
 /// Configuration for a DatabaseQueue or DatabasePool.
@@ -73,16 +75,34 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
-    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
-    /// The passphrase for encrypted database.
+    // TODO: remove when the deprecated passphrase turns unavailable.
+    var _passphrase: String?
+    
+    /// The passphrase for the encrypted database.
     ///
     /// Default: nil
-    public var passphrase: String?
+    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
+    public var passphrase: String? {
+        get { return _passphrase }
+        set { _passphrase = newValue }
+    }
     #endif
     
+    // MARK: - Managing SQLite Connections
+    
+    /// A function that is run when an SQLite connection is opened, before the
+    /// connection is made available for database access methods.
+    ///
+    /// For example:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase = { db in
+    ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
+    ///     }
+    public var prepareDatabase: ((Database) throws -> Void)?
     
     // MARK: - Transactions
     
@@ -164,9 +184,9 @@ public struct Configuration {
     // MARK: - Not Public
     
     var threadingMode: Database.ThreadingMode = .`default`
-    var SQLiteConnectionDidOpen: (() -> ())?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> ())?
-    var SQLiteConnectionDidClose: (() -> ())?
+    var SQLiteConnectionDidOpen: (() -> Void)?
+    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
+    var SQLiteConnectionDidClose: (() -> Void)?
     var SQLiteOpenFlags: Int32 {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags

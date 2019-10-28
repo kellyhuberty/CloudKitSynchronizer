@@ -16,7 +16,14 @@ final class SerializedDatabase {
     /// The dispatch queue
     private let queue: DispatchQueue
     
-    init(path: String, configuration: Configuration = Configuration(), schemaCache: DatabaseSchemaCache, defaultLabel: String, purpose: String? = nil) throws {
+    init(
+        path: String,
+        configuration: Configuration = Configuration(),
+        schemaCache: DatabaseSchemaCache,
+        defaultLabel: String,
+        purpose: String? = nil)
+        throws
+    {
         // According to https://www.sqlite.org/threadsafe.html
         //
         // > SQLite support three different threading modes:
@@ -42,7 +49,12 @@ final class SerializedDatabase {
         self.queue = configuration.makeDispatchQueue(defaultLabel: defaultLabel, purpose: purpose)
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
-            try db.setup()
+            do {
+                try db.setup()
+            } catch {
+                db.close()
+                throw error
+            }
         }
     }
     
@@ -188,12 +200,25 @@ final class SerializedDatabase {
     }
     
     /// Fatal error if current dispatch queue is not valid.
-    func preconditionValidQueue(_ message: @autoclosure() -> String = "Database was not used on the correct thread.", file: StaticString = #file, line: UInt = #line) {
-        SchedulingWatchdog.preconditionValidQueue(db, message, file: file, line: line)
+    func preconditionValidQueue(
+        _ message: @autoclosure() -> String = "Database was not used on the correct thread.",
+        file: StaticString = #file,
+        line: UInt = #line)
+    {
+        SchedulingWatchdog.preconditionValidQueue(db, message(), file: file, line: line)
     }
     
     /// Fatal error if a transaction has been left opened.
-    private func preconditionNoUnsafeTransactionLeft(_ db: Database, _ message: @autoclosure() -> String = "A transaction has been left opened at the end of a database access", file: StaticString = #file, line: UInt = #line) {
-        GRDBPrecondition(configuration.allowsUnsafeTransactions || !db.isInsideTransaction, message, file: file, line: line)
+    private func preconditionNoUnsafeTransactionLeft(
+        _ db: Database,
+        _ message: @autoclosure() -> String = "A transaction has been left opened at the end of a database access",
+        file: StaticString = #file,
+        line: UInt = #line)
+    {
+        GRDBPrecondition(
+            configuration.allowsUnsafeTransactions || !db.isInsideTransaction,
+            message(),
+            file: file,
+            line: line)
     }
 }
