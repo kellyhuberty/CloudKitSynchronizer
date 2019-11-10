@@ -77,7 +77,7 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
 
     @objc func refreshAction(_ sender: Any) {
         
-        Repo.shared.cloudSynchronizer.refreshFromCloud {
+        Repo.shared.cloudSynchronizer?.refreshFromCloud {
             DispatchQueue.main.async {
                 (sender as? UIRefreshControl)?.endRefreshing()
             }

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import GRDB
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -53,3 +54,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 }
 
+extension AppDelegate: RepoManufacturing {
+   
+    func loadRepo(for domain: String) -> Repo? {
+        
+        let directory = URL(string:Directories.documents)!.appendingPathComponent("data.db")
+        
+        print("Database Path: ")
+        print(directory.path + "\n")
+        
+        //let dbPool = try! DatabaseQueue(path: directory.path)
+        
+         
+        let migrator = setupMigrator()
+            
+        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
+                        path: directory.path,
+                        migrator: migrator,
+                        synchronizedTables: [SynchronizedTable(table:"Item")] )
+        
+        return repo
+        
+    }
+    
+    func setupMigrator() -> DatabaseMigrator {
+    
+        var migrator = DatabaseMigrator()
+        
+        migrator.registerMigration("v1.0.0.1") { (db) in
+            try! db.create(table: "Item", body: { (table) in
+                table.column("identifier", Database.ColumnType.text).unique(onConflict: Database.ConflictResolution.replace).primaryKey()
+                table.column("text", Database.ColumnType.text)
+            })
+        }
+        
+        return migrator
+        
+    }
+    
+}

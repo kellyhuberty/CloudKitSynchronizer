@@ -20,10 +20,8 @@ public enum ModelSaveStatus {
 
 public extension Model {
     
-    var databaseQueue:DatabaseQueue {
-        
+    var databaseQueue: DatabaseQueue {
         return Repo.shared.databaseQueue
-        
     }
     
     func save(_ completion:((ModelSaveStatus) -> Void)? ) {
@@ -63,5 +61,14 @@ public extension Model {
         }
         
     }
-    
+
 }
+
+
+//extension Array where Element : Model{
+//    
+//    save()
+//    
+//    
+//    
+//}
