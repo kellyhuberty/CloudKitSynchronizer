@@ -17,6 +17,8 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         case addItem = "WordListViewController.Section.addItem"
     }
     
+    
+    
     lazy var resultsController:FetchedRecordsController<Item> = {
         
         let request = SQLRequest<Item>("select * from Item order by `text`")
@@ -49,18 +51,129 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         return toolbar
     }()
     
+    var keyController: KeyController!
+    
     @objc func endEditingOnView(){
         self.view.endEditing(true)
+    }
+    
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        keyController = KeyController(self)
+        keyController.addFirstResponderCommands()
+    }
+    
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
+        keyController = KeyController(self)
+        keyController.addFirstResponderCommands()
+    }
+    
+    override var canBecomeFirstResponder: Bool {
+        return true
+    }
+    
+    override func becomeFirstResponder() -> Bool {
+        super.becomeFirstResponder()
+        keyController.isFirstResponder = true
+        return true
+    }
+
+    override func resignFirstResponder() -> Bool {
+        super.resignFirstResponder()
+        keyController.isFirstResponder = false
+        return true
+    }
+    
+//    override var keyCommands: [UIKeyCommand]? {
+//        return [
+//            UIKeyCommand(input: UIKeyCommand.inputDownArrow,
+//                         modifierFlags: [],
+//                         action: #selector(downArrowAction(_:)),
+//                         discoverabilityTitle: "Down"),
+//            UIKeyCommand(input: UIKeyCommand.inputUpArrow,
+//                         modifierFlags: [],
+//                         action: #selector(upArrowAction(_:)),
+//                         discoverabilityTitle: "Up"),
+//            UIKeyCommand(input: "\u{8}",
+//                         modifierFlags: [],
+//                         action: #selector(deleteAction(_:)),
+//                         discoverabilityTitle: "Delete")
+//        ]
+//    }
+    
+    class KeyController {
+                
+        weak var responder: UIViewController?
+        
+        var firstResponderKeyCommands: [UIKeyCommand] = []
+        
+        var isFirstResponder: Bool = false {
+            didSet{
+//                if isFirstResponder {
+//                    addFirstResponderCommands()
+//                }
+//                else {
+//                    removeFirstResponderCommands()
+//                }
+            }
+        }
+        
+        init(_ responder: UIViewController) {
+            self.responder = responder
+            responder.addKeyCommand(downArrow)
+            responder.addKeyCommand(upArrow)
+            firstResponderKeyCommands.append(delete)
+            firstResponderKeyCommands.append(selectAll)
+        }
+    
+        let downArrow =
+            UIKeyCommand(input: UIKeyCommand.inputDownArrow,
+                                     modifierFlags: [],
+                                     action: #selector(downArrowAction(_:)),
+                                     discoverabilityTitle: "Down")
+        
+        let upArrow =
+            UIKeyCommand(input: UIKeyCommand.inputUpArrow,
+                                   modifierFlags: [],
+                                   action: #selector(upArrowAction(_:)),
+                                   discoverabilityTitle: "Up")
+        
+        let delete =
+            UIKeyCommand(input: "\u{8}",
+                         modifierFlags: [],
+                         action: #selector(deleteAction(_:)),
+                         discoverabilityTitle: "Delete")
+        
+        let selectAll =
+            UIKeyCommand(title: "Select All", image: nil, action: #selector(selectAllAction(_:)), input: "a", modifierFlags: [.command], propertyList: nil, alternates: [], discoverabilityTitle: nil, attributes: [], state: .on)
+        
+        func addFirstResponderCommands() {
+            for command in firstResponderKeyCommands {
+                if !(responder?.keyCommands?.contains(command) ?? false) {
+                    responder?.addKeyCommand(command)
+                }
+            }
+        }
+        
+        func removeFirstResponderCommands() {
+            for command in firstResponderKeyCommands {
+                if (responder?.keyCommands?.contains(command) ?? false) {
+                    responder?.removeKeyCommand(command)
+                }
+            }
+        }
+        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+        tableView.allowsMultipleSelection = false
+        tableView.allowsMultipleSelectionDuringEditing = true
 
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        // Uncomment the following line to preserve selection between presentations
+        self.clearsSelectionOnViewWillAppear = false
         
         tableView.register(WordListTableCell.self, forCellReuseIdentifier: Section.item.rawValue)
         tableView.register(WordListTableCell.self, forCellReuseIdentifier: Section.addItem.rawValue)
@@ -83,6 +196,39 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
             }
         }
         
+    }
+    
+    @objc func deleteAction(_ sender: Any) {
+        for indexPath in tableView.indexPathsForSelectedRows ?? [] {
+            let record = resultsController.record(at: indexPath)
+            removeItem(record)
+        }
+    }
+    
+    @objc func upArrowAction(_ sender: Any) {
+        guard let indexPath = tableView.indexPathsForSelectedRows?.first else {
+            return
+        }
+        tableView.deselectAll()
+        guard let newIndexPath = tableView.indexPath(before: indexPath) else {
+            return
+        }
+        tableView.selectRow(at: newIndexPath, animated: false, scrollPosition: .top)
+    }
+    
+    @objc func downArrowAction(_ sender: Any) {
+        guard let indexPath = tableView.indexPathsForSelectedRows?.last else {
+            return
+        }
+        tableView.deselectAll()
+        guard let newIndexPath = tableView.indexPath(after: indexPath) else {
+            return
+        }
+        tableView.selectRow(at: newIndexPath, animated: false, scrollPosition: .bottom)
+    }
+    
+    @objc func selectAllAction(_ sender: Any) {
+        tableView.selectAll()
     }
     
     // MARK: - Table view data source
@@ -142,6 +288,27 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         }
     }
     
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.endEditing(false)
+    }
+    
+    override func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        
+        let section = Section.allCases[indexPath.section]
+        if section == .item {
+            return indexPath
+        }
+        return nil
+    }
+    
+    override func tableView(_ tableView: UITableView, willDeselectRowAt indexPath: IndexPath) -> IndexPath? {
+        return indexPath
+    }
+    
+    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+
+    }
+    
     func editItem(_ item: Item) {
         
         item.save { (status) in
@@ -166,21 +333,15 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
 
         }
         
-        
     }
     
     func itemCellDidBeginEditing(_ itemCell: WordListTableCell) {
         
-//        let item:Item
-//
-//        if let cellItem = itemCell.item {
-//            item = cellItem
-//        }else{
-//            item = Item()
-//            item.text = itemCell.textView.text
-//        }
-//
-//        addEditItem(item)
+
+        keyController.removeFirstResponderCommands()
+        
+        tableView?.deselectAll()
+        
     }
     
     func itemCellDidChange(_ itemCell:WordListTableCell){
@@ -198,6 +359,8 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
     }
     
     func itemCellDidEndEditing(_ itemCell: WordListTableCell) {
+        
+        keyController.addFirstResponderCommands()
         
         let item:Item
         
@@ -257,5 +420,83 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
         // Pass the selected object to the new view controller.
     }
     */
+    
+}
+
+extension UITableView {
+    func deselectAll() {
+        for indexPath in self.indexPathsForSelectedRows ?? [] {
+            self.deselectRow(at: indexPath, animated: false)
+        }
+    }
+    
+    func selectAll() {
+        var seedPath:IndexPath = IndexPath(row: -1, section: 0)
+        
+        while let nextPath = indexPath(after: seedPath) {
+            if let indexPath = self.delegate?.tableView?(self, willSelectRowAt: nextPath) {
+                self.selectRow(at: indexPath, animated: false, scrollPosition: .none)
+            }
+            seedPath = nextPath
+        }
+    }
+}
+
+
+extension UITableView {
+    
+    func indexPath(before: IndexPath) -> IndexPath? {
+        return nextSelectablePathExists(before, rowModifier: { (row) -> Int in
+            return row - 1
+        }) { (section) -> (row:Int, section:Int) in
+            return (
+                row: 0,
+                section: section - 1
+            )
+        }
+    }
+    
+    func indexPath(after: IndexPath) -> IndexPath? {
+        return nextSelectablePathExists(after, rowModifier: { (row) -> Int in
+            return row + 1
+        }) { (section) -> (row:Int, section:Int) in
+            return (
+                row: 0,
+                section: section + 1
+            )
+        }
+    }
+    
+    private func nextSelectablePathExists(_ indexPath: IndexPath, rowModifier:(Int)->Int, sectionModifier:(Int)->(row:Int, section:Int) ) -> IndexPath? {
+        
+        let sectionCount = self.numberOfSections
+        var rowCount = numberOfRows(inSection: indexPath.section)
+
+        var newSection = indexPath.section
+        var newRow = rowModifier(indexPath.row)
+            
+        while newRow < 0 || newRow >= rowCount {
+            let newRowAndSection = sectionModifier(newSection)
+            newRow = newRowAndSection.row
+            newSection = newRowAndSection.section
+            if newSection < 0 || newSection >= sectionCount {
+                return nil
+            }
+            rowCount = numberOfRows(inSection: newSection)
+        }
+
+        return IndexPath(row: newRow, section: newSection)
+        
+    }
+    
+    func indexPathSectionValid(_ indexPath:IndexPath) -> Bool {
+        let sectionCount = numberOfSections
+        return indexPath.row < 0 || indexPath.row >= sectionCount
+    }
+    
+    func indexPathRowValid(_ indexPath:IndexPath) -> Bool {
+        let rowCount = numberOfRows(inSection: indexPath.section)
+        return indexPath.row < 0 || indexPath.row >= rowCount
+    }
     
 }

@@ -20,7 +20,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         window = UIWindow()
         
-        let navVC = UINavigationController(rootViewController: WordListViewController())
+        let navVC = UINavigationController(rootViewController: WordListViewController(nibName: nil, bundle: nil))
         
         window?.rootViewController = navVC
         
