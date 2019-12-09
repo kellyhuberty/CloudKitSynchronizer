@@ -1,6 +1,0 @@
-framework module GRDB {
-  umbrella header "GRDB.swift-iOS12.0-umbrella.h"
-
-  export *
-  module * { export * }
-}

@@ -1,0 +1,6 @@
+framework module MockFive {
+  umbrella header "MockFive-umbrella.h"
+
+  export *
+  module * { export * }
+}
