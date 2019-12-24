@@ -87,14 +87,14 @@ class CloudSynchronizer {
     
     let localDatabasePool:DatabaseQueue
 
-    private let _operationFactory:OperationFactory
+    private let _operationFactory:CloudOperationProducing
 
-    private let _tableObserverFactory:TableObserverFactory
+    private let _tableObserverFactory:TableObserverProducing
 
     
     private var status:Status
     
-    var operationFactory:OperationFactory? {
+    var operationFactory:CloudOperationProducing? {
         get{
             switch status {
             case .syncing:
@@ -148,14 +148,14 @@ class CloudSynchronizer {
         }
     }
     
-    var observers:[TableObserver] = []
+    var observers:[TableObserving] = []
     
     ///Unused
     weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue: DatabaseQueue,
-         operationFactory: OperationFactory? = nil,
-         tableObserverFactory: TableObserverFactory? = nil,
+         operationFactory: CloudOperationProducing? = nil,
+         tableObserverFactory: TableObserverProducing? = nil,
          cloudRecordStore: CloudRecordStoring? = nil) throws {
         
         self.localDatabasePool = databaseQueue
@@ -164,7 +164,7 @@ class CloudSynchronizer {
             self._operationFactory = operationFactory
         }
         else {
-            self._operationFactory = CloudKitOperationFactory()
+            self._operationFactory = CloudKitOperationProducer()
         }
         
         if let tableObserverFactory = tableObserverFactory {
@@ -240,13 +240,13 @@ class CloudSynchronizer {
         
     }
     
-    private func addTableObserver(_ tableObserver:TableObserver){
+    private func addTableObserver(_ tableObserver:TableObserving){
         
         observers.append(tableObserver)
         
     }
     
-    private func tableObserver(for name:String) -> TableObserver{
+    private func tableObserver(for name:String) -> TableObserving{
         
         for observer in observers {
             if observer.tableName == name {
@@ -531,7 +531,7 @@ extension CloudSynchronizer: TableObserverDelegate {
 
     }
     
-    func tableObserver(_ observer: TableObserver, created: [TableRow], updated: [TableRow], deleted: [TableRow]) {
+    func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow]) {
         
         let table = observer.tableName
         
@@ -582,14 +582,10 @@ enum UserDefaultsKeys : CustomStringConvertible {
     case migrationVersion
 }
 
-protocol OperationFactory : class{
+protocol CloudOperationProducing : class{
     func newPullOperation(delegate: CloudRecordPullOperationDelegate) -> CloudRecordPullOperation
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation
-}
-
-protocol TableObserverFactory : class{
-    func newTableObserver(_ tableName: String) -> TableObserver
 }
 
 class CloudRecordMapper {

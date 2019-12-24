@@ -10,12 +10,14 @@
 		80C64DAEF400D928859F50A3 /* Pods_CloudKitSynchronizer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B403EC43B6FF3FF4A1FBC930 /* Pods_CloudKitSynchronizer.framework */; };
 		B534A841BE03EE627826CD17 /* Pods_CloudKitSynchronizerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E78516C54DB2465A3D39413 /* Pods_CloudKitSynchronizerTests.framework */; };
 		C71BC6DA235D103D00F430F8 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71BC6D9235D103D00F430F8 /* Model.swift */; };
+		C735FB3823AF4D14007C7CC7 /* TableObserverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C735FB3723AF4D14007C7CC7 /* TableObserverProtocols.swift */; };
 		C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */; };
 		C744A7EE2309BEC9004C163A /* AsynchronousOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */; };
 		C744A7F2231378F8004C163A /* SQLLiteTableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F1231378F8004C163A /* SQLLiteTableObserver.swift */; };
 		C744A7F52313804B004C163A /* TableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F42313804B004C163A /* TableRow.swift */; };
 		C744A7F7231380B1004C163A /* CloudChangeTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F6231380B1004C163A /* CloudChangeTag.swift */; };
 		C744A7F923138136004C163A /* CloudRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7F823138136004C163A /* CloudRecord.swift */; };
+		C74B064823B26D15001BF7B5 /* CloudRecordStoringProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C74B064723B26D15001BF7B5 /* CloudRecordStoringProtocols.swift */; };
 		C7653B622243390B000CDABB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B612243390B000CDABB /* AppDelegate.swift */; };
 		C7653B642243390B000CDABB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C7653B692243390D000CDABB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
@@ -33,7 +35,8 @@
 		C7744CA8235D161900D7F2F6 /* Repo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA7235D161900D7F2F6 /* Repo.swift */; };
 		C7744CAA235D162C00D7F2F6 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA9235D162C00D7F2F6 /* Directories.swift */; };
 		C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */; };
-		C7E421F122876C79002E0392 /* TableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserver.swift */; };
+		C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */; };
+		C7E421F122876C79002E0392 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserving.swift */; };
 		C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -55,12 +58,14 @@
 		B403EC43B6FF3FF4A1FBC930 /* Pods_CloudKitSynchronizer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7200153EBD7878E90A555E6 /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C71BC6D9235D103D00F430F8 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		C735FB3723AF4D14007C7CC7 /* TableObserverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserverProtocols.swift; sourceTree = "<group>"; };
 		C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitZoneAvailablityOperation.swift; sourceTree = "<group>"; };
 		C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsynchronousOperation.swift; sourceTree = "<group>"; };
 		C744A7F1231378F8004C163A /* SQLLiteTableObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLLiteTableObserver.swift; sourceTree = "<group>"; };
 		C744A7F42313804B004C163A /* TableRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableRow.swift; sourceTree = "<group>"; };
 		C744A7F6231380B1004C163A /* CloudChangeTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudChangeTag.swift; sourceTree = "<group>"; };
 		C744A7F823138136004C163A /* CloudRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecord.swift; sourceTree = "<group>"; };
+		C74B064723B26D15001BF7B5 /* CloudRecordStoringProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordStoringProtocols.swift; sourceTree = "<group>"; };
 		C7653B5E2243390B000CDABB /* CloudKitSynchronizer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7653B612243390B000CDABB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C7653B632243390B000CDABB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -83,7 +88,8 @@
 		C7744CA7235D161900D7F2F6 /* Repo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Repo.swift; sourceTree = "<group>"; };
 		C7744CA9235D162C00D7F2F6 /* Directories.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
 		C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
-		C7E421F022876C78002E0392 /* TableObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserver.swift; sourceTree = "<group>"; };
+		C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedMocks.swift; sourceTree = "<group>"; };
+		C7E421F022876C78002E0392 /* TableObserving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserving.swift; sourceTree = "<group>"; };
 		C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -145,7 +151,8 @@
 		C744A7F023137814004C163A /* TableObserver */ = {
 			isa = PBXGroup;
 			children = (
-				C7E421F022876C78002E0392 /* TableObserver.swift */,
+				C735FB3723AF4D14007C7CC7 /* TableObserverProtocols.swift */,
+				C7E421F022876C78002E0392 /* TableObserving.swift */,
 				C744A7F1231378F8004C163A /* SQLLiteTableObserver.swift */,
 			);
 			path = TableObserver;
@@ -161,6 +168,24 @@
 				C744A7F823138136004C163A /* CloudRecord.swift */,
 			);
 			path = Models;
+			sourceTree = "<group>";
+		};
+		C74B064923B26D47001BF7B5 /* CloudRecordStore */ = {
+			isa = PBXGroup;
+			children = (
+				C74B064723B26D15001BF7B5 /* CloudRecordStoringProtocols.swift */,
+				C7653B982243F3C8000CDABB /* CloudModel.swift */,
+				C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */,
+			);
+			path = CloudRecordStore;
+			sourceTree = "<group>";
+		};
+		C74B064A23B26D7A001BF7B5 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				C7744CA9235D162C00D7F2F6 /* Directories.swift */,
+			);
+			path = Util;
 			sourceTree = "<group>";
 		};
 		C7653B552243390B000CDABB = {
@@ -204,6 +229,7 @@
 			isa = PBXGroup;
 			children = (
 				C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */,
+				C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */,
 				C7653B782243390D000CDABB /* Info.plist */,
 			);
 			path = CloudKitSynchronizerTests;
@@ -212,12 +238,11 @@
 		C7653B8B2243F219000CDABB /* CloudSynchronizer */ = {
 			isa = PBXGroup;
 			children = (
-				C7744CA9235D162C00D7F2F6 /* Directories.swift */,
+				C74B064A23B26D7A001BF7B5 /* Util */,
 				C7653B8C2243F219000CDABB /* CloudSynchronizer.swift */,
+				C74B064923B26D47001BF7B5 /* CloudRecordStore */,
 				C744A7EF231377CA004C163A /* Operations */,
 				C744A7F023137814004C163A /* TableObserver */,
-				C7653B982243F3C8000CDABB /* CloudModel.swift */,
-				C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */,
 				C744A7F323138020004C163A /* Models */,
 			);
 			path = CloudSynchronizer;
@@ -250,6 +275,7 @@
 			buildConfigurationList = C7653B7E2243390D000CDABB /* Build configuration list for PBXNativeTarget "CloudKitSynchronizerTests" */;
 			buildPhases = (
 				E8D5DBD136536A0296938195 /* [CP] Check Pods Manifest.lock */,
+				C79DC5BE23A7023C00CC2B17 /* Cuckoo Mocks */,
 				C7653B6E2243390D000CDABB /* Sources */,
 				C7653B6F2243390D000CDABB /* Frameworks */,
 				C7653B702243390D000CDABB /* Resources */,
@@ -385,6 +411,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		C79DC5BE23A7023C00CC2B17 /* Cuckoo Mocks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Cuckoo Mocks";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Define output file. Change \"${PROJECT_DIR}/${PROJECT_NAME}Tests\" to your test's root source folder, if it's not the default name.\nOUTPUT_FILE=\"${PROJECT_DIR}/${PROJECT_NAME}Tests/GeneratedMocks.swift\"\necho \"Generated Mocks File = ${OUTPUT_FILE}\"\n\n# Define input directory. Change \"${PROJECT_DIR}/${PROJECT_NAME}\" to your project's root source folder, if it's not the default name.\nINPUT_DIR=\"${PROJECT_DIR}/${PROJECT_NAME}\"\necho \"Mocks Input Directory = ${INPUT_DIR}\"\n\n# Generate mock files, include as many input files as you'd like to create mocks for.\n\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"${PROJECT_NAME}\" \\\n--output \"${OUTPUT_FILE}\" \\\n\"${INPUT_DIR}/CloudSynchronizer/Operations/CloudOperationProtocols.swift\" \\\n\"${INPUT_DIR}/CloudSynchronizer/TableObserver/TableObserverProtocols.swift\" \\\n\"${INPUT_DIR}/CloudSynchronizer/CloudRecordStore/CloudRecordStoringProtocols.swift\"\n# ... and so forth, the last line should never end with a backslash\n\n# After running once, locate `GeneratedMocks.swift` and drag it into your Xcode test target group.\n";
+		};
 		E8D5DBD136536A0296938195 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -425,10 +469,12 @@
 				C744A7F7231380B1004C163A /* CloudChangeTag.swift in Sources */,
 				C7653B942243F219000CDABB /* CloudKitRecordPushOperation.swift in Sources */,
 				C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */,
-				C7E421F122876C79002E0392 /* TableObserver.swift in Sources */,
+				C74B064823B26D15001BF7B5 /* CloudRecordStoringProtocols.swift in Sources */,
+				C7E421F122876C79002E0392 /* TableObserving.swift in Sources */,
 				C744A7F52313804B004C163A /* TableRow.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B912243F219000CDABB /* CloudSynchronizer.swift in Sources */,
+				C735FB3823AF4D14007C7CC7 /* TableObserverProtocols.swift in Sources */,
 				C71BC6DA235D103D00F430F8 /* Model.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,
 				C744A7F923138136004C163A /* CloudRecord.swift in Sources */,
@@ -440,6 +486,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */,
+				C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,7 +563,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -571,7 +618,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
@@ -636,6 +683,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -658,6 +706,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

@@ -506,7 +506,7 @@ extension MutablePersistableRecord where Self: AnyObject {
 
 extension MutablePersistableRecord {
     
-    // MARK: - Deleting All
+    // MARK: Batch Delete
     
     /// Deletes all records; returns the number of deleted rows.
     ///
@@ -516,6 +516,60 @@ extension MutablePersistableRecord {
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
         return try all().deleteAll(db)
+    }
+    
+    // MARK: Batch Update
+    
+    /// Updates all records; returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Player.updateAll(db, [Column("score") <- 0])
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+        throws -> Int
+    {
+        return try all().updateAll(db, onConflict: conflictResolution, assignments)
+    }
+    
+    /// Updates all records; returns the number of updated records.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Player.updateAll(db, Column("score") <- 0)
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution,
+    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter assignment: A column assignment.
+    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public static func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignment: ColumnAssignment,
+        _ otherAssignments: ColumnAssignment...)
+        throws -> Int
+    {
+        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 

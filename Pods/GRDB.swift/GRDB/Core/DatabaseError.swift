@@ -85,7 +85,10 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     // Extended Result Code
     // https://www.sqlite.org/rescode.html#extended_result_code_list
     
-    // swiftlint:disable operator_usage_whitespace
+    // swiftlint:disable operator_usage_whitespace line_length
+    public static let SQLITE_ERROR_MISSING_COLLSEQ   = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (1<<8)))
+    public static let SQLITE_ERROR_RETRY             = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (2<<8)))
+    public static let SQLITE_ERROR_SNAPSHOT          = ResultCode(rawValue: (SQLITE_ERROR.rawValue | (3<<8)))
     public static let SQLITE_IOERR_READ              = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (1<<8)))
     public static let SQLITE_IOERR_SHORT_READ        = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (2<<8)))
     public static let SQLITE_IOERR_WRITE             = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (3<<8)))
@@ -114,18 +117,26 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_IOERR_CONVPATH          = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (26<<8)))
     public static let SQLITE_IOERR_VNODE             = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (27<<8)))
     public static let SQLITE_IOERR_AUTH              = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (28<<8)))
+    public static let SQLITE_IOERR_BEGIN_ATOMIC      = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (29<<8)))
+    public static let SQLITE_IOERR_COMMIT_ATOMIC     = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (30<<8)))
+    public static let SQLITE_IOERR_ROLLBACK_ATOMIC   = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (31<<8)))
     public static let SQLITE_LOCKED_SHAREDCACHE      = ResultCode(rawValue: (SQLITE_LOCKED.rawValue |  (1<<8)))
+    public static let SQLITE_LOCKED_VTAB             = ResultCode(rawValue: (SQLITE_LOCKED.rawValue |  (2<<8)))
     public static let SQLITE_BUSY_RECOVERY           = ResultCode(rawValue: (SQLITE_BUSY.rawValue |  (1<<8)))
     public static let SQLITE_BUSY_SNAPSHOT           = ResultCode(rawValue: (SQLITE_BUSY.rawValue |  (2<<8)))
     public static let SQLITE_CANTOPEN_NOTEMPDIR      = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (1<<8)))
     public static let SQLITE_CANTOPEN_ISDIR          = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (2<<8)))
     public static let SQLITE_CANTOPEN_FULLPATH       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (3<<8)))
     public static let SQLITE_CANTOPEN_CONVPATH       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (4<<8)))
+    public static let SQLITE_CANTOPEN_DIRTYWAL       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (5<<8))) /* Not Used */
     public static let SQLITE_CORRUPT_VTAB            = ResultCode(rawValue: (SQLITE_CORRUPT.rawValue | (1<<8)))
+    public static let SQLITE_CORRUPT_SEQUENCE        = ResultCode(rawValue: (SQLITE_CORRUPT.rawValue | (2<<8)))
     public static let SQLITE_READONLY_RECOVERY       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (1<<8)))
     public static let SQLITE_READONLY_CANTLOCK       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (2<<8)))
     public static let SQLITE_READONLY_ROLLBACK       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (3<<8)))
     public static let SQLITE_READONLY_DBMOVED        = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (4<<8)))
+    public static let SQLITE_READONLY_CANTINIT       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (5<<8)))
+    public static let SQLITE_READONLY_DIRECTORY      = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (6<<8)))
     public static let SQLITE_ABORT_ROLLBACK          = ResultCode(rawValue: (SQLITE_ABORT.rawValue | (2<<8)))
     public static let SQLITE_CONSTRAINT_CHECK        = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (1<<8)))
     public static let SQLITE_CONSTRAINT_COMMITHOOK   = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (2<<8)))
@@ -142,7 +153,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_WARNING_AUTOINDEX       = ResultCode(rawValue: (SQLITE_WARNING.rawValue | (1<<8)))
     public static let SQLITE_AUTH_USER               = ResultCode(rawValue: (SQLITE_AUTH.rawValue | (1<<8)))
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
-    // swiftlint:enable operator_usage_whitespace
+    // swiftlint:enable operator_usage_whitespace line_length
 }
 
 // CustomStringConvertible
@@ -237,6 +248,25 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// The query arguments that yielded the error (if relevant).
     /// Not public because the StatementArguments class has no public method.
     let arguments: StatementArguments?
+}
+
+extension DatabaseError {
+    // TODO: test
+    /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT`.
+    ///
+    /// Such an error can be thrown when a database has been interrupted, or
+    /// when the database is suspended.
+    ///
+    /// See `DatabaseReader.interrupt()` and `DatabaseReader.suspend()` for
+    /// more information.
+    public var isInterruptionError: Bool {
+        switch resultCode {
+        case .SQLITE_ABORT, .SQLITE_INTERRUPT:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 // CustomStringConvertible

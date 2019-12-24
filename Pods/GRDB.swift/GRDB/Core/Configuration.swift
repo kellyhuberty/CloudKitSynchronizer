@@ -75,6 +75,42 @@ public struct Configuration {
     /// Default: nil
     public var trace: TraceFunction?
     
+    /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
+    /// string as a string literal if it does not match any valid identifier.
+    ///
+    /// For example:
+    ///
+    ///     // Error: no such column: foo
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "foo" FROM "player"
+    ///         """)
+    ///
+    /// When true, or before version 3.29.0, such strings are interpreted as
+    /// string literals, as in the example below. This is a well known SQLite
+    /// [misfeature](https://sqlite.org/quirks.html#dblquote).
+    ///
+    ///     // Success: "foo"
+    ///     let name = try String.fetchOne(db, sql: """
+    ///         SELECT "foo" FROM "player"
+    ///         """)
+    ///
+    /// - Recommended value: false
+    /// - Default value: false
+    public var acceptsDoubleQuotedStringLiterals = false
+    
+    /// When true, the `Database.suspendNotification` and
+    /// `Database.resumeNotification` suspend and resume the database. Database
+    /// suspension helps avoiding the [`0xdead10cc`
+    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    ///
+    /// During suspension, all database accesses but reads in WAL mode may throw
+    /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
+    /// check for those error codes with the
+    /// `DatabaseError.isInterruptionError` property.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    public var observesSuspensionNotifications = false
+    
     // MARK: - Encryption
     
     #if SQLITE_HAS_CODEC
@@ -164,7 +200,15 @@ public struct Configuration {
     /// Default: .default (.unspecified on macOS < 10.10)
     public var qos: DispatchQoS
     
-    /// The target queue for the work performed by the database.
+    /// The target queue for all database accesses.
+    ///
+    /// When you use a database pool, make sure the queue is concurrent. If
+    /// it is serial, no concurrent database access can happen, and you may
+    /// experience deadlocks.
+    ///
+    /// If the queue is nil, all database accesses happen in unspecified
+    /// dispatch queues whose quality of service and label are determined by the
+    /// `qos` and `label` Configuration properties.
     ///
     /// Default: nil
     public var targetQueue: DispatchQueue? = nil

@@ -21,7 +21,7 @@ protocol CloudRecordPushOperationDelegate: class {
     func cloudPushOperationDidComplete(_ operation:CloudRecordPushOperation)
 }
 
-protocol CloudRecordPushOperation : Operation {
+protocol CloudRecordPushOperation : Operating {
     
     var delegate: CloudRecordPushOperationDelegate? { get set }
     
@@ -45,7 +45,7 @@ protocol CloudRecordPullOperationDelegate: class {
     func cloudPullOperationDidComplete(_ operation:CloudRecordPullOperation)
 }
 
-protocol CloudRecordPullOperation : Operation {
+protocol CloudRecordPullOperation : Operating {
     
     var zoneId:CKRecordZone.ID? { get set }
     var previousServerChangeToken:CKServerChangeToken? { get set }
@@ -59,7 +59,7 @@ protocol CloudRecordPullOperation : Operation {
 //
 //}
 
-protocol CloudZoneAvailablityOperation : Operation {
+protocol CloudZoneAvailablityOperation : Operating {
 
 // Modifying and syncing record zones.
 //    class CKFetchRecordZonesOperation
@@ -73,7 +73,7 @@ protocol CloudZoneAvailablityOperation : Operation {
 }
 
 
-class CloudKitOperationFactory: OperationFactory {
+class CloudKitOperationProducer: CloudOperationProducing {
     
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation {
         return CloudKitZoneAvailablityOperation()
@@ -88,3 +88,10 @@ class CloudKitOperationFactory: OperationFactory {
     }
     
 }
+
+protocol Operating : class{
+    func start()
+    var completionBlock: (() -> Void)? { get set }
+}
+
+extension Operation: Operating {}

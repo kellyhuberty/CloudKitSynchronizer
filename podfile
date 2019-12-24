@@ -6,7 +6,7 @@ end
 
 target 'CloudKitSynchronizerTests' do
 	platform :ios, '12.0'
-# 	pod 'GRDB.swift'
+ 	pod 'GRDB.swift'
 	pod 'Cuckoo'
-	pod 'MockFive'
+#	pod 'MockFive'
 end

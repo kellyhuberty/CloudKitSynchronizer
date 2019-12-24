@@ -8,7 +8,7 @@
 
 import Foundation
 
-class AsynchronousOperation : Operation {
+class AsynchronousOperation : Operation {    
     
     class Token {
         

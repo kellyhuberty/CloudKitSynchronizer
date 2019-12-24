@@ -111,6 +111,6 @@ class SQLiteTableObserver {
     
 }
 
-extension SQLiteTableObserver : TableObserver {
+extension SQLiteTableObserver : TableObserving {
     
 }
