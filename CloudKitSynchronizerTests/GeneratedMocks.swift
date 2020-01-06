@@ -41,7 +41,7 @@ import GRDB
     
     
     
-     func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordStatus, sorted: Bool, using db: Database) throws -> [CKRecord] {
+     func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord] {
         
     return try cuckoo_manager.callThrows("checkoutRecord(with: [String], from: String, for: CloudRecordStatus, sorted: Bool, using: Database) throws -> [CKRecord]",
             parameters: (ids, table, status, sorted, db),
@@ -56,7 +56,7 @@ import GRDB
     
     
     
-     func checkinCloudRecords(_ records: [CKRecord], with status: CloudRecordStatus, using db: Database) throws {
+     func checkinCloudRecords(_ records: [CKRecord], with status: CloudRecordMutationType, using db: Database) throws {
         
     return try cuckoo_manager.callThrows("checkinCloudRecords(_: [CKRecord], with: CloudRecordStatus, using: Database) throws",
             parameters: (records, status, db),
@@ -71,7 +71,7 @@ import GRDB
     
     
     
-     func checkinCloudRecordIds(_ recordIds: [CKRecord.ID], with status: CloudRecordStatus, using db: Database) throws {
+     func checkinCloudRecordIds(_ recordIds: [CKRecord.ID], with status: CloudRecordMutationType, using db: Database) throws {
         
     return try cuckoo_manager.callThrows("checkinCloudRecordIds(_: [CKRecord.ID], with: CloudRecordStatus, using: Database) throws",
             parameters: (recordIds, status, db),
@@ -86,7 +86,7 @@ import GRDB
     
     
     
-     func checkinCloudRecords(identifiers: [String], with status: CloudRecordStatus, using db: Database) throws {
+     func checkinCloudRecords(identifiers: [String], with status: CloudRecordMutationType, using db: Database) throws {
         
     return try cuckoo_manager.callThrows("checkinCloudRecords(identifiers: [String], with: CloudRecordStatus, using: Database) throws",
             parameters: (identifiers, status, db),
@@ -116,7 +116,7 @@ import GRDB
     
     
     
-     func cloudRecords(with status: CloudRecordStatus, using db: Database) throws -> [CloudRecord] {
+     func cloudRecords(with status: CloudRecordMutationType, using db: Database) throws -> [CloudRecord] {
         
     return try cuckoo_manager.callThrows("cloudRecords(with: CloudRecordStatus, using: Database) throws -> [CloudRecord]",
             parameters: (status, db),
@@ -138,23 +138,23 @@ import GRDB
 	    }
 	    
 	    
-	    func checkoutRecord<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable, M4: Cuckoo.Matchable, M5: Cuckoo.Matchable>(with ids: M1, from table: M2, for status: M3, sorted: M4, using db: M5) -> Cuckoo.ProtocolStubThrowingFunction<([String], String, CloudRecordStatus, Bool, Database), [CKRecord]> where M1.MatchedType == [String], M2.MatchedType == String, M3.MatchedType == CloudRecordStatus, M4.MatchedType == Bool, M5.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([String], String, CloudRecordStatus, Bool, Database)>] = [wrap(matchable: ids) { $0.0 }, wrap(matchable: table) { $0.1 }, wrap(matchable: status) { $0.2 }, wrap(matchable: sorted) { $0.3 }, wrap(matchable: db) { $0.4 }]
+	    func checkoutRecord<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable, M4: Cuckoo.Matchable, M5: Cuckoo.Matchable>(with ids: M1, from table: M2, for status: M3, sorted: M4, using db: M5) -> Cuckoo.ProtocolStubThrowingFunction<([String], String, CloudRecordMutationType, Bool, Database), [CKRecord]> where M1.MatchedType == [String], M2.MatchedType == String, M3.MatchedType == CloudRecordMutationType, M4.MatchedType == Bool, M5.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([String], String, CloudRecordMutationType, Bool, Database)>] = [wrap(matchable: ids) { $0.0 }, wrap(matchable: table) { $0.1 }, wrap(matchable: status) { $0.2 }, wrap(matchable: sorted) { $0.3 }, wrap(matchable: db) { $0.4 }]
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "checkoutRecord(with: [String], from: String, for: CloudRecordStatus, sorted: Bool, using: Database) throws -> [CKRecord]", parameterMatchers: matchers))
 	    }
 	    
-	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ records: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([CKRecord], CloudRecordStatus, Database)> where M1.MatchedType == [CKRecord], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord], CloudRecordStatus, Database)>] = [wrap(matchable: records) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ records: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([CKRecord], CloudRecordMutationType, Database)> where M1.MatchedType == [CKRecord], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord], CloudRecordMutationType, Database)>] = [wrap(matchable: records) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "checkinCloudRecords(_: [CKRecord], with: CloudRecordStatus, using: Database) throws", parameterMatchers: matchers))
 	    }
 	    
-	    func checkinCloudRecordIds<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ recordIds: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([CKRecord.ID], CloudRecordStatus, Database)> where M1.MatchedType == [CKRecord.ID], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord.ID], CloudRecordStatus, Database)>] = [wrap(matchable: recordIds) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecordIds<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ recordIds: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([CKRecord.ID], CloudRecordMutationType, Database)> where M1.MatchedType == [CKRecord.ID], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord.ID], CloudRecordMutationType, Database)>] = [wrap(matchable: recordIds) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "checkinCloudRecordIds(_: [CKRecord.ID], with: CloudRecordStatus, using: Database) throws", parameterMatchers: matchers))
 	    }
 	    
-	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(identifiers: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([String], CloudRecordStatus, Database)> where M1.MatchedType == [String], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([String], CloudRecordStatus, Database)>] = [wrap(matchable: identifiers) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(identifiers: M1, with status: M2, using db: M3) -> Cuckoo.ProtocolStubNoReturnThrowingFunction<([String], CloudRecordMutationType, Database)> where M1.MatchedType == [String], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([String], CloudRecordMutationType, Database)>] = [wrap(matchable: identifiers) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "checkinCloudRecords(identifiers: [String], with: CloudRecordStatus, using: Database) throws", parameterMatchers: matchers))
 	    }
 	    
@@ -163,8 +163,8 @@ import GRDB
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "removeCloudRecords(identifiers: [String], using: Database) throws", parameterMatchers: matchers))
 	    }
 	    
-	    func cloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(with status: M1, using db: M2) -> Cuckoo.ProtocolStubThrowingFunction<(CloudRecordStatus, Database), [CloudRecord]> where M1.MatchedType == CloudRecordStatus, M2.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<(CloudRecordStatus, Database)>] = [wrap(matchable: status) { $0.0 }, wrap(matchable: db) { $0.1 }]
+	    func cloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(with status: M1, using db: M2) -> Cuckoo.ProtocolStubThrowingFunction<(CloudRecordMutationType, Database), [CloudRecord]> where M1.MatchedType == CloudRecordMutationType, M2.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<(CloudRecordMutationType, Database)>] = [wrap(matchable: status) { $0.0 }, wrap(matchable: db) { $0.1 }]
 	        return .init(stub: cuckoo_manager.createStub(for: MockCloudRecordStoring.self, method: "cloudRecords(with: CloudRecordStatus, using: Database) throws -> [CloudRecord]", parameterMatchers: matchers))
 	    }
 	    
@@ -185,26 +185,26 @@ import GRDB
 	
 	    
 	    @discardableResult
-	    func checkoutRecord<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable, M4: Cuckoo.Matchable, M5: Cuckoo.Matchable>(with ids: M1, from table: M2, for status: M3, sorted: M4, using db: M5) -> Cuckoo.__DoNotUse<([String], String, CloudRecordStatus, Bool, Database), [CKRecord]> where M1.MatchedType == [String], M2.MatchedType == String, M3.MatchedType == CloudRecordStatus, M4.MatchedType == Bool, M5.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([String], String, CloudRecordStatus, Bool, Database)>] = [wrap(matchable: ids) { $0.0 }, wrap(matchable: table) { $0.1 }, wrap(matchable: status) { $0.2 }, wrap(matchable: sorted) { $0.3 }, wrap(matchable: db) { $0.4 }]
+	    func checkoutRecord<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable, M4: Cuckoo.Matchable, M5: Cuckoo.Matchable>(with ids: M1, from table: M2, for status: M3, sorted: M4, using db: M5) -> Cuckoo.__DoNotUse<([String], String, CloudRecordMutationType, Bool, Database), [CKRecord]> where M1.MatchedType == [String], M2.MatchedType == String, M3.MatchedType == CloudRecordMutationType, M4.MatchedType == Bool, M5.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([String], String, CloudRecordMutationType, Bool, Database)>] = [wrap(matchable: ids) { $0.0 }, wrap(matchable: table) { $0.1 }, wrap(matchable: status) { $0.2 }, wrap(matchable: sorted) { $0.3 }, wrap(matchable: db) { $0.4 }]
 	        return cuckoo_manager.verify("checkoutRecord(with: [String], from: String, for: CloudRecordStatus, sorted: Bool, using: Database) throws -> [CKRecord]", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
 	    }
 	    
 	    @discardableResult
-	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ records: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([CKRecord], CloudRecordStatus, Database), Void> where M1.MatchedType == [CKRecord], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord], CloudRecordStatus, Database)>] = [wrap(matchable: records) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ records: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([CKRecord], CloudRecordMutationType, Database), Void> where M1.MatchedType == [CKRecord], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord], CloudRecordMutationType, Database)>] = [wrap(matchable: records) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return cuckoo_manager.verify("checkinCloudRecords(_: [CKRecord], with: CloudRecordStatus, using: Database) throws", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
 	    }
 	    
 	    @discardableResult
-	    func checkinCloudRecordIds<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ recordIds: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([CKRecord.ID], CloudRecordStatus, Database), Void> where M1.MatchedType == [CKRecord.ID], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord.ID], CloudRecordStatus, Database)>] = [wrap(matchable: recordIds) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecordIds<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(_ recordIds: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([CKRecord.ID], CloudRecordMutationType, Database), Void> where M1.MatchedType == [CKRecord.ID], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([CKRecord.ID], CloudRecordMutationType, Database)>] = [wrap(matchable: recordIds) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return cuckoo_manager.verify("checkinCloudRecordIds(_: [CKRecord.ID], with: CloudRecordStatus, using: Database) throws", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
 	    }
 	    
 	    @discardableResult
-	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(identifiers: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([String], CloudRecordStatus, Database), Void> where M1.MatchedType == [String], M2.MatchedType == CloudRecordStatus, M3.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<([String], CloudRecordStatus, Database)>] = [wrap(matchable: identifiers) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
+	    func checkinCloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable, M3: Cuckoo.Matchable>(identifiers: M1, with status: M2, using db: M3) -> Cuckoo.__DoNotUse<([String], CloudRecordMutationType, Database), Void> where M1.MatchedType == [String], M2.MatchedType == CloudRecordMutationType, M3.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<([String], CloudRecordMutationType, Database)>] = [wrap(matchable: identifiers) { $0.0 }, wrap(matchable: status) { $0.1 }, wrap(matchable: db) { $0.2 }]
 	        return cuckoo_manager.verify("checkinCloudRecords(identifiers: [String], with: CloudRecordStatus, using: Database) throws", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
 	    }
 	    
@@ -215,8 +215,8 @@ import GRDB
 	    }
 	    
 	    @discardableResult
-	    func cloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(with status: M1, using db: M2) -> Cuckoo.__DoNotUse<(CloudRecordStatus, Database), [CloudRecord]> where M1.MatchedType == CloudRecordStatus, M2.MatchedType == Database {
-	        let matchers: [Cuckoo.ParameterMatcher<(CloudRecordStatus, Database)>] = [wrap(matchable: status) { $0.0 }, wrap(matchable: db) { $0.1 }]
+	    func cloudRecords<M1: Cuckoo.Matchable, M2: Cuckoo.Matchable>(with status: M1, using db: M2) -> Cuckoo.__DoNotUse<(CloudRecordMutationType, Database), [CloudRecord]> where M1.MatchedType == CloudRecordMutationType, M2.MatchedType == Database {
+	        let matchers: [Cuckoo.ParameterMatcher<(CloudRecordMutationType, Database)>] = [wrap(matchable: status) { $0.0 }, wrap(matchable: db) { $0.1 }]
 	        return cuckoo_manager.verify("cloudRecords(with: CloudRecordStatus, using: Database) throws -> [CloudRecord]", callMatcher: callMatcher, parameterMatchers: matchers, sourceLocation: sourceLocation)
 	    }
 	    
@@ -229,19 +229,19 @@ import GRDB
     
 
     
-     func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordStatus, sorted: Bool, using db: Database) throws -> [CKRecord]  {
+     func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord]  {
         return DefaultValueRegistry.defaultValue(for: ([CKRecord]).self)
     }
     
-     func checkinCloudRecords(_ records: [CKRecord], with status: CloudRecordStatus, using db: Database) throws  {
+     func checkinCloudRecords(_ records: [CKRecord], with status: CloudRecordMutationType, using db: Database) throws  {
         return DefaultValueRegistry.defaultValue(for: (Void).self)
     }
     
-     func checkinCloudRecordIds(_ recordIds: [CKRecord.ID], with status: CloudRecordStatus, using db: Database) throws  {
+     func checkinCloudRecordIds(_ recordIds: [CKRecord.ID], with status: CloudRecordMutationType, using db: Database) throws  {
         return DefaultValueRegistry.defaultValue(for: (Void).self)
     }
     
-     func checkinCloudRecords(identifiers: [String], with status: CloudRecordStatus, using db: Database) throws  {
+     func checkinCloudRecords(identifiers: [String], with status: CloudRecordMutationType, using db: Database) throws  {
         return DefaultValueRegistry.defaultValue(for: (Void).self)
     }
     
@@ -249,7 +249,7 @@ import GRDB
         return DefaultValueRegistry.defaultValue(for: (Void).self)
     }
     
-     func cloudRecords(with status: CloudRecordStatus, using db: Database) throws -> [CloudRecord]  {
+     func cloudRecords(with status: CloudRecordMutationType, using db: Database) throws -> [CloudRecord]  {
         return DefaultValueRegistry.defaultValue(for: ([CloudRecord]).self)
     }
     

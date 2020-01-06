@@ -12,12 +12,12 @@ import GRDB
 
 class CloudRecordStore : CloudRecordStoring {
     
-    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordStatus) -> CloudRecord{
+    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordMutationType, error: CloudRecordError? = nil) -> CloudRecord{
         
         let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
         if let ckRecord = ckRecord {
             cloudRecord.record = ckRecord
-        }else{
+        } else{
             cloudRecord.record = createNewCKRecord(with:identifier, tableName:tableName)
         }
         return cloudRecord
@@ -32,7 +32,7 @@ class CloudRecordStore : CloudRecordStoring {
     }
     
     //MARK:- Cloud Record Checkout/Checkin
-    func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordStatus, sorted: Bool = true, using db: Database) throws -> [CKRecord] {
+    func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordMutationType, sorted: Bool = true, using db: Database) throws -> [CKRecord] {
         
         guard ids.count > 0 else {
             return []
@@ -92,7 +92,7 @@ class CloudRecordStore : CloudRecordStoring {
     }
     
     
-    func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordStatus, using db:Database) throws {
+    func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordMutationType?, error: CloudRecordError?, using db:Database) throws {
         //After a modification has completed, check in a record.
         let allRecords = records.sorted(by: { (leftRecord, rightRecord) -> Bool in
             leftRecord.recordID.recordName > rightRecord.recordID.recordName
@@ -121,12 +121,19 @@ class CloudRecordStore : CloudRecordStoring {
         for record in allRecords {
             if record.recordID.recordName == availableCloudRecords.first?.identifier {
                 let cloudRecord = availableCloudRecords.removeFirst()
-                cloudRecord.status = status
+                if let status = status {
+                    cloudRecord.status = status
+                }
+                if let error = error {
+                    cloudRecord.error = error
+                }
                 cloudRecord.record = record
                 cloudRecordsToSave.append(cloudRecord)
             }else{
-                let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status:status)
-                cloudRecordsToSave.append(cloudRecord)
+                if let status = status {
+                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status: status, error: error)
+                    cloudRecordsToSave.append(cloudRecord)
+                }
             }
         }
         
@@ -135,16 +142,16 @@ class CloudRecordStore : CloudRecordStoring {
         }
     }
     
-    func checkinCloudRecordIds(_ recordIds:[CKRecord.ID], with status:CloudRecordStatus, using db:Database) throws {
+    func checkinCloudRecordIds(_ recordIds:[CKRecordIdentifiable], with status:CloudRecordMutationType, error: CloudRecordError?, using db:Database) throws {
         //After a modification has completed, check in a record.
         let recordIdStrings = recordIds.map { (recordIds) -> String in
-            return recordIds.recordName
+            return recordIds.identifier
         }
         //Error: Cloud Checkin Error
-        try checkinCloudRecords(identifiers:recordIdStrings, with: status, using: db)
+        try checkinCloudRecords(identifiers:recordIdStrings, with: status, error: error, using: db)
     }
     
-    func checkinCloudRecords(identifiers:[String], with status:CloudRecordStatus, using db:Database) throws {
+    private func checkinCloudRecords(identifiers:[String], with status:CloudRecordMutationType, error: CloudRecordError?, using db:Database) throws {
         
         //After a modification has completed, check in a record.
         var bindingsArr = [String]()
@@ -158,15 +165,19 @@ class CloudRecordStore : CloudRecordStoring {
         try db.execute(sql: updateQuery, arguments: StatementArguments(args) )
     }
     
-    func removeCloudRecords(identifiers:[String], using db:Database) throws {
+    func removeCloudRecords(identifiers:[CKRecordIdentifiable], using db:Database) throws {
         
-        let args = StatementArguments(identifiers)
+        let identifierStrings = identifiers.map { (ckRecordIdentifiable) in
+            return ckRecordIdentifiable.identifier
+        }
+                
+        let args = StatementArguments(identifierStrings)
 
         //Clean up from CloudRecordTable
-        try db.execute(sql: "DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(identifiers.sqlPlaceholderString()) )", arguments: args)
+        try db.execute(sql: "DELETE FROM `\(TableNames.CloudRecords)` WHERE `identifier` IN ( \(identifierStrings.sqlPlaceholderString()) )", arguments: args)
     }
     
-    func cloudRecords(with status:CloudRecordStatus, using db:Database) throws -> [CloudRecord] {
+    func cloudRecords(with status:CloudRecordMutationType, using db:Database) throws -> [CloudRecord] {
         let sql =
             """
                 SELECT
@@ -183,4 +194,20 @@ class CloudRecordStore : CloudRecordStoring {
     }
 
     
+}
+
+protocol CKRecordIdentifiable {
+    var identifier: String { get }
+}
+
+extension CKRecord.ID: CKRecordIdentifiable {
+    var identifier: String {
+        return recordName
+    }
+}
+
+extension String: CKRecordIdentifiable {
+    var identifier: String {
+        return self
+    }
 }

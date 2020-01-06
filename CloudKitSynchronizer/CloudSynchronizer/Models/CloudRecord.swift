@@ -30,12 +30,15 @@ class CloudRecord : Model, Codable{
         case cloudChangeTag
         case changeDate
         case status
+        case errorType
+        case errorDescription
     }
     
-    init(identifier:String, tableName:String, status: CloudRecordStatus) {
+    init(identifier:String, tableName:String, status: CloudRecordMutationType, error: CloudRecordError? = nil) {
         self.identifier = identifier
         self.tableName = tableName
         self.status = status
+        self.error = error
     }
     
     let identifier:String
@@ -43,8 +46,10 @@ class CloudRecord : Model, Codable{
     var ckRecordData:Data? = nil
     var cloudChangeTag:String? = nil
     var changeDate:Date? = nil
-    var status: CloudRecordStatus
-    
+    var status: CloudRecordMutationType
+    var errorType: CloudRecordErrorType?
+    var errorDescription: String?
+
     private var _record:CKRecord? = nil
     
     var record:CKRecord?{
@@ -72,4 +77,19 @@ class CloudRecord : Model, Codable{
             _record = newValue
         }
     }
+    
+    var error: CloudRecordError? {
+        get {
+            guard let errorDescription = errorDescription else{
+                return nil
+            }
+            
+            return CloudRecordError(description: errorDescription, status: errorType)
+        }
+        set {
+            errorType = newValue?.status
+            errorDescription = newValue?.description
+        }
+    }
+    
 }

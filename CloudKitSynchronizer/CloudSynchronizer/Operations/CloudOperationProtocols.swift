@@ -15,7 +15,11 @@ enum CloudRecordOperationStatus{
 
 protocol CloudRecordPushOperationDelegate: class {
     func cloudPushOperation(_ operation:CloudRecordPushOperation,
-                            processedRecords:[CKRecord],
+                            processedUpdatedRecords:[CKRecord],
+                            status:CloudRecordOperationStatus)
+    
+    func cloudPushOperation(_ operation:CloudRecordPushOperation,
+                            processedDeletedRecords:[CKRecord.ID],
                             status:CloudRecordOperationStatus)
     
     func cloudPushOperationDidComplete(_ operation:CloudRecordPushOperation)

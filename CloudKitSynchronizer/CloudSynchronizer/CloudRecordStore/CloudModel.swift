@@ -11,10 +11,10 @@ import CloudKit
 import GRDB
 
 protocol CloudModel {
-    var cloudRecordStatus:CloudRecordStatus { get }
+    var cloudRecordStatus:CloudRecordMutationType { get }
 }
 
-enum CloudRecordStatus : String, Codable {
+enum CloudRecordMutationType : String, Codable {
     case pushingUpdate = "pushing.update"
     case pushingDelete = "pushing.delete"
     
@@ -24,9 +24,14 @@ enum CloudRecordStatus : String, Codable {
     case synced = "synced"
 }
 
-enum CloudRecordErrorStatus : String, Codable {
+enum CloudRecordErrorType : String, Codable {
     case conflict = "conflict"
     case retryLater = "retryLater"
+}
+
+enum CloudRecordStatus {
+    case mutation(_ mutationType: CloudRecordMutationType)
+    case error(_ error: CloudRecordError)
 }
 
 extension CloudModel{

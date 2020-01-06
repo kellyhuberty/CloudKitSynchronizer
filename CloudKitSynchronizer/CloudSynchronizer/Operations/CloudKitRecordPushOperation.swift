@@ -29,15 +29,38 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
         
         _pushOperation = CKModifyRecordsOperation(recordsToSave: updates, recordIDsToDelete: deleteIds)
 
-        _pushOperation.perRecordCompletionBlock = { [weak self] (record, error) in
+        _pushOperation.perRecordCompletionBlock = { (record, error) in
 
-            guard let self = self else { return }
-            self.delegate?.cloudPushOperation(self, processedRecords: [record], status: .success)
+            //guard let self = self else { return }
+            
+            let status: CloudRecordOperationStatus
+            
+            if let error = error as? CKError{
+                status = .error(CloudKitError(error: error))
+            }
+            else {
+                status = .success
+            }
+            
+            self.delegate?.cloudPushOperation(self, processedUpdatedRecords: [record], status: status)
+            
         }
-        
+                
         // Completion
         _pushOperation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
+                        
+            let status: CloudRecordOperationStatus
             
+            if let error = error as? CKError{
+                status = .error(CloudKitError(error: error))
+            }
+            else {
+                status = .success
+            }
+            
+            self.delegate?.cloudPushOperation(self,
+                                              processedDeletedRecords: deletedRecordIds ?? [],
+                                              status: status)
             
         }
         
@@ -46,16 +69,40 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
     
 }
 
-
 class CloudRecordError : Error{
-    let record:CKRecord
-    let error:Error
     
-    init(record:CKRecord, error:Error) {
-        self.record = record
-        self.error = error
+    var description: String
+    let status: CloudRecordErrorType?
+    
+    init(description: String, status: CloudRecordErrorType? = nil) {
+        self.description = description
+        self.status = status
     }
     
+    init(_ cloudKitError:CloudKitError) {
+        
+        let status: CloudRecordErrorType?
+
+        switch cloudKitError.code {
+        case .unhandled:
+            status = nil
+        case .haltSync:
+            status = .retryLater
+        case .retryLater:
+            status = .retryLater
+        case .recordConflict:
+            status = .conflict
+        case .constraintViolation:
+            status = .retryLater
+        case .fullRepull:
+            status = .retryLater
+        case .message:
+            status = nil
+        }
+        
+        self.description = cloudKitError.localizedDescription
+        self.status = status
+    }
 }
 
 
@@ -154,11 +201,13 @@ class CloudKitError : Error, LocalizedError {
             code = .unhandled
         case .assetNotAvailable:
             code = .unhandled
+        @unknown default:
+            code = .haltSync
         }
      
         underlyingError = error
     }
-    
+        
     static func ~=(p: CloudKitError, v: Error) -> Bool {
         return p.code == (v as? CloudKitError)?.code
     }

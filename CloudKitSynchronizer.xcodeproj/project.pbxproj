@@ -36,6 +36,7 @@
 		C7744CAA235D162C00D7F2F6 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA9235D162C00D7F2F6 /* Directories.swift */; };
 		C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */; };
 		C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */; };
+		C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
 		C7E421F122876C79002E0392 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserving.swift */; };
 		C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */; };
 /* End PBXBuildFile section */
@@ -89,6 +90,7 @@
 		C7744CA9235D162C00D7F2F6 /* Directories.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
 		C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
 		C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedMocks.swift; sourceTree = "<group>"; };
+		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
 		C7E421F022876C78002E0392 /* TableObserving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserving.swift; sourceTree = "<group>"; };
 		C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -215,6 +217,7 @@
 				C7653B8B2243F219000CDABB /* CloudSynchronizer */,
 				C7653B9A2243F72C000CDABB /* Item.swift */,
 				C7653B612243390B000CDABB /* AppDelegate.swift */,
+				C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */,
 				C7653B632243390B000CDABB /* ViewController.swift */,
 				C7653B812243396F000CDABB /* WordListViewController.swift */,
 				C7653B8722434191000CDABB /* WordListTableCell.swift */,
@@ -465,6 +468,7 @@
 				C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */,
 				C7744CAA235D162C00D7F2F6 /* Directories.swift in Sources */,
 				C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */,
+				C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */,
 				C7653B932243F219000CDABB /* CloudOperation.swift in Sources */,
 				C744A7F7231380B1004C163A /* CloudChangeTag.swift in Sources */,
 				C7653B942243F219000CDABB /* CloudKitRecordPushOperation.swift in Sources */,

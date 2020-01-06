@@ -35,6 +35,8 @@ typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
 enum CloudSynchronizerError: Error {
     
+    case recordIssue(_ error: CloudRecordError)
+    //case synchronizerIssue(_ error: CloudSyncError)
     case sqlLite(_ error:Error)
     case cloudKitError(_ error:Error)
     case archivalError(_ error:Error)
@@ -85,7 +87,7 @@ class CloudSynchronizer {
         return CloudSynchronizer.defaultZoneId
     }
     
-    let localDatabasePool:DatabaseQueue
+    private let localDatabasePool:DatabaseQueue
 
     private let _operationFactory:CloudOperationProducing
 
@@ -116,7 +118,7 @@ class CloudSynchronizer {
             }
             
             //Error: .changeTokenSaveError
-            let tag = try! localDatabasePool.read { (db) -> CloudChangeTag? in
+            let tag = try! read { (db) -> CloudChangeTag? in
                 return try CloudChangeTag.fetchOne(db,
                                                    sql: """
                                                     SELECT *
@@ -139,7 +141,7 @@ class CloudSynchronizer {
             let newTag = try! CloudChangeTag(token:newValue, processDate: Date())
             
             //Error: changeTokenSaveError
-            try! localDatabasePool.write { (db) in
+            try! write { (db) in
                 try newTag.save(db)
             }
             
@@ -304,6 +306,8 @@ class CloudSynchronizer {
                 table.column("ckRecordData", Database.ColumnType.blob)
                 table.column("cloudChangeTag", Database.ColumnType.text)
                 table.column("status", Database.ColumnType.text).notNull()
+                table.column("errorType", Database.ColumnType.text)
+                table.column("errorDescription", Database.ColumnType.text)
                 table.column("changeDate", Database.ColumnType.text)
             })
             
@@ -320,7 +324,7 @@ class CloudSynchronizer {
     
     private func propagatePulledChangesToDatabase() throws {
         
-        try localDatabasePool.write { (db) in
+        try write { (db) in
             
             let cloudRecordsToDelete = try cloudRecordStore.cloudRecords(with: .pullingDelete, using: db)
             
@@ -361,15 +365,18 @@ class CloudSynchronizer {
                 enableCloudObservers(for:tableName)
 
             }
-
-            let allCloudRecords = cloudRecordsToDelete + cloudRecordsToUpdate
             
-            let allIdentifiers = allCloudRecords.map({ (record) -> String in
+            let allIdentifiersToUpdate = cloudRecordsToUpdate.map({ (record) -> String in
                 return record.identifier
             })
             
-            //Error: Cloud Checkin Error
-            try cloudRecordStore.checkinCloudRecords(identifiers:allIdentifiers, with: .synced, using: db)
+            let allIdentifiersToDelete = cloudRecordsToDelete.map({ (record) -> String in
+                return record.identifier
+            })
+            
+            try cloudRecordStore.checkinCloudRecordIds(allIdentifiersToUpdate, with: .synced, using: db)
+            
+            try cloudRecordStore.removeCloudRecords(identifiers: allIdentifiersToDelete, using: db)
             
         }
         
@@ -433,21 +440,91 @@ class CloudSynchronizer {
         operation.start()
     }
     
+    func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
+        do {
+            return try localDatabasePool.write(updates)
+        }
+        catch let error {
+            handleDatabaseError(error)
+            throw error
+        }
+    }
+    
+    func read<T>(_ block: (Database) throws -> T) throws -> T {
+        do {
+            return try localDatabasePool.read(block)
+        }
+        catch let error {
+            handleDatabaseError(error)
+            throw error
+        }
+    }
+    
+    func handleCloudKitError(_ error: CloudKitError) -> CloudRecordError? {
+        
+        print("[CKS] CloudKitSynchronizer CloudKit Error: " + error.localizedDescription)
+        
+        switch error.code {
+        case .unhandled:
+            break // No op. Maybe record issue
+        case .haltSync:
+            break // Stop syncing
+        case .retryLater:
+            break // Just record in table
+        case .recordConflict:
+            break //Log message, Tell User issue occured
+        case .constraintViolation:
+            break //Log message, Tell User issue occured
+        case .fullRepull:
+            break //Log message, Tell User issue occured, Recommend full repull
+        case .message:
+            break // notify user
+        }
+        
+        return CloudRecordError(error)
+        
+    }
+    
+    func handleDatabaseError(_ error: Error) {
+        
+        print("[CKS] CloudKitSynchronizer db Error: " + error.localizedDescription)
+        
+    }
+    
 }
 
 extension CloudSynchronizer: CloudRecordPushOperationDelegate {
-    
-    func cloudPushOperation(_ operation: CloudRecordPushOperation, processedRecords: [CKRecord], status: CloudRecordOperationStatus) {
-        //TODO: Include better error handeling
-
-        switch status {
-        case .error(let error):
-            break
-        case .success:
-            //Error:
-            try? localDatabasePool.write { (db) in
-                try? cloudRecordStore.checkinCloudRecords(processedRecords, with: .synced, using:db)
+    func cloudPushOperation(_ operation: CloudRecordPushOperation, processedDeletedRecords: [CKRecord.ID], status: CloudRecordOperationStatus) {
+        
+        if case .error(let error) = status {
+            let cloudRecordError = handleCloudKitError(error)
+            
+            try? write { (db) in
+                
+                try? cloudRecordStore.checkinCloudRecordIds(processedDeletedRecords, with: .pushingDelete, error: cloudRecordError, using: db)
+                
             }
+        }
+        
+        try? write { (db) in
+            try? cloudRecordStore.removeCloudRecords(identifiers: processedDeletedRecords,
+                                                     using: db)
+        }
+    }
+    
+    
+    func cloudPushOperation(_ operation: CloudRecordPushOperation, processedUpdatedRecords processedRecords: [CKRecord], status: CloudRecordOperationStatus) {
+        
+        if case .error(let error) = status  {
+            let cloudRecordError = handleCloudKitError(error)
+            
+            try? write { (db) in
+                try? cloudRecordStore.checkinCloudRecords(processedRecords, with: nil, error: cloudRecordError, using: db)
+            }
+        }
+        
+        try? write { (db) in
+            try? cloudRecordStore.checkinCloudRecords(processedRecords, with: .synced, error: nil, using: db)
         }
 
     }
@@ -464,29 +541,41 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
 extension CloudSynchronizer: CloudRecordPullOperationDelegate {
     
     func cloudPullOperation(_ operation: CloudRecordPullOperation, processedUpdatedRecords: [CKRecord], status: CloudRecordOperationStatus) {
+
+        let cloudRecordError: CloudRecordError?
         
-        switch status {
-        case .error(let error):
-            break
-        case .success:
-            
-            //Error:
-            try? localDatabasePool.write { [weak self] (db) in
-                try? self?.cloudRecordStore.checkinCloudRecords(processedUpdatedRecords, with: .pullingUpdate, using: db)
-            }
+        if case .error(let error) = status {
+            cloudRecordError = handleCloudKitError(error)
         }
+        else {
+            cloudRecordError = nil
+        }
+        
+        try? write { [weak self] (db) in
+            try? self?.cloudRecordStore.checkinCloudRecords(processedUpdatedRecords,
+                                                            with: .pullingUpdate,
+                                                            error: cloudRecordError,
+                                                            using:db)
+        }
+        
     }
     
     func cloudPullOperation(_ operation: CloudRecordPullOperation, processedDeletedRecordIds: [CKRecord.ID], status: CloudRecordOperationStatus) {
         
-        switch status {
-        case .error(let error):
-            break
-        case .success:
-            //Error:
-            try? localDatabasePool.write { [weak self] (db) in
-                try? self?.cloudRecordStore.checkinCloudRecordIds(processedDeletedRecordIds, with: .pullingDelete, using:db)
-            }
+        let cloudRecordError: CloudRecordError?
+        
+        if case .error(let error) = status {
+            cloudRecordError = handleCloudKitError(error)
+        }
+        else {
+            cloudRecordError = nil
+        }
+        
+        try? write { [weak self] (db) in
+            try? self?.cloudRecordStore.checkinCloudRecordIds(processedDeletedRecordIds,
+                                                            with: .pullingDelete,
+                                                            error: cloudRecordError,
+                                                            using:db)
         }
         
     }
@@ -503,7 +592,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
 
 extension CloudSynchronizer: TableObserverDelegate {
     
-    func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordStatus, using db: Database) throws -> [CKRecord] {
+    func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordMutationType, using db: Database) throws -> [CKRecord] {
 
         let mapper = tableObserver(for: table).mapper
 
@@ -542,7 +631,7 @@ extension CloudSynchronizer: TableObserverDelegate {
         var recordsToCreate: [CKRecord] = []
         
         do {
-            try localDatabasePool.write { (db) in
+            try write { (db) in
                 recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, from: table, for: .pushingDelete, sorted: true, using: db)
                 recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
                 recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
@@ -735,9 +824,7 @@ extension Array where Element == String {
         }
         
         return quoteArr.joined(separator: ",")
-        
     }
-
 }
 
 
