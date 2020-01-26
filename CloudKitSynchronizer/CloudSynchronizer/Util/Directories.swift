@@ -13,3 +13,7 @@ class Directories {
         return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
     }
 }
+
+class Domain {
+    static let current: String = "com.kellyhuberty.CloudKitSynchronizer"
+}

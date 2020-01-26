@@ -49,29 +49,61 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
         // Completion
         _pushOperation.modifyRecordsCompletionBlock = { (savedRecords, deletedRecordIds, error) in
                         
-            let status: CloudRecordOperationStatus
-            
-            if let error = error as? CKError{
-                status = .error(CloudKitError(error: error))
-            }
-            else {
-                status = .success
+            if let error = error as? CKError {
+                self.processModificationError(saving: savedRecords , deleted: deletedRecordIds, ckError: error)
+                return
             }
             
             self.delegate?.cloudPushOperation(self,
                                               processedDeletedRecords: deletedRecordIds ?? [],
-                                              status: status)
+                                              status: .success)
             
         }
-        
+                
         return _pushOperation
     }
+    
+    func processModificationError(saving: [CKRecord]?, deleted: [CKRecord.ID]?, ckError: CKError) {
+        let status = CloudRecordOperationStatus.error(CloudKitError(error: ckError))
+
+        let erroredUpdatedRecords: [CKRecord]?
+        let erroredDeletedRecordIDs: [CKRecord.ID]?
+
+        if saving?.count ?? 0 > 0 {
+            erroredUpdatedRecords = saving
+        }
+        else {
+            erroredUpdatedRecords = _pushOperation.recordsToSave
+        }
+        
+        if deleted?.count ?? 0 > 0 {
+            erroredDeletedRecordIDs = deleted
+        }
+        else {
+            erroredDeletedRecordIDs = _pushOperation.recordIDsToDelete
+        }
+        
+        if let recordIds = erroredDeletedRecordIDs, recordIds.count > 0 {
+            self.delegate?.cloudPushOperation(self,
+                                              processedDeletedRecords: recordIds,
+                                              status: status)
+        }
+        
+        if let records = erroredUpdatedRecords, records.count > 0 {
+            self.delegate?.cloudPushOperation(self,
+                                              processedUpdatedRecords: records,
+                                              status: status)
+
+        }
+                
+    }
+    
     
 }
 
 class CloudRecordError : Error{
     
-    var description: String
+    let description: String
     let status: CloudRecordErrorType?
     
     init(description: String, status: CloudRecordErrorType? = nil) {

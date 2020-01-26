@@ -22,15 +22,6 @@ protocol SynchronizedTableProtocol {
     var tableName:String { get }
 }
 
-class CloudErrorPrototype : LocalizedError {
-    
-    var localizedDescription: String
-    
-    init(_ description:String) {
-        localizedDescription = description
-    }
-}
-
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
 enum CloudSynchronizerError: Error {
@@ -45,12 +36,11 @@ enum CloudSynchronizerError: Error {
 
 protocol CloudSynchronizerDelegate : class {
     
-    func cloudSynchronizer(_ synchronizer:CloudSynchronizer, errorOccured:CloudSynchronizerError)
+    func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
     
     func cloudSynchronizerNetworkBecameUnavailable(_ synchronizer:CloudSynchronizer)
     
     func cloudSynchronizerNetworkBecameAvailable(_ synchronizer:CloudSynchronizer)
-    
 }
 
 struct TableNames{
@@ -60,15 +50,17 @@ struct TableNames{
 }
 
 class CloudSynchronizer {
-    
-    static let Domain: String = "com.kellyhuberty.CloudKitSynchronizer"
-    
+
     enum Status {
         case unstarted
         case syncing
         case stopped
         case halted(error:Error?)
     }
+    
+    private static let defaultZoneIdDomain = Domain.current
+    
+    let log = OSLog(subsystem: Domain.current, category: "CloudSynchronizer")
     
     static let Prefix = "cloudRecord"
     
@@ -80,7 +72,7 @@ class CloudSynchronizer {
      let container:CKContainer = CKContainer.default()
      let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
      */
-    static let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.Domain,
+    static let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.defaultZoneIdDomain,
     ownerName: CKCurrentUserDefaultName)
     
     var zoneId: CKRecordZone.ID {
@@ -117,36 +109,39 @@ class CloudSynchronizer {
                 return currentChangeTagCache
             }
             
-            //Error: .changeTokenSaveError
-            let tag = try! read { (db) -> CloudChangeTag? in
-                return try CloudChangeTag.fetchOne(db,
-                                                   sql: """
-                                                    SELECT *
-                                                    FROM \(TableNames.ChangeTags)
-                                                   """)
+            do {
+                let tag = try read { (db) -> CloudChangeTag? in
+                    return try CloudChangeTag.fetchOne(db,
+                                                       sql: """
+                                                        SELECT *
+                                                        FROM \(TableNames.ChangeTags)
+                                                       """)
+                }
+
+                //Error: changeTokenSaveError
+                currentChangeTagCache = try! tag?.getChangeToken()
+            } catch let error {
+                handleDatabaseError(error)
+                return nil
             }
-            
-            //Error: changeTokenSaveError
-            currentChangeTagCache = try! tag?.getChangeToken()
-            
+                
             return currentChangeTagCache
         }
         set{
-            
             guard let newValue = newValue else{
                 return
             }
-            
-            //Error: changeTokenSaveError
-            let newTag = try! CloudChangeTag(token:newValue, processDate: Date())
-            
-            //Error: changeTokenSaveError
-            try! write { (db) in
-                try newTag.save(db)
+            do {
+                let newTag = try CloudChangeTag(token:newValue, processDate: Date())
+                
+                try write { (db) in
+                    try newTag.save(db)
+                }
+                currentChangeTagCache = try newTag.getChangeToken()
+            } catch let error {
+                handleDatabaseError(error)
+                return
             }
-            
-            //Error: changeTokenSaveError
-            currentChangeTagCache = try! newTag.getChangeToken()
         }
     }
     
@@ -230,7 +225,6 @@ class CloudSynchronizer {
         
         let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)!
         //TODO: Support for push notification changes
-        
     }
     
     private func setSyncRequest(){
@@ -239,13 +233,11 @@ class CloudSynchronizer {
             //Error: table setup error
             try! startObservingTable(table)
         }
-        
     }
     
     private func addTableObserver(_ tableObserver:TableObserving){
         
         observers.append(tableObserver)
-        
     }
     
     private func tableObserver(for name:String) -> TableObserving{
@@ -267,9 +259,7 @@ class CloudSynchronizer {
         let tableObserver = _tableObserverFactory.newTableObserver(table)
         tableObserver.delegate = self
         addTableObserver(tableObserver)
-        
     }
-
     
     func initilizeZones(completion:@escaping ()->Void) {
         let createZoneOperation = _operationFactory.newZoneAvailablityOperation()
@@ -284,7 +274,6 @@ class CloudSynchronizer {
     func runSynchronizerMigrations(_ db:Database) throws {
         
         try self.initilizeSyncDatabase(db)
-        
     }
     
     func initilizeSyncDatabase(_ db:Database) throws {
@@ -427,7 +416,30 @@ class CloudSynchronizer {
     
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
 
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else { return }
+            
+            let pullSemaphore = DispatchSemaphore(value: 0)
+            let pushSemaphore = DispatchSemaphore(value: 0)
+
+            self.pullFromCloud {
+                pullSemaphore.signal()
+            }
+            
+            self.retryFailedPushesToCloud {
+                pushSemaphore.signal()
+            }
+            
+            pullSemaphore.wait()
+            pushSemaphore.wait()
+
+            completion()
+        }
+    }
+    
+    public func pullFromCloud(_ completion: @escaping (() -> Void)) {
         guard let operation = operationFactory?.newPullOperation(delegate: self) else {
+            completion()
             return
         }
         
@@ -440,7 +452,33 @@ class CloudSynchronizer {
         operation.start()
     }
     
-    func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
+    public func retryFailedPushesToCloud(_ completion: @escaping (() -> Void)) {
+        
+        let recordsToDeleteIds = recordsMarkedRetry(with: .pushingDelete).map{ $0.recordID }
+        let recordsToUpdate = recordsMarkedRetry(with: .pushingUpdate)
+
+        guard recordsToDeleteIds.count > 0 || recordsToUpdate.count > 0 else {
+            completion()
+            return
+        }
+
+        guard let currentPushOperation =
+            self.operationFactory?.newPushOperation(delegate: self) else {
+            completion()
+                return
+        }
+        
+        currentPushOperation.updates = recordsToUpdate
+        currentPushOperation.deleteIds = recordsToDeleteIds
+        
+        currentPushOperation.completionBlock = {
+            completion()
+        }
+        
+        currentPushOperation.start()
+    }
+    
+    private func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
         do {
             return try localDatabasePool.write(updates)
         }
@@ -450,7 +488,7 @@ class CloudSynchronizer {
         }
     }
     
-    func read<T>(_ block: (Database) throws -> T) throws -> T {
+    private func read<T>(_ block: (Database) throws -> T) throws -> T {
         do {
             return try localDatabasePool.read(block)
         }
@@ -460,9 +498,47 @@ class CloudSynchronizer {
         }
     }
     
-    func handleCloudKitError(_ error: CloudKitError) -> CloudRecordError? {
+    func preprocessCloudKitError(_ error: CloudKitError) -> CloudRecordError? {
         
-        print("[CKS] CloudKitSynchronizer CloudKit Error: " + error.localizedDescription)
+        log.debug("[CKS] preprocessing CloudKitSynchronizer CloudKit Error: %@", error.localizedDescription)
+        
+        switch error.code {
+        case .unhandled:
+            // No op. Maybe record issue
+            log.error("Unhandled error received: %@",
+                      error.localizedDescription,
+                      error.underlyingError.localizedDescription)
+            break
+        case .haltSync:
+            // Stop syncing
+            log.error("Halting Sync due to error: %@",
+                      error.localizedDescription)
+            status = .halted(error: error)
+            break
+        case .retryLater:
+            break // Just record in table (Not handled here.)
+        case .recordConflict:
+            break //Log message, Tell User issue occured
+        case .constraintViolation:
+            break //Log message, Tell User issue occured
+        case .fullRepull:
+            log.error("Recommending full repull due to error: %@",
+                      error.localizedDescription)
+            break //Log message, Tell User issue occured, Recommend full repull
+        case .message:
+            break // notify user
+        }
+        
+        return CloudRecordError(error)
+    }
+    
+    func postprocessCloudKitError(_ error: CloudKitError?) {
+        
+        guard let error = error else {
+            return
+        }
+        
+        log.debug("[CKS] CloudKitSynchronizer CloudKit Error: %@",  error.localizedDescription)
         
         switch error.code {
         case .unhandled:
@@ -481,14 +557,10 @@ class CloudSynchronizer {
             break // notify user
         }
         
-        return CloudRecordError(error)
-        
     }
     
     func handleDatabaseError(_ error: Error) {
-        
-        print("[CKS] CloudKitSynchronizer db Error: " + error.localizedDescription)
-        
+        log.debug("[CKS] CloudKitSynchronizer db Error: ",  error.localizedDescription)
     }
     
 }
@@ -497,13 +569,14 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
     func cloudPushOperation(_ operation: CloudRecordPushOperation, processedDeletedRecords: [CKRecord.ID], status: CloudRecordOperationStatus) {
         
         if case .error(let error) = status {
-            let cloudRecordError = handleCloudKitError(error)
+            let cloudRecordError = preprocessCloudKitError(error)
             
             try? write { (db) in
                 
                 try? cloudRecordStore.checkinCloudRecordIds(processedDeletedRecords, with: .pushingDelete, error: cloudRecordError, using: db)
                 
             }
+            return
         }
         
         try? write { (db) in
@@ -516,11 +589,12 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
     func cloudPushOperation(_ operation: CloudRecordPushOperation, processedUpdatedRecords processedRecords: [CKRecord], status: CloudRecordOperationStatus) {
         
         if case .error(let error) = status  {
-            let cloudRecordError = handleCloudKitError(error)
+            let cloudRecordError = preprocessCloudKitError(error)
             
             try? write { (db) in
                 try? cloudRecordStore.checkinCloudRecords(processedRecords, with: nil, error: cloudRecordError, using: db)
             }
+            return
         }
         
         try? write { (db) in
@@ -545,7 +619,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
         let cloudRecordError: CloudRecordError?
         
         if case .error(let error) = status {
-            cloudRecordError = handleCloudKitError(error)
+            cloudRecordError = preprocessCloudKitError(error)
         }
         else {
             cloudRecordError = nil
@@ -565,7 +639,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
         let cloudRecordError: CloudRecordError?
         
         if case .error(let error) = status {
-            cloudRecordError = handleCloudKitError(error)
+            cloudRecordError = preprocessCloudKitError(error)
         }
         else {
             cloudRecordError = nil
@@ -585,9 +659,29 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
     }
     
     func cloudPullOperationDidComplete(_ operation: CloudRecordPullOperation) {
-        try! self.propagatePulledChangesToDatabase()
+        do {
+            try self.propagatePulledChangesToDatabase()
+        } catch let error {
+            handleDatabaseError(error)
+        }
     }
     
+}
+
+extension CloudSynchronizer {
+    func recordsMarkedRetry(with status: CloudRecordMutationType) -> [CKRecord] {
+        var records = [CKRecord]()
+        try! read { [weak self] (db) in
+            guard let self = self else { return }
+            
+            let cloudRecords = try self.cloudRecordStore.cloudRecords(with: status, using: db)
+            
+            let ckRecords = cloudRecords.map { $0.record! }
+            
+            records.append(contentsOf: ckRecords)
+        }
+        return records
+    }
 }
 
 extension CloudSynchronizer: TableObserverDelegate {
@@ -615,9 +709,8 @@ extension CloudSynchronizer: TableObserverDelegate {
             mappedCkRecords.append(mappedCKRecord)
 
         }
-
+        
         return mappedCkRecords
-
     }
     
     func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow]) {
@@ -636,8 +729,9 @@ extension CloudSynchronizer: TableObserverDelegate {
                 recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
                 recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
             }
-        } catch {
-            
+        } catch let error {
+            handleDatabaseError(error)
+            return
         }
         
         let deleteIds = recordsToDelete.map{ $0.recordID }

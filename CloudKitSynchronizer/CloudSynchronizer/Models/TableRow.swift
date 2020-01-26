@@ -12,10 +12,8 @@ import GRDB
 
 class TableRow : FetchableRecord {
     
-    
     let dict:[String: DatabaseValue?]
-    
-    
+        
     required init(row: Row){
         dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
     }

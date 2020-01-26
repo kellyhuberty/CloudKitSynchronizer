@@ -115,7 +115,7 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
 //                }
 //                else {
 //                    removeFirstResponderCommands()
-//                }
+//                } 
             }
         }
         
@@ -129,15 +129,15 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
     
         let downArrow =
             UIKeyCommand(input: UIKeyCommand.inputDownArrow,
-                                     modifierFlags: [],
-                                     action: #selector(downArrowAction(_:)),
-                                     discoverabilityTitle: "Down")
+                         modifierFlags: [],
+                         action: #selector(downArrowAction(_:)),
+                         discoverabilityTitle: "Down")
         
         let upArrow =
             UIKeyCommand(input: UIKeyCommand.inputUpArrow,
-                                   modifierFlags: [],
-                                   action: #selector(upArrowAction(_:)),
-                                   discoverabilityTitle: "Up")
+                         modifierFlags: [],
+                         action: #selector(upArrowAction(_:)),
+                         discoverabilityTitle: "Up")
         
         let delete =
             UIKeyCommand(input: "\u{8}",
@@ -146,7 +146,15 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
                          discoverabilityTitle: "Delete")
         
         let selectAll =
-            UIKeyCommand(title: "Select All", image: nil, action: #selector(selectAllAction(_:)), input: "a", modifierFlags: [.command], propertyList: nil, alternates: [], discoverabilityTitle: nil, attributes: [], state: .on)
+            UIKeyCommand(title: "Select All",
+                         image: nil,
+                         action: #selector(selectAllAction(_:)),
+                         input: "a", modifierFlags: [.command],
+                         propertyList: nil,
+                         alternates: [],
+                         discoverabilityTitle: nil,
+                         attributes: [],
+                         state: .on)
         
         func addFirstResponderCommands() {
             for command in firstResponderKeyCommands {
@@ -163,7 +171,6 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
                 }
             }
         }
-        
     }
     
     override func viewDidLoad() {
@@ -185,17 +192,14 @@ class WordListViewController: UITableViewController, WordListTableCellDelegate {
                                  action: #selector(refreshAction(_:)),
                                  for: .valueChanged)
         tableView.refreshControl = refreshControl
-                
     }
 
     @objc func refreshAction(_ sender: Any) {
-        
         Repo.shared.cloudSynchronizer?.refreshFromCloud {
             DispatchQueue.main.async {
                 (sender as? UIRefreshControl)?.endRefreshing()
             }
         }
-        
     }
     
     @objc func deleteAction(_ sender: Any) {

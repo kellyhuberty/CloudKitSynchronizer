@@ -36,6 +36,7 @@
 		C7744CAA235D162C00D7F2F6 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA9235D162C00D7F2F6 /* Directories.swift */; };
 		C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */; };
 		C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */; };
+		C7ABA0B523CC940700EF0A70 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7ABA0B423CC940700EF0A70 /* Log.swift */; };
 		C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
 		C7E421F122876C79002E0392 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserving.swift */; };
 		C7EF33A6234A96AA00781CB8 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */; };
@@ -90,6 +91,7 @@
 		C7744CA9235D162C00D7F2F6 /* Directories.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
 		C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
 		C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedMocks.swift; sourceTree = "<group>"; };
+		C7ABA0B423CC940700EF0A70 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
 		C7E421F022876C78002E0392 /* TableObserving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserving.swift; sourceTree = "<group>"; };
 		C7EF33A5234A96AA00781CB8 /* CloudRecordStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordStore.swift; sourceTree = "<group>"; };
@@ -186,6 +188,7 @@
 			isa = PBXGroup;
 			children = (
 				C7744CA9235D162C00D7F2F6 /* Directories.swift */,
+				C7ABA0B423CC940700EF0A70 /* Log.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -459,6 +462,7 @@
 			files = (
 				C7744CA8235D161900D7F2F6 /* Repo.swift in Sources */,
 				C7653B992243F3C8000CDABB /* CloudModel.swift in Sources */,
+				C7ABA0B523CC940700EF0A70 /* Log.swift in Sources */,
 				C7653B642243390B000CDABB /* ViewController.swift in Sources */,
 				C7653B922243F219000CDABB /* CloudKitRecordPullOperation.swift in Sources */,
 				C7653B9B2243F72C000CDABB /* Item.swift in Sources */,

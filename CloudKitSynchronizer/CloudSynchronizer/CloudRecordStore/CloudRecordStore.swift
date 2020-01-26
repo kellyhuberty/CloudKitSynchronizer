@@ -11,7 +11,6 @@ import CloudKit
 import GRDB
 
 class CloudRecordStore : CloudRecordStoring {
-    
     private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordMutationType, error: CloudRecordError? = nil) -> CloudRecord{
         
         let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
@@ -124,9 +123,7 @@ class CloudRecordStore : CloudRecordStoring {
                 if let status = status {
                     cloudRecord.status = status
                 }
-                if let error = error {
-                    cloudRecord.error = error
-                }
+                cloudRecord.error = error
                 cloudRecord.record = record
                 cloudRecordsToSave.append(cloudRecord)
             }else{
@@ -160,8 +157,8 @@ class CloudRecordStore : CloudRecordStoring {
             bindingsArr.append("?")
         }
         
-        let args = [status.rawValue] + identifiers
-        let updateQuery = "UPDATE `\(TableNames.CloudRecords)` SET `status` = ? WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
+        let args = [status.rawValue, error?.status?.rawValue, error?.description] + identifiers
+        let updateQuery = "UPDATE `\(TableNames.CloudRecords)` SET `status` = ?, `errorType` = ?, `errorDescription` = ? WHERE `identifier` IN ( \(bindingsArr.joined(separator: ",")) )"
         try db.execute(sql: updateQuery, arguments: StatementArguments(args) )
     }
     

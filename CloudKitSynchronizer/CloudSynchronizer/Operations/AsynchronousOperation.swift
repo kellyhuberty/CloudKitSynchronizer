@@ -24,7 +24,6 @@ class AsynchronousOperation : Operation {
         
     }
     
-    
     private var _isExecuting:Bool = false{
         willSet{
             self.willChangeValue(for: \.isExecuting )
@@ -72,5 +71,4 @@ class AsynchronousOperation : Operation {
         _isExecuting = false
         _isFinished = true
     }
-    
 }

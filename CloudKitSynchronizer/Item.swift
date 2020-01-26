@@ -17,5 +17,6 @@ class Item : Model, Codable {
     
     var identifier:String
     var text:String?
+    var nextIdentifier:String?
     
 }

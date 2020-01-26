@@ -17,6 +17,7 @@ class CloudOperation : AsynchronousOperation {
         
         _operation = createOperation()
         _operation.completionBlock = {
+            print(self)
             completionToken.finish()
         }
         _operation.start()
