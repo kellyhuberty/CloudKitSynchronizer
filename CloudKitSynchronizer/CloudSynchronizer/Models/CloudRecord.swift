@@ -44,37 +44,42 @@ class CloudRecord : Model, Codable{
     let identifier:String
     let tableName:String
     var ckRecordData:Data? = nil
+    var conflictedCkRecordData:Data? = nil
     var cloudChangeTag:String? = nil
     var changeDate:Date? = nil
     var status: CloudRecordMutationType
     var errorType: CloudRecordErrorType?
     var errorDescription: String?
 
+    //Cached data
     private var _record:CKRecord? = nil
+    private var _conflictedServerRecord:CKRecord? = nil
     
     var record:CKRecord?{
         get{
-            
-            guard let data = ckRecordData else{
-                return nil
-            }
-            
             if let record = _record {
                 return record
             }
-            
-            do{
-                _record = try NSKeyedUnarchiver.unarchivedObject(ofClass: CKRecord.self, from: data)
-            }catch{
-                NSLog("Record Decode warning: \(error)")
-                _record = nil
-            }
+            _record = CloudRecord.ckRecord(from: ckRecordData)
             return _record
-            
         }
         set{
-            ckRecordData = try? NSKeyedArchiver.archivedData(withRootObject: newValue as Any, requiringSecureCoding: true)
-            _record = newValue
+            ckRecordData = CloudRecord.data(from: newValue)
+            _conflictedServerRecord = newValue
+        }
+    }
+    
+    var conflictedServerRecord:CKRecord?{
+        get{
+            if let record = _conflictedServerRecord {
+                return record
+            }
+            _conflictedServerRecord = CloudRecord.ckRecord(from: conflictedCkRecordData)
+            return _conflictedServerRecord
+        }
+        set{
+            conflictedCkRecordData = CloudRecord.data(from: newValue)
+            _conflictedServerRecord = newValue
         }
     }
     
@@ -84,12 +89,41 @@ class CloudRecord : Model, Codable{
                 return nil
             }
             
-            return CloudRecordError(description: errorDescription, status: errorType)
+            return CloudRecordError(description: errorDescription, status: errorType, serverRecord: self.conflictedServerRecord)
         }
         set {
             errorType = newValue?.status
             errorDescription = newValue?.description
         }
+    }
+    
+    static func ckRecord(from data:Data?) -> CKRecord? {
+        
+        guard let data = data else{
+            return nil
+        }
+        
+        let record: CKRecord?
+        
+        do{
+            record = try NSKeyedUnarchiver.unarchivedObject(ofClass: CKRecord.self, from: data)
+        }catch{
+            NSLog("Record Decode warning: \(error)")
+            record = nil
+        }
+        return record
+        
+    }
+ 
+    static func data(from ckRecord:CKRecord?) -> Data? {
+        
+        guard let ckRecord = ckRecord else {
+            return nil
+        }
+        
+        let ckRecordData = try? NSKeyedArchiver.archivedData(withRootObject: ckRecord as Any, requiringSecureCoding: true)
+        return ckRecordData
+        
     }
     
 }

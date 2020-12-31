@@ -293,6 +293,7 @@ class CloudSynchronizer {
                 table.column("identifier", Database.ColumnType.text).unique(onConflict: Database.ConflictResolution.replace).primaryKey()
                 table.column("tableName", Database.ColumnType.text)
                 table.column("ckRecordData", Database.ColumnType.blob)
+                table.column("conflictedCkRecordData", Database.ColumnType.blob)
                 table.column("cloudChangeTag", Database.ColumnType.text)
                 table.column("status", Database.ColumnType.text).notNull()
                 table.column("errorType", Database.ColumnType.text)
@@ -500,7 +501,19 @@ class CloudSynchronizer {
     
     func preprocessCloudKitError(_ error: CloudKitError) -> CloudRecordError? {
         
-        log.debug("[CKS] preprocessing CloudKitSynchronizer CloudKit Error: %@", error.localizedDescription)
+        log.debug("""
+                [CKS] CloudKitSynchronizer CloudKit\n/
+                ERROR: %i
+                LocalizedError: %@
+                FailureReason: %@
+                RecoverySuggestion: %@
+                RecoveryType: %@
+                """,
+                     error.underlyingError.errorCode,
+                     error.localizedDescription,
+                     error.failureReason ?? "",
+                     error.recoverySuggestion ?? "",
+                     error.code.rawValue)
         
         switch error.code {
         case .unhandled:
@@ -538,7 +551,11 @@ class CloudSynchronizer {
             return
         }
         
-        log.debug("[CKS] CloudKitSynchronizer CloudKit Error: %@",  error.localizedDescription)
+        log.debug("""
+                [CKS] CloudKitSynchronizer CloudKit
+                LocalizedError: %@
+                FailureReason: %@
+                """,  error.localizedDescription, error.failureReason ?? "")
         
         switch error.code {
         case .unhandled:
@@ -573,7 +590,10 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
             
             try? write { (db) in
                 
-                try? cloudRecordStore.checkinCloudRecordIds(processedDeletedRecords, with: .pushingDelete, error: cloudRecordError, using: db)
+                try? cloudRecordStore.checkinCloudRecordIds(processedDeletedRecords,
+                                                            with: .pushingDelete,
+                                                            having: CloudRecordMutationType.All,
+                                                            error: cloudRecordError, using: db)
                 
             }
             return
@@ -592,13 +612,20 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
             let cloudRecordError = preprocessCloudKitError(error)
             
             try? write { (db) in
-                try? cloudRecordStore.checkinCloudRecords(processedRecords, with: nil, error: cloudRecordError, using: db)
+                try? cloudRecordStore.checkinCloudRecords(processedRecords,
+                                                          with: nil,
+                                                          having: CloudRecordMutationType.All,
+                                                          error: cloudRecordError,
+                                                          using: db)
             }
             return
         }
         
         try? write { (db) in
-            try? cloudRecordStore.checkinCloudRecords(processedRecords, with: .synced, error: nil, using: db)
+            try? cloudRecordStore.checkinCloudRecords(processedRecords, with: .synced,
+                                                      having: CloudRecordMutationType.All,
+                                                      error: nil,
+                                                      using: db)
         }
 
     }
@@ -628,6 +655,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
         try? write { [weak self] (db) in
             try? self?.cloudRecordStore.checkinCloudRecords(processedUpdatedRecords,
                                                             with: .pullingUpdate,
+                                                            having: CloudRecordMutationType.All,
                                                             error: cloudRecordError,
                                                             using:db)
         }
@@ -648,6 +676,7 @@ extension CloudSynchronizer: CloudRecordPullOperationDelegate {
         try? write { [weak self] (db) in
             try? self?.cloudRecordStore.checkinCloudRecordIds(processedDeletedRecordIds,
                                                             with: .pullingDelete,
+                                                            having: [],
                                                             error: cloudRecordError,
                                                             using:db)
         }
@@ -676,8 +705,8 @@ extension CloudSynchronizer {
             
             let cloudRecords = try self.cloudRecordStore.cloudRecords(with: status, using: db)
             
-            let ckRecords = cloudRecords.map { $0.record! }
-            
+            let ckRecords = cloudRecords.compactMap { $0.record }
+                        
             records.append(contentsOf: ckRecords)
         }
         return records

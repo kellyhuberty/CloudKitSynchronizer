@@ -12,13 +12,15 @@ import GRDB
 
 class TableRow : FetchableRecord {
     
+    typealias Identifier = String
+    
     let dict:[String: DatabaseValue?]
         
     required init(row: Row){
         dict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
     }
     
-    var identifier:String {
+    var identifier: Identifier {
         
         guard let recordId = dict["identifier"] else{
             fatalError()

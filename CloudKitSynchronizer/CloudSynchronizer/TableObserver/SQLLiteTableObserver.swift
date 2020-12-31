@@ -11,28 +11,33 @@ import GRDB
 
 class SQLiteTableObserver {
     
-    // MARK: - Public Vars
+    struct RecordIdentifier {
+        
+    }
     
+    // MARK: - Public Vars
     let tableName:String
     let columnNames:[String]
     
-    private var resultsController:FetchedRecordsController<TableRow>!
+    private var resultsController: DatabaseRegionObservation!
     
     weak var delegate: TableObserverDelegate?
     
     var isObserving: Bool = true
-    
     
     // MARK: - Private Vars
     private var currentRowsCreatingUp:[TableRow] = []
     private var currentRowsUpdatingUp:[TableRow] = []
     private var currentRowsDeletingUp:[TableRow] = []
     
+    private var databaseQueue: DatabaseQueue
+    
+    
     // MARK: - inits
     init(tableName:String, databaseQueue:DatabaseQueue) {
         self.tableName = tableName
         self.columnNames = try! SQLiteTableObserver.columnNames(for: tableName, in: databaseQueue)
-        self.resultsController = try! setupResultsController(tableName, queue:databaseQueue )
+        self.databaseQueue = databaseQueue
     }
     
     
@@ -48,9 +53,10 @@ class SQLiteTableObserver {
         return columnNames
     }
     
+    /*
     private func setupResultsController(_ table:String, queue:DatabaseQueue ) throws ->
-        FetchedRecordsController<TableRow> {
-            
+    DatabaseRegionObservation<TableRow> {
+                    
             let request = SQLRequest<TableRow>(sql: "SELECT `\(table)`.* FROM `\(table)`")
             
             let controller = try FetchedRecordsController<TableRow>(queue, request: request)
@@ -107,10 +113,105 @@ class SQLiteTableObserver {
             return controller
             
     }
+    */
     
+   
+    
+    private func sendTableRowsAndReset() {
+        delegate?.tableObserver(self, created: currentRowsCreatingUp, updated: currentRowsUpdatingUp, deleted: currentRowsDeletingUp)
+        resetForNextTransaction()
+    }
+    
+    private func resetForNextTransaction() {
+        currentRowsCreatingUp = []
+        currentRowsUpdatingUp = []
+        currentRowsDeletingUp = []
+    }
     
 }
 
 extension SQLiteTableObserver : TableObserving {
+    
+}
+
+
+extension SQLiteTableObserver : TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+        return eventKind.tableName == self.tableName
+    }
+    
+    /// Cannot touch the database.
+    func databaseDidChange(with event: DatabaseEvent) {
+        
+    }
+    
+    func databaseDidCommit(_ db: Database) {
+        guard self.isObserving else {
+            return
+        }
+        sendTableRowsAndReset()
+    }
+    
+    func databaseDidRollback(_ db: Database) {
+        guard self.isObserving else {
+            return
+        }
+        resetForNextTransaction()
+    }
+    
+    func databaseWillChange(with event: DatabasePreUpdateEvent) {
+        guard self.isObserving else {
+            return
+        }
+        
+        switch event.kind {
+        case .insert:
+            if let tableRow = event.finalTableRow(for: columnNames) {
+                currentRowsCreatingUp.append(tableRow)
+            }
+        case .delete:
+            if let tableRow = event.initialTableRow(for: columnNames) {
+                currentRowsDeletingUp.append(tableRow)
+            }
+        case .update:
+            if let tableRow = event.finalTableRow(for: columnNames) {
+                currentRowsUpdatingUp.append(tableRow)
+            }
+        }
+    }
+}
+
+
+extension DatabasePreUpdateEvent {
+    
+    func initialTableRow(for columnNames: [String]) -> TableRow? {
+        guard let values = initialDatabaseValues else {
+            return nil
+        }
+        return tableRow(values: values, columnNames: columnNames)
+    }
+    
+    func finalTableRow(for columnNames: [String]) -> TableRow? {
+        guard let values = finalDatabaseValues else {
+            return nil
+        }
+        return tableRow(values: values, columnNames: columnNames)
+    }
+    
+    func tableRow(values:[DatabaseValue], columnNames:[String]) -> TableRow?  {
+        guard columnNames.count == values.count else {
+            return nil
+        }
+        
+        var columnValues = [String: DatabaseValueConvertible?]()
+        
+        for i in 0 ..< columnNames.count {
+            columnValues[columnNames[i]] = values[i]
+        }
+                
+        let tableRow = TableRow(row: Row(columnValues))
+        
+        return tableRow
+    }
     
 }

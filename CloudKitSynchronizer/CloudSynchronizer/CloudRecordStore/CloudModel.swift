@@ -10,10 +10,6 @@ import Foundation
 import CloudKit
 import GRDB
 
-protocol CloudModel {
-    var cloudRecordStatus:CloudRecordMutationType { get }
-}
-
 enum CloudRecordMutationType : String, Codable {
     case pushingUpdate = "pushing.update"
     case pushingDelete = "pushing.delete"
@@ -22,6 +18,15 @@ enum CloudRecordMutationType : String, Codable {
     case pullingDelete = "pulling.delete"
 
     case synced = "synced"
+    
+    static let Synced: [CloudRecordMutationType] = [.synced]
+    static let Pushing: [CloudRecordMutationType] = [.pushingDelete, .pushingUpdate]
+    static let Pulling: [CloudRecordMutationType] = [.pullingUpdate, .pullingDelete]
+    static let All: [CloudRecordMutationType] = [.pushingUpdate,
+                                                 .pushingDelete,
+                                                 .pullingUpdate,
+                                                 .pullingDelete]
+
 }
 
 enum CloudRecordErrorType : String, Codable {
@@ -32,12 +37,4 @@ enum CloudRecordErrorType : String, Codable {
 enum CloudRecordStatus {
     case mutation(_ mutationType: CloudRecordMutationType)
     case error(_ error: CloudRecordError)
-}
-
-extension CloudModel{
-    
-    static func addCloudDatabaseAttributes(_ table:TableAlteration){
-        table.add(column:"cloudRecordStatus", Database.ColumnType.text)
-    }
-    
 }

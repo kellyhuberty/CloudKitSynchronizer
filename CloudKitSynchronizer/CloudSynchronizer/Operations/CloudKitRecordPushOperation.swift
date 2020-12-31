@@ -105,10 +105,12 @@ class CloudRecordError : Error{
     
     let description: String
     let status: CloudRecordErrorType?
+    let serverRecord: CKRecord?
     
-    init(description: String, status: CloudRecordErrorType? = nil) {
+    init(description: String, status: CloudRecordErrorType? = nil, serverRecord: CKRecord? ) {
         self.description = description
         self.status = status
+        self.serverRecord = serverRecord
     }
     
     init(_ cloudKitError:CloudKitError) {
@@ -134,13 +136,14 @@ class CloudRecordError : Error{
         
         self.description = cloudKitError.localizedDescription
         self.status = status
+        self.serverRecord = cloudKitError.underlyingError.serverRecord
     }
 }
 
 
-class CloudKitError : Error, LocalizedError {
+class CloudKitError : Error {
 
-    enum RecoveryType {
+    enum RecoveryType: String {
         /// This particular item isn't handled by this verson's scopr of CKS.
         case unhandled
         /// An issue occured that requires pausing syncing until a later date.
@@ -244,9 +247,18 @@ class CloudKitError : Error, LocalizedError {
         return p.code == (v as? CloudKitError)?.code
     }
     
+}
+
+extension CloudKitError: LocalizedError {
     var localizedDescription: String {
         return underlyingError.localizedDescription
     }
     
+    var recoverySuggestion: String? {
+        return (underlyingError as? LocalizedError)?.recoverySuggestion
+    }
+    
+    var failureReason: String? {
+        return (underlyingError as? LocalizedError)?.failureReason
+    }
 }
-

@@ -11,6 +11,7 @@ import CloudKit
 import GRDB
 
 class CloudRecordStore : CloudRecordStoring {
+    
     private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordMutationType, error: CloudRecordError? = nil) -> CloudRecord{
         
         let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
@@ -91,7 +92,12 @@ class CloudRecordStore : CloudRecordStoring {
     }
     
     
-    func checkinCloudRecords(_ records:[CKRecord], with status:CloudRecordMutationType?, error: CloudRecordError?, using db:Database) throws {
+    func checkinCloudRecords(_ records:[CKRecord],
+                             with status:CloudRecordMutationType?,
+                             having currentStatuses: [CloudRecordMutationType]?,
+                             error: CloudRecordError?,
+                             using db:Database) throws {
+        
         //After a modification has completed, check in a record.
         let allRecords = records.sorted(by: { (leftRecord, rightRecord) -> Bool in
             leftRecord.recordID.recordName > rightRecord.recordID.recordName
@@ -139,7 +145,11 @@ class CloudRecordStore : CloudRecordStoring {
         }
     }
     
-    func checkinCloudRecordIds(_ recordIds:[CKRecordIdentifiable], with status:CloudRecordMutationType, error: CloudRecordError?, using db:Database) throws {
+    func checkinCloudRecordIds(_ recordIds:[CKRecordIdentifiable],
+                               with status:CloudRecordMutationType,
+                               having currentStatuses: [CloudRecordMutationType]?,
+                               error: CloudRecordError?,
+                               using db:Database) throws {
         //After a modification has completed, check in a record.
         let recordIdStrings = recordIds.map { (recordIds) -> String in
             return recordIds.identifier
