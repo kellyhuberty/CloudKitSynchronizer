@@ -25,16 +25,14 @@ public protocol ColumnExpression: SQLExpression {
 }
 
 extension ColumnExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return name.quotedDatabaseIdentifier
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLQualifiedColumn(name, alias: alias)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return QualifiedColumn(name, alias: alias)
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
@@ -63,9 +61,11 @@ public struct Column: ColumnExpression {
 }
 
 /// A qualified column in the database, as in `SELECT t.a FROM t`
-struct QualifiedColumn: ColumnExpression {
-    var name: String
-    private let alias: TableAlias
+/// 
+/// :nodoc:
+public struct _SQLQualifiedColumn: ColumnExpression {
+    public var name: String
+    let alias: TableAlias
     
     /// Creates a column given its name.
     init(_ name: String, alias: TableAlias) {
@@ -73,16 +73,15 @@ struct QualifiedColumn: ColumnExpression {
         self.alias = alias
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if let qualifier = context.qualifier(for: alias) {
-            return qualifier.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
-        }
-        return name.quotedDatabaseIdentifier
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // Never requalify
+        self
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        // Never requalify
-        return self
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
@@ -94,7 +93,5 @@ struct QualifiedColumn: ColumnExpression {
 ///         }
 ///     }
 extension ColumnExpression where Self: RawRepresentable, Self.RawValue == String {
-    public var name: String {
-        return rawValue
-    }
+    public var name: String { rawValue }
 }

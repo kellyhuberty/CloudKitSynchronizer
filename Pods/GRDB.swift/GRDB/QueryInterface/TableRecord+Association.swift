@@ -1,6 +1,6 @@
 extension TableRecord {
-    /// Creates a "Belongs To" association between Self and the
-    /// destination type.
+    /// Creates a "Belongs To" association between Self and the destination
+    /// type, based on a database foreign key.
     ///
     ///     struct Author: TableRecord { ... }
     ///     struct Book: TableRecord {
@@ -61,31 +61,11 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: databaseTableName,
-            destinationTable: Destination.databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: true)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedSingular(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return BelongsToAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toOne))
+        BelongsToAssociation(key: key, using: foreignKey)
     }
     
-    /// Creates a "Has many" association between Self and the
-    /// destination type.
+    /// Creates a "Has many" association between Self and the destination type,
+    /// based on a database foreign key.
     ///
     ///     struct Book: TableRecord { ... }
     ///     struct Author: TableRecord {
@@ -146,27 +126,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasManyAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: Destination.databaseTableName,
-            destinationTable: databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: false)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedPlural(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return HasManyAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toMany))
+        HasManyAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has Many Through" association between Self and the
@@ -242,7 +202,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -251,8 +211,8 @@ extension TableRecord {
         }
     }
     
-    /// Creates a "Has one" association between Self and the
-    /// destination type.
+    /// Creates a "Has one" association between Self and the destination type,
+    /// based on a database foreign key.
     ///
     ///     struct Demographics: TableRecord { ... }
     ///     struct Country: TableRecord {
@@ -313,27 +273,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: Destination.databaseTableName,
-            destinationTable: databaseTableName,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: false)
-        
-        let associationKey: SQLAssociationKey
-        if let key = key {
-            associationKey = .fixedSingular(key)
-        } else {
-            associationKey = .inflected(Destination.databaseTableName)
-        }
-        
-        return HasOneAssociation(sqlAssociation: SQLAssociation(
-            key: associationKey,
-            condition: condition,
-            relation: Destination.all().relation,
-            cardinality: .toOne))
+        HasOneAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has One Through" association between Self and the
@@ -341,7 +281,7 @@ extension TableRecord {
     ///
     ///     struct Book: TableRecord {
     ///         static let library = belongsTo(Library.self)
-    ///         static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+    ///         static let returnAddress = hasOne(Address.self, through: library, using: Library.address)
     ///     }
     ///
     ///     struct Library: TableRecord {
@@ -409,7 +349,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -524,7 +464,7 @@ public struct ForeignKey {
     /// foreign key. When nil (the default), GRDB automatically uses the
     /// primary key.
     public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
-        self.init(originColumns.map { $0.name }, to: destinationColumns?.map { $0.name })
+        self.init(originColumns.map(\.name), to: destinationColumns?.map(\.name))
     }
 }
 
@@ -546,10 +486,22 @@ extension TableRecord where Self: EncodableRecord {
         -> QueryInterfaceRequest<A.RowDecoder>
         where A.OriginRowDecoder == Self
     {
-        let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
-            try [Row(PersistenceContainer(db, self))]
-        })
-        return QueryInterfaceRequest(relation: destinationRelation)
+        switch association._sqlAssociation.pivot.condition {
+        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+            let destinationRelation = association
+                ._sqlAssociation
+                .map(\.pivot.relation, { pivotRelation in
+                    pivotRelation.filter { db in
+                        // Filter the pivot on self
+                        try foreignKeyRequest
+                            .fetchForeignKeyMapping(db)
+                            .joinMapping(originIsLeft: originIsLeft)
+                            .joinExpression(leftRows: [PersistenceContainer(db, self)])
+                    }
+                })
+                .destinationRelation()
+            return QueryInterfaceRequest(relation: destinationRelation)
+        }
     }
 }
 
@@ -562,7 +514,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(all: association)
+        all().including(all: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -572,7 +524,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(optional: association)
+        all().including(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -582,7 +534,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(required: association)
+        all().including(required: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -592,7 +544,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().joining(optional: association)
+        all().joining(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -602,34 +554,34 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().joining(required: association)
+        all().joining(required: association)
     }
     
     // MARK: - Association Aggregates
     
     /// Creates a request with *aggregates* appended to the selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
-        return all().annotated(with: aggregates)
+        all().annotated(with: aggregates)
     }
     
     /// Creates a request with *aggregates* appended to the selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
-        return all().annotated(with: aggregates)
+        all().annotated(with: aggregates)
     }
     
     /// Creates a request with the provided aggregate *predicate*.
     ///
     ///     // SELECT player.*
     ///     // FROM player LEFT JOIN book ...
-    ///     // HAVING COUNT(DISTINCT book.rowid) = 0
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
     ///
@@ -637,6 +589,6 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func having(_ predicate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
-        return all().having(predicate)
+        all().having(predicate)
     }
 }

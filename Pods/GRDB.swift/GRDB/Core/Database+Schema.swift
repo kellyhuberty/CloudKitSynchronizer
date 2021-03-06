@@ -1,21 +1,6 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 extension Database {
     
     // MARK: - Database Schema
-    
-    func withSchemaCache<T>(_ schemaCache: DatabaseSchemaCache, _ block: () throws -> T) rethrows -> T {
-        var oldCache = self.schemaCache
-        defer { self.schemaCache = oldCache }
-        self.schemaCache = schemaCache
-        return try block()
-    }
     
     /// Clears the database schema cache.
     ///
@@ -33,9 +18,19 @@ extension Database {
         publicStatementCache.clear()
     }
     
+    /// Clears the database schema cache if the database schema has changed
+    /// since this method was last called.
+    func clearSchemaCacheIfNeeded() throws {
+        let schemaVersion = try Int32.fetchOne(internalCachedSelectStatement(sql: "PRAGMA schema_version"))
+        if _lastSchemaVersion != schemaVersion {
+            _lastSchemaVersion = schemaVersion
+            clearSchemaCache()
+        }
+    }
+    
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
-        return try exists(type: .table, name: name)
+        try exists(type: .table, name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -57,17 +52,17 @@ extension Database {
     ///
     /// Those are tables whose name begins with "grdb_".
     public func isGRDBInternalTable(_ tableName: String) -> Bool {
-        return tableName.starts(with: "grdb_")
+        tableName.starts(with: "grdb_")
     }
     
     /// Returns whether a view exists.
     public func viewExists(_ name: String) throws -> Bool {
-        return try exists(type: .view, name: name)
+        try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
     public func triggerExists(_ name: String) throws -> Bool {
-        return try exists(type: .trigger, name: name)
+        try exists(type: .trigger, name: name)
     }
     
     private func exists(type: SchemaObjectType, name: String) throws -> Bool {
@@ -155,44 +150,75 @@ extension Database {
             if pkColumn.type.uppercased() == "INTEGER" {
                 primaryKey = .rowID(pkColumn.name)
             } else {
-                primaryKey = .regular([pkColumn.name])
+                primaryKey = try .regular([pkColumn.name], tableHasRowID: tableHasRowID(tableName))
             }
         default:
             // Multi-columns primary key
-            primaryKey = .regular(pkColumns.map { $0.name })
+            primaryKey = try .regular(pkColumns.map(\.name), tableHasRowID: tableHasRowID(tableName))
         }
         
         schemaCache.set(primaryKey: primaryKey, forTable: tableName)
         return primaryKey
     }
     
-    /// The indexes on table named `tableName`; returns the empty array if the
-    /// table does not exist.
+    /// Returns whether the column identifies the rowid column
+    func columnIsRowID(_ column: String, of tableName: String) throws -> Bool {
+        let pk = try primaryKey(tableName)
+        return pk.rowIDColumn == column || (pk.tableHasRowID && column.uppercased() == "ROWID")
+    }
+    
+    /// Returns whether the table has a rowid column.
+    private func tableHasRowID(_ tableName: String) throws -> Bool {
+        // Not need to cache the result, because this information feeds
+        // `PrimaryKeyInfo`, which is cached.
+        do {
+            _ = try makeSelectStatement(sql: "SELECT rowid FROM \(tableName.quotedDatabaseIdentifier)")
+            return true
+        } catch DatabaseError.SQLITE_ERROR {
+            return false
+        }
+    }
+    
+    /// The indexes on table named `tableName`.
     ///
-    /// Note: SQLite does not define any index for INTEGER PRIMARY KEY columns:
-    /// this method does not return any index that represents this primary key.
+    /// Only indexes on columns are returned. Indexes on expressions are
+    /// not returned.
+    ///
+    /// SQLite does not define any index for INTEGER PRIMARY KEY columns: this
+    /// method does not return any index that represents the primary key.
     ///
     /// If you want to know if a set of columns uniquely identify a row, prefer
-    /// table(_:hasUniqueKey:) instead.
+    /// `table(_:hasUniqueKey:)` instead.
     public func indexes(on tableName: String) throws -> [IndexInfo] {
         if let indexes = schemaCache.indexes(on: tableName) {
             return indexes
         }
         
         let indexes = try Row
+            // [seq:0 name:"index" unique:0 origin:"c" partial:0]
             .fetchAll(self, sql: "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
-            .map { row -> IndexInfo in
-                // [seq:0 name:"index" unique:0 origin:"c" partial:0]
+            .compactMap { row -> IndexInfo? in
                 let indexName: String = row[1]
                 let unique: Bool = row[2]
-                let columns = try Row
+                
+                let indexInfoRows = try Row
+                    // [seqno:0 cid:2 name:"column"]
                     .fetchAll(self, sql: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                    .map { row -> (Int, String) in
-                        // [seqno:0 cid:2 name:"column"]
-                        (row[0] as Int, row[2] as String)
+                    // Sort by rank
+                    .sorted(by: { ($0[0] as Int) < ($1[0] as Int) })
+                var columns: [String] = []
+                for indexInfoRow in indexInfoRows {
+                    guard let column = indexInfoRow[2] as String? else {
+                        // https://sqlite.org/pragma.html#pragma_index_info
+                        // > The name of the column being indexed is NULL if the
+                        // > column is the rowid or an expression.
+                        //
+                        // IndexInfo does not support expressing such index.
+                        // Maybe in a future GRDB version?
+                        return nil
                     }
-                    .sorted { $0.0 < $1.0 }
-                    .map { $0.1 }
+                    columns.append(column)
+                }
                 return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
         
@@ -216,7 +242,7 @@ extension Database {
         throws -> Bool
         where T.Iterator.Element == String
     {
-        return try columnsForUniqueKey(Array(columns), in: tableName) != nil
+        try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
     /// The foreign keys defined on table named `tableName`.
@@ -320,27 +346,54 @@ extension Database {
         // > column in the primary key for columns that are part of the primary
         // > key.
         //
-        // CREATE TABLE players (
+        // sqlite> CREATE TABLE players (
         //   id INTEGER PRIMARY KEY,
         //   firstName TEXT,
-        //   lastName TEXT)
+        //   lastName TEXT);
         //
-        // PRAGMA table_info("players")
-        //
+        // sqlite> PRAGMA table_info("players");
         // cid | name  | type    | notnull | dflt_value | pk |
         // 0   | id    | INTEGER | 0       | NULL       | 1  |
         // 1   | name  | TEXT    | 0       | NULL       | 0  |
         // 2   | score | INTEGER | 0       | NULL       | 0  |
-        
-        if sqlite3_libversion_number() < 3008005 {
-            // Work around a bug in SQLite where PRAGMA table_info would
-            // return a result even after the table was deleted.
-            if try !tableExists(tableName) {
-                throw DatabaseError(message: "no such table: \(tableName)")
+        //
+        //
+        // PRAGMA table_info does not expose hidden and generated columns. For
+        // that, we need PRAGMA table_xinfo, introduced in SQLite 3.26.0:
+        // https://sqlite.org/releaselog/3_26_0.html
+        //
+        // > PRAGMA schema.table_xinfo(table-name);
+        //
+        // > This pragma returns one row for each column in the named table,
+        // > including hidden columns in virtual tables. The output is the same
+        // > as for PRAGMA table_info except that hidden columns are shown
+        // > rather than being omitted.
+        //
+        // sqlite> PRAGMA table_xinfo("players");
+        // cid | name      | type    | notnull | dflt_value | pk | hidden
+        // 0   | id        | INTEGER | 0       | NULL       | 1  | 0
+        // 1   | firstName | TEXT    | 0       | NULL       | 0  | 0
+        // 2   | lastName  | TEXT    | 0       | NULL       | 0  | 0
+        let columnInfoQuery: String
+        if sqlite3_libversion_number() < 3026000 {
+            if sqlite3_libversion_number() < 3008005 {
+                // Work around a bug in SQLite where PRAGMA table_info would
+                // return a result even after the table was deleted.
+                if try !tableExists(tableName) {
+                    throw DatabaseError(message: "no such table: \(tableName)")
+                }
             }
+            columnInfoQuery = "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))"
+        } else {
+            // For our purposes, we look for generated columns, not hidden
+            // columns. The "hidden" column magic numbers come from the SQLite
+            // source code. The values 2 and 3 refer to virtual and stored
+            // generated columns, respectively. Search for COLFLAG_VIRTUAL in
+            // https://www.sqlite.org/cgi/src/file?name=src/pragma.c&ci=fca8dc8b578f215a
+            columnInfoQuery = "SELECT * FROM pragma_table_xinfo('\(tableName)') WHERE hidden IN (0,2,3)"
         }
         let columns = try ColumnInfo
-            .fetchAll(self, sql: "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: columnInfoQuery)
             .sorted(by: { $0.cid < $1.cid })
         if columns.isEmpty {
             throw DatabaseError(message: "no such table: \(tableName)")
@@ -359,17 +412,27 @@ extension Database {
         throws -> [String]?
         where T.Iterator.Element == String
     {
-        // Check primaryKey first, so that we fail early if the table does not exist
-        let primaryKey = try self.primaryKey(tableName)
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
-        if Set(primaryKey.columns.map { $0.lowercased() }) == lowercasedColumns {
+        if lowercasedColumns.isEmpty {
+            // Don't hit the database for trivial case
+            return nil
+        }
+        
+        // Assume "rowid" is a primary key
+        if lowercasedColumns == ["rowid"] {
+            return ["rowid"]
+        }
+        
+        // Check primaryKey.
+        let primaryKey = try self.primaryKey(tableName)
+        if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
             return primaryKey.columns
         }
         
         // Is there is an explicit unique index on the columns?
         let indexes = try self.indexes(on: tableName)
         let matchingIndex = indexes.first { index in
-            index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns
+            index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
         }
         if let index = matchingIndex {
             return index.columns
@@ -526,18 +589,18 @@ public struct PrimaryKeyInfo {
         
         /// Any primary key, but INTEGER PRIMARY KEY.
         /// Associated strings are column names.
-        case regular([String])
+        case regular(columns: [String], tableHasRowID: Bool)
     }
     
     private let impl: Impl
     
     static func rowID(_ column: String) -> PrimaryKeyInfo {
-        return PrimaryKeyInfo(impl: .rowID(column))
+        PrimaryKeyInfo(impl: .rowID(column))
     }
     
-    static func regular(_ columns: [String]) -> PrimaryKeyInfo {
+    static func regular(_ columns: [String], tableHasRowID: Bool) -> PrimaryKeyInfo {
         assert(!columns.isEmpty)
-        return PrimaryKeyInfo(impl: .regular(columns))
+        return PrimaryKeyInfo(impl: .regular(columns: columns, tableHasRowID: tableHasRowID))
     }
     
     static let hiddenRowID = PrimaryKeyInfo(impl: .hiddenRowID)
@@ -547,9 +610,9 @@ public struct PrimaryKeyInfo {
         switch impl {
         case .hiddenRowID:
             return [Column.rowID.name]
-        case .rowID(let column):
+        case let .rowID(column):
             return [column]
-        case .regular(let columns):
+        case let .regular(columns: columns, tableHasRowID: _):
             return columns
         }
     }
@@ -577,6 +640,18 @@ public struct PrimaryKeyInfo {
             return false
         }
     }
+    
+    /// When false, the table is a WITHOUT ROWID table
+    var tableHasRowID: Bool {
+        switch impl {
+        case .hiddenRowID:
+            return true
+        case .rowID:
+            return true
+        case let .regular(columns: _, tableHasRowID: tableHasRowID):
+            return tableHasRowID
+        }
+    }
 }
 
 /// You get foreign keys from table names, with the
@@ -590,12 +665,12 @@ public struct ForeignKeyInfo {
     
     /// The origin columns
     public var originColumns: [String] {
-        return mapping.map { $0.origin }
+        mapping.map(\.origin)
     }
     
     /// The destination columns
     public var destinationColumns: [String] {
-        return mapping.map { $0.destination }
+        mapping.map(\.destination)
     }
 }
 
@@ -619,7 +694,7 @@ struct SchemaInfo: Equatable {
     
     /// All names for a given type
     func names(ofType type: SchemaObjectType) -> Set<String> {
-        return objects.reduce(into: []) { (set, key) in
+        objects.reduce(into: []) { (set, key) in
             if key.type == type.rawValue {
                 set.insert(key.name)
             }

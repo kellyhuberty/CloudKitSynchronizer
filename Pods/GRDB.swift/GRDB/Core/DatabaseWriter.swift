@@ -1,15 +1,19 @@
+#if canImport(Combine)
+import Combine
+#endif
 import Dispatch
 
-/// The protocol for all types that can update a database.
+/// `DatabaseWriter` is the protocol for all types that can write into an
+/// SQLite database.
 ///
-/// It is adopted by DatabaseQueue and DatabasePool.
+/// It is adopted by `DatabaseQueue` and `DatabasePool`.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
 /// Types that adopt the protocol can in practice provide stronger guarantees.
-/// For example, DatabaseQueue provides a stronger isolation level
-/// than DatabasePool.
+/// For example, `DatabaseQueue` provides a stronger isolation level
+/// than `DatabasePool`.
 ///
 /// **Warning**: Isolation guarantees stand as long as there is no external
 /// connection to the database. Should you have to cope with external
@@ -53,7 +57,19 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - throws: The error thrown by the updates.
     func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
     
-    #if compiler(>=5.0)
+    /// Synchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
+    ///
+    /// This method is *not* reentrant.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
+    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
+    
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
     ///
@@ -79,7 +95,6 @@ public protocol DatabaseWriter: DatabaseReader {
     func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
         completion: @escaping (Database, Result<T, Error>) -> Void)
-    #endif
     
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction.
@@ -87,6 +102,12 @@ public protocol DatabaseWriter: DatabaseReader {
     /// Eventual concurrent reads may see partial updates unless you wrap them
     /// in a transaction.
     func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+    
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, without retaining self.
+    ///
+    /// :nodoc:
+    func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void)
     
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
@@ -135,7 +156,6 @@ public protocol DatabaseWriter: DatabaseReader {
     ///     }
     func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T>
     
-    #if compiler(>=5.0)
     // Exposed for RxGRDB and GRBCombine. Naming is not stabilized.
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -156,9 +176,9 @@ public protocol DatabaseWriter: DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { result in
+    ///         writer.asyncConcurrentRead { dbResult in
     ///             do {
-    ///                 let db = try result.get()
+    ///                 let db = try dbResult.get()
     ///                 // Guaranteed to be zero
     ///                 let count = try Player.fetchCount(db)
     ///             } catch {
@@ -173,7 +193,6 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter block: A block that accesses the database.
     /// :nodoc:
     func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void)
-    #endif
 }
 
 extension DatabaseWriter {
@@ -196,7 +215,7 @@ extension DatabaseWriter {
     /// - throws: The error thrown by the updates, or by the
     ///   wrapping transaction.
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
-        return try writeWithoutTransaction { db in
+        try writeWithoutTransaction { db in
             var result: T?
             try db.inTransaction {
                 result = try updates(db)
@@ -206,7 +225,6 @@ extension DatabaseWriter {
         }
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
     ///
@@ -247,7 +265,6 @@ extension DatabaseWriter {
             }
         }
     }
-    #endif
     
     // MARK: - Transaction Observers
     
@@ -267,10 +284,10 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
-        writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
+        _weakAsyncWriteWithoutTransaction {
+            $0?.remove(transactionObserver: transactionObserver)
+        }
     }
     
     // MARK: - Erasing the content of the database
@@ -280,44 +297,7 @@ extension DatabaseWriter {
     /// - precondition: database is not accessed concurrently during the
     ///   execution of this method.
     public func erase() throws {
-        #if SQLITE_HAS_CODEC
-        // SQLCipher does not support the backup API:
-        // https://discuss.zetetic.net/t/using-the-sqlite-online-backup-api/2631
-        // So we'll drop all database objects one after the other.
-        try writeWithoutTransaction { db in
-            // Prevent foreign keys from messing with drop table statements
-            let foreignKeysEnabled = try Bool.fetchOne(db, sql: "PRAGMA foreign_keys")!
-            if foreignKeysEnabled {
-                try db.execute(sql: "PRAGMA foreign_keys = OFF")
-            }
-            
-            // Remove all database objects, one after the other
-            do {
-                try db.inTransaction {
-                    let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
-                    while let row = try Row.fetchOne(db, sql: sql) {
-                        let type: String = row["type"]
-                        let name: String = row["name"]
-                        try db.execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
-                    }
-                    return .commit
-                }
-                
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-            } catch {
-                // Restore foreign keys if needed
-                if foreignKeysEnabled {
-                    try? db.execute(sql: "PRAGMA foreign_keys = ON")
-                }
-                throw error
-            }
-        }
-        #else
-        try DatabaseQueue().backup(to: self)
-        #endif
+        try writeWithoutTransaction { try $0.erase() }
     }
     
     // MARK: - Claiming Disk Space
@@ -330,220 +310,208 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
-    // MARK: - Value Observation
+    // MARK: - Database Observation
     
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    /// A write-only observation only uses the serialized writer
+    func _addWriteOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: @escaping (Error) -> Void,
+        scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> ValueObserver<Reducer> // For testability
     {
-        let requiresWriteAccess = observation.requiresWriteAccess
-        let observer = ValueObserver<Reducer>(
-            requiresWriteAccess: requiresWriteAccess,
-            observesSelectedRegion: observation.observesSelectedRegion,
+        assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
+        
+        let reduceQueueLabel = configuration.identifier(
+            defaultLabel: "GRDB",
+            purpose: "ValueObservation")
+        let observer = ValueObserver(
+            observation: observation,
             writer: self,
-            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
-            onError: onError,
+            scheduler: scheduler,
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
             onChange: onChange)
         
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                // Use case: observation starts on the main queue and wants
-                // a synchronous initial fetch. Typically, this helps avoiding
-                // flashes of missing content.
-                var startValue: Reducer.Value? = nil
-                defer {
-                    if let startValue = startValue {
-                        onChange(startValue)
-                    }
+        if scheduler.immediateInitialValue() {
+            do {
+                let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
+                    let initialValue = try observer.fetchInitialValue(db)
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
+                    return initialValue
                 }
-                
-                do {
-                    try unsafeReentrantWrite { db in
-                        observer.notificationQueue = DispatchQueue.main
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Initial value & selected region
-                        let fetchedValue: Reducer.Fetched
-                        if observation.observesSelectedRegion {
-                            (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        } else {
-                            fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                        }
-                        if let value = observer.reducer.value(fetchedValue) {
-                            startValue = value
-                        }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    }
-                } catch {
-                    onError(error)
-                }
-            } else {
-                // Use case: observation does not start on the main queue, but
-                // has the default scheduling .mainQueue
-                asyncWriteWithoutTransaction { db in
-                    do {
-                        observer.notificationQueue = DispatchQueue.main
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Initial value & selected region
-                        let fetchedValue: Reducer.Fetched
-                        if observation.observesSelectedRegion {
-                            (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        } else {
-                            fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                        }
-                        if let value = observer.reducer.value(fetchedValue) {
-                            DispatchQueue.main.async {
-                                onChange(value)
-                            }
-                        }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    } catch {
-                        DispatchQueue.main.async {
-                            onError(error)
-                        }
-                    }
-                }
+                onChange(initialValue)
+            } catch {
+                observer.complete()
+                observation.events.didFail?(error)
             }
-            
-        case let .async(onQueue: queue, startImmediately: startImmediately):
-            // Use case: observation must not block the target queue
-            asyncWriteWithoutTransaction { db in
+        } else {
+            _weakAsyncWriteWithoutTransaction { db in
+                guard let db = db else { return }
+                if observer.isCompleted { return }
                 do {
-                    observer.notificationQueue = queue
-                    observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    observer.reducer = try observation.makeReducer(db)
-                    
-                    // Initial value & selected region
-                    if startImmediately {
-                        let fetchedValue: Reducer.Fetched
-                        if observation.observesSelectedRegion {
-                            (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        } else {
-                            fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                        }
-                        if let value = observer.reducer.value(fetchedValue) {
-                            queue.async {
-                                onChange(value)
-                            }
-                        }
-                    } else if observation.observesSelectedRegion {
-                        (_, observer.selectedRegion) = try db.recordingSelectedRegion {
-                            try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                        }
-                    }
-                    
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.notifyChange(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    queue.async {
-                        onError(error)
-                    }
-                }
-            }
-            
-        case let .unsafe(startImmediately: startImmediately):
-            if startImmediately {
-                // Use case: third-party integration (RxSwift, Combine, ...) that
-                // need a synchronous initial fetch.
-                //
-                // This is really super extra unsafe.
-                //
-                // If the observation is started on one dispatch queue, then
-                // the onChange and onError callbacks must be asynchronously
-                // dispatched on the *same* queue.
-                //
-                // A failure to follow this rule may mess with the ordering of
-                // initial values.
-                var startValue: Reducer.Value? = nil
-                defer {
-                    if let startValue = startValue {
-                        onChange(startValue)
-                    }
-                }
-                
-                do {
-                    try unsafeReentrantWrite { db in
-                        observer.notificationQueue = nil
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Initial value & selected region
-                        if startImmediately {
-                            let fetchedValue: Reducer.Fetched
-                            if observation.observesSelectedRegion {
-                                (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                    try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                                }
-                            } else {
-                                fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                            if let value = observer.reducer.value(fetchedValue) {
-                                startValue = value
-                            }
-                        } else if observation.observesSelectedRegion {
-                            (_, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    }
-                } catch {
-                    onError(error)
-                }
-            } else {
-                // Use case: ?
-                //
-                // This is unsafe because no promise is made on the dispatch
-                // queue on which the onChange and onError callbacks are called.
-                asyncWriteWithoutTransaction { db in
-                    do {
-                        observer.notificationQueue = nil
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Selected region
-                        if observation.observesSelectedRegion {
-                            (_, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    } catch {
-                        onError(error)
-                    }
+                    observer.notifyErrorAndComplete(error)
                 }
             }
         }
         
-        // TODO
-        //
-        // We promise that observation stops when the returned observer is
-        // deallocated. But the real observer may have not started observing
-        // the database, because some observations start asynchronously.
-        // Well... This forces us to return a "token" that cancels any
-        // observation started asynchronously.
-        //
-        // We'll eventually return a proper Cancellable. In GRDB 5?
-        return ValueObserverToken(writer: self, observer: observer)
+        return observer
     }
 }
+
+#if canImport(Combine)
+extension DatabaseWriter {
+    // MARK: - Publishing Database Updates
+    
+    /// Returns a Publisher that asynchronously writes into the database.
+    ///
+    ///     // DatabasePublishers.Write<Int>
+    ///     let newPlayerCount = dbQueue.writePublisher { db -> Int in
+    ///         try Player(...).insert(db)
+    ///         return try Player.fetchCount(db)
+    ///     }
+    ///
+    /// Its value and completion are emitted on the main dispatch queue.
+    ///
+    /// - parameter updates: A closure which writes in the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func writePublisher<Output>(
+        updates: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Write<Output>
+    {
+        writePublisher(receiveOn: DispatchQueue.main, updates: updates)
+    }
+    
+    /// Returns a Publisher that asynchronously writes into the database.
+    ///
+    ///     // DatabasePublishers.Write<Int>
+    ///     let newPlayerCount = dbQueue.writePublisher(
+    ///         receiveOn: DispatchQueue.global(),
+    ///         updates: { db -> Int in
+    ///             try Player(...).insert(db)
+    ///             return try Player.fetchCount(db)
+    ///         })
+    ///
+    /// Its value and completion are emitted on `scheduler`.
+    ///
+    /// - parameter scheduler: A Combine Scheduler.
+    /// - parameter updates: A closure which writes in the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func writePublisher<S, Output>(
+        receiveOn scheduler: S,
+        updates: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Write<Output>
+        where S: Scheduler
+    {
+        OnDemandFuture({ fulfill in
+            self.asyncWrite(updates, completion: { _, result in
+                fulfill(result)
+            })
+        })
+            // We don't want users to process emitted values on a
+            // database dispatch queue.
+            .receiveValues(on: scheduler)
+            .eraseToWritePublisher()
+    }
+    
+    /// Returns a Publisher that asynchronously writes into the database.
+    ///
+    ///     // DatabasePublishers.Write<Int>
+    ///     let newPlayerCount = dbQueue.writePublisher(
+    ///         updates: { db in try Player(...).insert(db) }
+    ///         thenRead: { db, _ in try Player.fetchCount(db) })
+    ///
+    /// Its value and completion are emitted on the main dispatch queue.
+    ///
+    /// - parameter updates: A closure which writes in the database.
+    /// - parameter value: A closure which reads from the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func writePublisher<T, Output>(
+        updates: @escaping (Database) throws -> T,
+        thenRead value: @escaping (Database, T) throws -> Output)
+        -> DatabasePublishers.Write<Output>
+    {
+        writePublisher(receiveOn: DispatchQueue.main, updates: updates, thenRead: value)
+    }
+    
+    
+    /// Returns a Publisher that asynchronously writes into the database.
+    ///
+    ///     // DatabasePublishers.Write<Int>
+    ///     let newPlayerCount = dbQueue.writePublisher(
+    ///         receiveOn: DispatchQueue.global(),
+    ///         updates: { db in try Player(...).insert(db) }
+    ///         thenRead: { db, _ in try Player.fetchCount(db) })
+    ///
+    /// Its value and completion are emitted on `scheduler`.
+    ///
+    /// - parameter scheduler: A Combine Scheduler.
+    /// - parameter updates: A closure which writes in the database.
+    /// - parameter value: A closure which reads from the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func writePublisher<S, T, Output>(
+        receiveOn scheduler: S,
+        updates: @escaping (Database) throws -> T,
+        thenRead value: @escaping (Database, T) throws -> Output)
+        -> DatabasePublishers.Write<Output>
+        where S: Scheduler
+    {
+        OnDemandFuture({ fulfill in
+            self.asyncWriteWithoutTransaction { db in
+                var updatesValue: T?
+                do {
+                    try db.inTransaction {
+                        updatesValue = try updates(db)
+                        return .commit
+                    }
+                } catch {
+                    fulfill(.failure(error))
+                    return
+                }
+                self.spawnConcurrentRead { dbResult in
+                    fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
+                }
+            }
+        })
+            // We don't want users to process emitted values on a
+            // database dispatch queue.
+            .receiveValues(on: scheduler)
+            .eraseToWritePublisher()
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension DatabasePublishers {
+    /// A publisher that writes into the database. It publishes exactly
+    /// one element, or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseWriter.writePublisher(updates:)`.
+    /// - `DatabaseWriter.writePublisher(updates:thenRead:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
+    public struct Write<Output>: Publisher {
+        public typealias Output = Output
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Output, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension Publisher where Failure == Error {
+    fileprivate func eraseToWritePublisher() -> DatabasePublishers.Write<Output> {
+        .init(upstream: eraseToAnyPublisher())
+    }
+}
+#endif
 
 /// A future database value, returned by the DatabaseWriter.concurrentRead(_:)
 /// method.
@@ -566,7 +534,7 @@ public class DatabaseFuture<Value> {
         _wait = wait
     }
     
-    init(_ result: DatabaseResult<Value>) {
+    init(_ result: Result<Value, Error>) {
         _wait = result.get
     }
     
@@ -596,107 +564,94 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         self.base = base
     }
     
-    /// :nodoc:
     public var configuration: Configuration {
-        return base.configuration
+        base.configuration
     }
     
     // MARK: - Interrupting Database Operations
     
-    /// :nodoc:
     public func interrupt() {
         base.interrupt()
     }
     
     // MARK: - Reading from Database
     
-    /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.read(block)
+        try base.read(block)
     }
     
-    #if compiler(>=5.0)
-    /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
-    #endif
     
     /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
+    }
+    
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeRead(block)
+        try base.unsafeRead(block)
     }
     
-    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeReentrantRead(block)
+        try base.unsafeReentrantRead(block)
     }
     
-    /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        return base.concurrentRead(block)
+        base.concurrentRead(block)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.spawnConcurrentRead(block)
     }
-    #endif
     
     // MARK: - Writing in Database
     
-    /// :nodoc:
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
-        return try base.write(updates)
+        try base.write(updates)
     }
     
-    /// :nodoc:
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try base.writeWithoutTransaction(updates)
+        try base.writeWithoutTransaction(updates)
     }
     
-    #if compiler(>=5.0)
-    /// :nodoc:
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+        try base.barrierWriteWithoutTransaction(updates)
+    }
+    
     public func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
         completion: @escaping (Database, Result<T, Error>) -> Void)
     {
         base.asyncWrite(updates, completion: completion)
     }
-    #endif
     
-    /// :nodoc:
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
     
     /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        base._weakAsyncWriteWithoutTransaction(updates)
+    }
+    
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try base.unsafeReentrantWrite(updates)
+        try base.unsafeReentrantWrite(updates)
     }
     
-    // MARK: - Functions
+    // MARK: - Database Observation
     
     /// :nodoc:
-    public func add(function: DatabaseFunction) {
-        base.add(function: function)
-    }
-    
-    /// :nodoc:
-    public func remove(function: DatabaseFunction) {
-        base.remove(function: function)
-    }
-    
-    // MARK: - Collations
-    
-    /// :nodoc:
-    public func add(collation: DatabaseCollation) {
-        base.add(collation: collation)
-    }
-    
-    /// :nodoc:
-    public func remove(collation: DatabaseCollation) {
-        base.remove(collation: collation)
+    public func _add<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> DatabaseCancellable
+    {
+        base._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
     }
 }

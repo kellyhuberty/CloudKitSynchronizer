@@ -1,13 +1,6 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
-/// Types that adopt FetchableRecord can be initialized from a database Row.
+/// Types that adopt `FetchableRecord` can be initialized from a database Row.
 ///
 ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
 ///     let player = Player(row)
@@ -23,8 +16,6 @@ import SQLite3
 ///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
 ///     try Player.fetchAll(statement, arguments:...)    // [Player]
 ///     try Player.fetchOne(statement, arguments:...)    // Player?
-///
-/// FetchableRecord is adopted by Record.
 public protocol FetchableRecord {
     
     // MARK: - Row Decoding
@@ -116,7 +107,7 @@ public protocol FetchableRecord {
 
 extension FetchableRecord {
     public static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+        [:]
     }
     
     /// Returns a JSONDecoder with the following properties:
@@ -133,7 +124,7 @@ extension FetchableRecord {
     }
     
     public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
-        return .deferredToDate
+        .deferredToDate
     }
 }
 
@@ -152,7 +143,7 @@ extension FetchableRecord {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -166,7 +157,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> RecordCursor<Self>
     {
-        return try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
+        try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of records fetched from a prepared statement.
@@ -186,7 +177,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
+        try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from a prepared statement.
@@ -206,7 +197,29 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> Self?
     {
-        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
+        try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
+    }
+}
+
+extension FetchableRecord where Self: Hashable {
+    /// Returns a set of records fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
+    ///     let players = try Player.fetchSet(statement) // Set<Player>
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Set<Self>
+    {
+        try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -224,7 +237,7 @@ extension FetchableRecord {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -240,7 +253,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> RecordCursor<Self>
     {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -261,7 +274,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -282,7 +295,30 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> Self?
     {
-        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+    }
+}
+
+extension FetchableRecord where Self: Hashable {
+    /// Returns a set of records fetched from an SQL query.
+    ///
+    ///     let players = try Player.fetchSet(db, sql: "SELECT * FROM player") // Set<Player>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Set<Self>
+    {
+        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -301,7 +337,7 @@ extension FetchableRecord {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -328,7 +364,7 @@ extension FetchableRecord {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(rows)
+            try supplementaryFetch(db, rows)
             return rows.map(Self.init(row:))
         } else {
             return try fetchAll(request.statement, adapter: request.adapter)
@@ -351,13 +387,37 @@ extension FetchableRecord {
             guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
                 return nil
             }
-            try supplementaryFetch([row])
+            try supplementaryFetch(db, [row])
             return .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)
         }
     }
 }
+
+extension FetchableRecord where Self: Hashable {
+    /// Returns a set of records fetched from a fetch request.
+    ///
+    ///     let request = try Player.all()
+    ///     let players = try Player.fetchSet(db, request) // Set<Player>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: a FetchRequest.
+    /// - returns: A set of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet<R: FetchRequest>(_ db: Database, _ request: R) throws -> Set<Self> {
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        if let supplementaryFetch = request.supplementaryFetch {
+            let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
+            try supplementaryFetch(db, rows)
+            return Set(rows.lazy.map(Self.init(row:)))
+        } else {
+            return try fetchSet(request.statement, adapter: request.adapter)
+        }
+    }
+}
+
 
 // MARK: - FetchRequest
 
@@ -376,13 +436,13 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
-        return try RowDecoder.fetchCursor(db, self)
+        try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
@@ -394,7 +454,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
-        return try RowDecoder.fetchAll(db, self)
+        try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched record.
@@ -406,7 +466,21 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        return try RowDecoder.fetchOne(db, self)
+        try RowDecoder.fetchOne(db, self)
+    }
+}
+
+extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
+    /// A set of fetched records.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     let players = try request.fetchSet(db) // Set<Player>
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+        try RowDecoder.fetchSet(db, self)
     }
 }
 
@@ -440,7 +514,6 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Record? {
         if _done {
@@ -462,13 +535,14 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
 
 // MARK: - DatabaseDateDecodingStrategy
 
-/// DatabaseDateDecodingStrategy specifies how FetchableRecord types that also
-/// adopt the standard Decodable protocol decode their date properties.
+/// `DatabaseDateDecodingStrategy` specifies how `FetchableRecord` types that
+/// also  adopt the standard `Decodable` protocol decode their
+/// `Date` properties.
 ///
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
@@ -504,7 +578,7 @@ public enum DatabaseDateDecodingStrategy {
     case millisecondsSince1970
     
     /// Decodes dates according to the ISO 8601 standards
-    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Decodes a String, according to the provided formatter

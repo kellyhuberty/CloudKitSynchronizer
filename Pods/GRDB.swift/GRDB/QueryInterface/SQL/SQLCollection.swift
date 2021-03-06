@@ -1,65 +1,86 @@
 // MARK: - SQLCollection
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLCollection is the protocol for types that can be checked for inclusion.
+/// Implementation details of `SQLCollection`.
 ///
 /// :nodoc:
-public protocol SQLCollection {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns an SQL string that represents the collection.
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String
+public protocol _SQLCollection {
+    /// Returns a qualified collection
+    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
+    /// Accepts a visitor
+    func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws
+}
+
+/// SQLCollection is the protocol for types that can be checked for inclusion.
+public protocol SQLCollection: _SQLCollection {
     /// Returns an expression that check whether the collection contains
     /// the expression.
     func contains(_ value: SQLExpressible) -> SQLExpression
 }
 
+// MARK: - _SQLExpressionsArray
 
-// MARK: Default Implementations
-
+/// _SQLExpressionsArray wraps an array of expressions
+///
+///     _SQLExpressionsArray([1, 2, 3])
+///
 /// :nodoc:
-extension SQLCollection {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a SQLExpressionContains which applies the `IN` SQL operator.
+public struct _SQLExpressionsArray: SQLCollection {
+    let expressions: [SQLExpression]
+    
     public func contains(_ value: SQLExpressible) -> SQLExpression {
-        return SQLExpressionContains(value, self)
+        guard let expression = expressions.first else {
+            return false.databaseValue
+        }
+        
+        // With SQLite, `expr IN (NULL)` never succeeds.
+        //
+        // We must not provide special handling of NULL, because we can not
+        // guess if our `expressions` array contains a value evaluates to NULL.
+        
+        if expressions.count == 1 {
+            // Output `expr = value` instead of `expr IN (value)`, because it
+            // looks nicer. And make sure we do not produce 'expr IS NULL'.
+            return _SQLExpressionEqual(.equal, value.sqlExpression, expression)
+        }
+        
+        return _SQLExpressionContains(value, self)
+    }
+    
+    /// :nodoc:
+    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        _SQLExpressionsArray(expressions: expressions.map { $0._qualifiedExpression(with: alias) })
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
+// MARK: - SQLCollectionExpressions
 
-// MARK: - SQLExpressionsArray
+extension SQLCollection {
+    func expressions() -> [SQLExpression]? {
+        var visitor = SQLCollectionExpressions()
+        try! _accept(&visitor)
+        return visitor.expressions
+    }
+}
 
-/// SQLExpressionsArray wraps an array of expressions
-///
-///     SQLExpressionsArray([1, 2, 3])
-struct SQLExpressionsArray: SQLCollection {
-    let expressions: [SQLExpression]
+/// Support for SQLCollection.expressions
+private struct SQLCollectionExpressions: _SQLCollectionVisitor {
+    var expressions: [SQLExpression]?
     
-    init<S: Sequence>(_ expressions: S) where S.Iterator.Element: SQLExpressible {
-        self.expressions = expressions.map { $0.sqlExpression }
+    mutating func visit(_ collection: _SQLExpressionsArray) throws {
+        expressions = collection.expressions
     }
     
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        return expressions
-            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
-            .joined(separator: ", ")
-    }
+    // MARK: _FetchRequestVisitor
     
-    func contains(_ value: SQLExpressible) -> SQLExpression {
-        guard let expression = expressions.first else {
-            // [].contains(Column("name")) => 0
-            return false.databaseValue
-        }
-        if expressions.count == 1 {
-            // ["foo"].contains(Column("name")) => name = 'foo'
-            return value == expression
-        }
-        // ["foo", "bar"].contains(Column("name")) => name IN ('foo', 'bar')
-        return SQLExpressionContains(value, self)
-    }
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }

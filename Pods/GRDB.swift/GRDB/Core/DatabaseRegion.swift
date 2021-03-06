@@ -45,6 +45,12 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         return tableRegions.isEmpty
     }
     
+    /// Returns whether the region covers the full database: all columns and all
+    /// rows from all tables.
+    public var isFullDatabase: Bool {
+        tableRegions == nil
+    }
+    
     /// The region that covers the full database: all columns and all rows
     /// from all tables.
     public static let fullDatabase = DatabaseRegion(tableRegions: nil)
@@ -170,7 +176,7 @@ extension DatabaseRegion {
     /// Returns whether the content in the region would be impacted if the
     /// database were modified by an event of this kind.
     public func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return intersection(eventKind.modifiedRegion).isEmpty == false
+        intersection(eventKind.modifiedRegion).isEmpty == false
     }
     
     /// Returns whether the content in the region is impacted by this event.
@@ -233,7 +239,7 @@ extension DatabaseRegion {
         }
         return tableRegions
             .sorted(by: { (l, r) in l.key < r.key })
-            .map { (table, tableRegion) in
+            .map({ (table, tableRegion) in
                 var desc = table
                 if let columns = tableRegion.columns {
                     desc += "(" + columns.sorted().joined(separator: ",") + ")"
@@ -244,7 +250,7 @@ extension DatabaseRegion {
                     desc += "[" + rowIds.sorted().map { "\($0)" }.joined(separator: ",") + "]"
                 }
                 return desc
-            }
+            })
             .joined(separator: ",")
     }
 }
@@ -309,6 +315,10 @@ private struct TableRegion: Equatable {
 
 // MARK: - DatabaseRegionConvertible
 
+/// `DatabaseRegionConvertible` is the protocol for values that can be turned
+/// into a `DatabaseRegion`.
+///
+/// Such values specify the region obserbed by `DatabaseRegionObservation`.
 public protocol DatabaseRegionConvertible {
     /// Returns a database region.
     ///
@@ -319,7 +329,7 @@ public protocol DatabaseRegionConvertible {
 extension DatabaseRegion: DatabaseRegionConvertible {
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return self
+        self
     }
 }
 
@@ -337,7 +347,7 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
     
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return try _region(db)
+        try _region(db)
     }
 }
 
@@ -345,7 +355,7 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
 
 extension DatabaseRegion {
     static func union(_ regions: DatabaseRegion...) -> DatabaseRegion {
-        return regions.reduce(into: DatabaseRegion()) { union, region in
+        regions.reduce(into: DatabaseRegion()) { union, region in
             union.formUnion(region)
         }
     }

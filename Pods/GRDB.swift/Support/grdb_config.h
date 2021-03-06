@@ -1,17 +1,7 @@
 #ifndef grdb_config_h
 #define grdb_config_h
 
-#if defined(COCOAPODS)
-    #if defined(GRDBCIPHER)
-        #include <SQLCipher/sqlite3.h>
-    #else
-        #include <sqlite3.h>
-    #endif
-#else
-    #if !defined(GRDBCUSTOMSQLITE)
-        #include <sqlite3.h>
-    #endif
-#endif
+#include <sqlite3.h>
 
 typedef void(*errorLogCallback)(void *pArg, int iErrCode, const char *zMsg);
 
@@ -60,5 +50,4 @@ SQLITE_API int sqlite3_preupdate_count(sqlite3 *);
 SQLITE_API int sqlite3_preupdate_depth(sqlite3 *);
 SQLITE_API int sqlite3_preupdate_new(sqlite3 *, int, sqlite3_value **);
 #endif /* GRDB_SQLITE_ENABLE_PREUPDATE_HOOK */
-
 #endif /* grdb_config_h */

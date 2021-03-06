@@ -1,6 +1,6 @@
 import Foundation // For JSONEncoder
 
-/// Types that adopt EncodableRecord can be encoded into the database.
+/// Types that adopt `EncodableRecord` can be encoded into the database.
 public protocol EncodableRecord {
     /// Encodes the record into database values.
     ///
@@ -121,7 +121,7 @@ public protocol EncodableRecord {
 
 extension EncodableRecord {
     public static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+        [:]
     }
     
     public static func databaseJSONEncoder(for column: String) -> JSONEncoder {
@@ -137,18 +137,18 @@ extension EncodableRecord {
     }
     
     public static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy {
-        return .deferredToDate
+        .deferredToDate
     }
     
     public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
-        return .deferredToUUID
+        .deferredToUUID
     }
 }
 
 extension EncodableRecord {
     /// A dictionary whose keys are the columns encoded in the `encode(to:)` method.
     public var databaseDictionary: [String: DatabaseValue] {
-        return Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
+        Dictionary(PersistenceContainer(self).storage).mapValues { $0?.databaseValue ?? .null }
     }
 }
 
@@ -159,7 +159,7 @@ extension EncodableRecord {
     /// Returns a boolean indicating whether this record and the other record
     /// have the same database representation.
     public func databaseEquals(_ record: Self) -> Bool {
-        return PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
+        PersistenceContainer(self).changesIterator(from: PersistenceContainer(record)).next() == nil
     }
     
     /// A dictionary of values changed from the other record.
@@ -203,7 +203,7 @@ public struct PersistenceContainer {
     /// is considered undefined behavior.
     @inlinable
     public subscript(_ column: String) -> DatabaseValueConvertible? {
-        get { return storage[column] ?? nil }
+        get { storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
     }
     
@@ -214,7 +214,7 @@ public struct PersistenceContainer {
     /// is considered undefined behavior.
     @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
-        get { return self[column.name] }
+        get { self[column.name] }
         set { self[column.name] = newValue }
     }
     
@@ -233,14 +233,10 @@ public struct PersistenceContainer {
     }
     
     /// Columns stored in the container, ordered like values.
-    var columns: [String] {
-        return Array(storage.keys)
-    }
+    var columns: [String] { Array(storage.keys) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [DatabaseValueConvertible?] {
-        return Array(storage.values)
-    }
+    var values: [DatabaseValueConvertible?] { Array(storage.values) }
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
@@ -281,13 +277,11 @@ public struct PersistenceContainer {
         return nil
     }
     
-    var isEmpty: Bool {
-        return storage.isEmpty
-    }
+    var isEmpty: Bool { storage.isEmpty }
     
     /// An iterator over the (column, value) pairs
     func makeIterator() -> IndexingIterator<OrderedDictionary<String, DatabaseValueConvertible?>> {
-        return storage.makeIterator()
+        storage.makeIterator()
     }
     
     func changesIterator(from container: PersistenceContainer) -> AnyIterator<(String, DatabaseValue)> {
@@ -319,13 +313,13 @@ extension Row {
 
 // MARK: - DatabaseDateEncodingStrategy
 
-/// DatabaseDateEncodingStrategy specifies how EncodableRecord types that also
-/// adopt the standard Encodable protocol encode their date properties.
+/// `DatabaseDateEncodingStrategy` specifies how `EncodableRecord` types that
+/// also adopt the standard `Encodable` protocol encode their `Date` properties.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableRecord, Encodable {
-///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+///         static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
 ///
 ///         var name: String
 ///         var registrationDate: Date // encoded as an epoch timestamp
@@ -354,7 +348,7 @@ public enum DatabaseDateEncodingStrategy {
     case millisecondsSince1970
     
     /// Encodes dates according to the ISO 8601 and RFC 3339 standards
-    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Encodes a String, according to the provided formatter
@@ -366,13 +360,13 @@ public enum DatabaseDateEncodingStrategy {
 
 // MARK: - DatabaseUUIDEncodingStrategy
 
-/// DatabaseUUIDEncodingStrategy specifies how EncodableRecord types that also
-/// adopt the standard Encodable protocol encode their UUID properties.
+/// `DatabaseUUIDEncodingStrategy` specifies how `EncodableRecord` types that
+/// also adopt the standard `Encodable` protocol encode their `UUID` properties.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableProtocol, Encodable {
-///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+///         static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
 ///
 ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///         var uuid: UUID

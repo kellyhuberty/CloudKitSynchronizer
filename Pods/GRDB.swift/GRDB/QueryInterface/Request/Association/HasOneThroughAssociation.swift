@@ -6,7 +6,7 @@
 ///
 ///     struct Book: TableRecord {
 ///         static let library = belongsTo(Library.self)
-///         static let returnAddress = hasOne(Address.self, through: library, using: library.address)
+///         static let returnAddress = hasOne(Address.self, through: library, using: Library.address)
 ///         ...
 ///     }
 /// 
@@ -29,10 +29,10 @@ public struct HasOneThroughAssociation<Origin: TableRecord, Destination: TableRe
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var sqlAssociation: SQLAssociation
+    public var _sqlAssociation: _SQLAssociation
     
     /// :nodoc:
-    public init(sqlAssociation: SQLAssociation) {
-        self.sqlAssociation = sqlAssociation
+    public init(sqlAssociation: _SQLAssociation) {
+        self._sqlAssociation = sqlAssociation
     }
 }

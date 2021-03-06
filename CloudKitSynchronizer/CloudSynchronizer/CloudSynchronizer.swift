@@ -94,6 +94,7 @@ class CloudSynchronizer {
             case .syncing:
                 return _operationFactory
             default:
+                log.debug("Current syncing status is disabled.")
                 return nil
             }
         }
@@ -754,6 +755,7 @@ extension CloudSynchronizer: TableObserverDelegate {
         
         do {
             try write { (db) in
+                
                 recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, from: table, for: .pushingDelete, sorted: true, using: db)
                 recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
                 recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
@@ -769,6 +771,8 @@ extension CloudSynchronizer: TableObserverDelegate {
         
         guard let currentPushOperation =
             self.operationFactory?.newPushOperation(delegate: self) else {
+            
+            log.debug("Unable to create new push operation")
                 return
         }
         

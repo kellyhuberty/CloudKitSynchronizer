@@ -14,13 +14,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
-
+    lazy var repo:Repo! = {
+        loadRepo(for: "")!
+    }()
+    
+    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
         window = UIWindow()
         
-        let navVC = UINavigationController(rootViewController: WordListViewController(nibName: nil, bundle: nil))
+        let navVC = UINavigationController(rootViewController: WordListViewController(repo: self.repo))
         
         window?.rootViewController = navVC
         

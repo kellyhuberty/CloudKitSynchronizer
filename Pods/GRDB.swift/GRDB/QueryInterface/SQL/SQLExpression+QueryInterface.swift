@@ -1,362 +1,370 @@
 // MARK: - SQLExpression
 
 extension SQLExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Converts an expression to an SQLLiteral
-    ///
-    /// :nodoc:
-    public var sqlLiteral: SQLLiteral {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: true)
-        let sql = expressionSQL(&context, wrappedInParenthesis: false)
-        return SQLLiteral(sql: sql, arguments: context.arguments!)
-    }
-    
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
-    ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
-    func quotedSQL() -> String {
-        var context = SQLGenerationContext.literalGenerationContext(withArguments: false)
-        return expressionSQL(&context, wrappedInParenthesis: false)
+    ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
+    func quotedSQL(_ db: Database) throws -> String {
+        let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+        return try expressionSQL(context, wrappedInParenthesis: false)
     }
 }
 
-// MARK: - SQLExpressionLiteral
+// MARK: - _SQLExpressionNot
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLExpressionLiteral is an expression built from a raw SQL snippet.
-///
-///     SQLExpressionLiteral(sql: "1 + 2")
-///
-/// The SQL literal may contain `?` and colon-prefixed arguments:
-///
-///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
-///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-public struct SQLExpressionLiteral: SQLExpression {
-    private let sqlLiteral: SQLLiteral
-    public var sql: String { return sqlLiteral.sql }
-    public var arguments: StatementArguments { return sqlLiteral.arguments }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
-    ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-    public init(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self.init(literal: SQLLiteral(sql: sql, arguments: arguments))
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL literal expression.
-    ///
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "1 + 2")
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: "? + ?", arguments: [1, 2]))
-    ///     SQLExpressionLiteral(literal: SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     SQLExpressionLiteral(literal: "\(1) + \(2)")
-    public init(literal sqlLiteral: SQLLiteral) {
-        self.sqlLiteral = sqlLiteral
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        if context.append(arguments: sqlLiteral.arguments) == false {
-            // GRDB limitation: we don't know how to look for `?` in sql and
-            // replace them with literals.
-            fatalError("Not implemented")
-        }
-        return sqlLiteral.sql
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
-    }
-}
-
-// MARK: - SQLExpressionUnary
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLUnaryOperator is a SQLite unary operator.
-///
 /// :nodoc:
-public struct SQLUnaryOperator: Hashable {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
+public struct _SQLExpressionNot: SQLExpression {
+    let expression: SQLExpression
+    
+    init(_ expression: SQLExpression) {
+        self.expression = expression
+    }
+    
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+        
+        case .falsey:
+            // Support `NOT (NOT expression)` as a technique to build 0 or 1
+            return _SQLExpressionNot(self)
+        }
+    }
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionNot(expression._qualifiedExpression(with: alias))
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+// MARK: - _SQLExpressionUnary
+
+/// SQLUnaryOperator is a SQLite unary operator.
+struct SQLUnaryOperator: Hashable {
     /// The SQL operator
-    public let sql: String
+    let sql: String
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// If true GRDB puts a white space between the operator and the operand.
-    public let needsRightSpace: Bool
+    let needsRightSpace: Bool
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Creates an unary operator
     ///
     ///     SQLUnaryOperator("~", needsRightSpace: false)
-    public init(_ sql: String, needsRightSpace: Bool) {
+    init(_ sql: String, needsRightSpace: Bool) {
         self.sql = sql
         self.needsRightSpace = needsRightSpace
     }
+    
+    /// The `-` unary operator
+    static let minus = SQLUnaryOperator("-", needsRightSpace: false)
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLExpressionUnary is an expression made of an unary operator and
+/// _SQLExpressionUnary is an expression made of an unary operator and
 /// an operand expression.
 ///
 /// :nodoc:
-public struct SQLExpressionUnary: SQLExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The unary operator
-    public let op: SQLUnaryOperator
+public struct _SQLExpressionUnary: SQLExpression {
+    let op: SQLUnaryOperator
+    let expression: SQLExpression
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The operand
-    public let expression: SQLExpression
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an expression made of an unary operator and
-    /// an operand expression.
-    ///
-    ///     // NOT favorite
-    ///     SQLExpressionUnary(.not, Column("favorite"))
-    public init(_ op: SQLUnaryOperator, _ value: SQLExpressible) {
+    init(_ op: SQLUnaryOperator, _ value: SQLExpressible) {
         self.op = op
         self.expression = value.sqlExpression
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return op.sql + (op.needsRightSpace ? " " : "") + expression.expressionSQL(&context, wrappedInParenthesis: true)
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionUnary(op, expression._qualifiedExpression(with: alias))
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionUnary(op, expression.qualifiedExpression(with: alias))
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionBinary
+// MARK: - _SQLExpressionBinary
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLBinaryOperator is a SQLite binary operator.
-///
-/// :nodoc:
-public struct SQLBinaryOperator: Hashable {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
+/// SQLBinaryOperator is an SQLite binary operator, such as >, =, etc.
+struct SQLBinaryOperator: Hashable {
     /// The SQL operator
-    public let sql: String
+    let sql: String
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// The SQL for the negated operator, if any
-    public let negatedSQL: String?
+    let negatedSQL: String?
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Creates a binary operator
     ///
-    ///     SQLBinaryOperator("+")
-    ///     SQLBinaryOperator("IS", negated: "IS NOT")
-    public init(_ sql: String, negated: String? = nil) {
+    ///     SQLBinaryOperator("-")
+    ///     SQLBinaryOperator("LIKE", negated: "NOT LIKE")
+    init(_ sql: String, negated: String? = nil) {
         self.sql = sql
         self.negatedSQL = negated
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Returns the negated binary operator, if any
     ///
     ///     let operator = SQLBinaryOperator("IS", negated: "IS NOT")
     ///     operator.negated!.sql  // IS NOT
-    public var negated: SQLBinaryOperator? {
+    var negated: SQLBinaryOperator? {
         guard let negatedSQL = negatedSQL else {
             return nil
         }
         return SQLBinaryOperator(negatedSQL, negated: sql)
     }
+    
+    /// The `<` binary operator
+    static let lessThan = SQLBinaryOperator("<")
+    
+    /// The `<=` binary operator
+    static let lessThanOrEqual = SQLBinaryOperator("<=")
+    
+    /// The `>` binary operator
+    static let greaterThan = SQLBinaryOperator(">")
+    
+    /// The `>=` binary operator
+    static let greaterThanOrEqual = SQLBinaryOperator(">=")
+    
+    /// The `-` binary operator
+    static let subtract = SQLBinaryOperator("-")
+    
+    /// The `/` binary operator
+    static let divide = SQLBinaryOperator("/")
+    
+    /// The `LIKE` binary operator
+    static let like = SQLBinaryOperator("LIKE", negated: "NOT LIKE")
+    
+    /// The `MATCH` binary operator
+    static let match = SQLBinaryOperator("MATCH")
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLExpressionBinary is an expression made of two expressions joined with a
+/// _SQLExpressionBinary is an expression made of two expressions joined with a
 /// binary operator.
 ///
-///     SQLExpressionBinary(.multiply, Column("length"), Column("width"))
+///     _SQLExpressionBinary(.multiply, Column("length"), Column("width"))
 ///
 /// :nodoc:
-public struct SQLExpressionBinary: SQLExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The left operand
-    public let lhs: SQLExpression
+public struct _SQLExpressionBinary: SQLExpression {
+    let lhs: SQLExpression
+    let op: SQLBinaryOperator
+    let rhs: SQLExpression
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The operator
-    public let op: SQLBinaryOperator
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The right operand
-    public let rhs: SQLExpression
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Creates an expression made of two expressions joined with a
     /// binary operator.
     ///
     ///     // length * width
-    ///     SQLExpressionBinary(.multiply, Column("length"), Column("width"))
-    public init(_ op: SQLBinaryOperator, _ lhs: SQLExpressible, _ rhs: SQLExpressible) {
+    ///     _SQLExpressionBinary(.subtract, Column("score"), Column("malus"))
+    init(_ op: SQLBinaryOperator, _ lhs: SQLExpressible, _ rhs: SQLExpressible) {
         self.lhs = lhs.sqlExpression
         self.op = op
         self.rhs = rhs.sqlExpression
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return """
-            \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
-            \(op.sql) \
-            \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
-            """
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public var negated: SQLExpression {
-        if let negatedOp = op.negated {
-            return SQLExpressionBinary(negatedOp, lhs, rhs)
-        } else {
-            return SQLExpressionNot(self)
-        }
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionBinary(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
-    }
-}
-
-// MARK: - SQLExpressionAnd
-
-struct SQLExpressionAnd: SQLExpression {
-    let expressions: [SQLExpression]
-    
-    init(_ expressions: [SQLExpression]) {
-        self.expressions = expressions
-    }
-    
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        guard let first = expressions.first else {
-            // Ruby [].all? # => true
-            return true.sqlExpression.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
-        }
-        if expressions.count == 1 {
-            return first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
-        }
-        let expressionSQLs = expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: true) }
-        if wrappedInParenthesis {
-            return "(\(expressionSQLs.joined(separator: " AND ")))"
-        } else {
-            return expressionSQLs.joined(separator: " AND ")
-        }
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionAnd(expressions.map { $0.qualifiedExpression(with: alias) })
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        let matchedRowIds = expressions.compactMap {
-            $0.matchedRowIds(rowIdName: rowIdName)
-        }
-        guard let first = matchedRowIds.first else {
-            return nil
-        }
-        return matchedRowIds.suffix(from: 1).reduce(into: first) { $0.formIntersection($1) }
-    }
-}
-
-// MARK: - SQLExpressionOr
-
-struct SQLExpressionOr: SQLExpression {
-    let expressions: [SQLExpression]
-    
-    init(_ expressions: [SQLExpression]) {
-        self.expressions = expressions
-    }
-    
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        guard let first = expressions.first else {
-            // Ruby [].any? # => false
-            return false.sqlExpression.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
-        }
-        if expressions.count == 1 {
-            return first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
-        }
-        let expressionSQLs = expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: true) }
-        if wrappedInParenthesis {
-            return "(\(expressionSQLs.joined(separator: " OR ")))"
-        } else {
-            return expressionSQLs.joined(separator: " OR ")
-        }
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionOr(expressions.map { $0.qualifiedExpression(with: alias) })
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        if expressions.isEmpty {
-            return []
-        }
-        var result: Set<Int64> = []
-        for expr in expressions {
-            guard let matchedRowIds = expr.matchedRowIds(rowIdName: rowIdName) else {
-                return nil
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            if let negatedOp = op.negated {
+                return _SQLExpressionBinary(negatedOp, lhs, rhs)
+            } else {
+                return _SQLExpressionNot(self)
             }
-            result.formUnion(matchedRowIds)
         }
-        return result
+    }
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionBinary(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionEqual
+// MARK: - _SQLExpressionAssociativeBinary
 
-struct SQLExpressionEqual: SQLExpression {
+/// SQLAssociativeBinaryOperator is an SQLite associative binary operator, such
+/// as `+`, `*`, `AND`, etc.
+///
+/// Use it with the `joined(operator:)` method. For example:
+///
+///     // SELECT score + bonus + 1000 FROM player
+///     let values = [
+///         scoreColumn,
+///         bonusColumn,
+///         1000.databaseValue]
+///     Player.select(values.joined(operator: .add))
+public struct SQLAssociativeBinaryOperator: Hashable {
+    /// The SQL operator
+    let sql: String
+    
+    /// The neutral value
+    let neutralValue: DatabaseValue
+    
+    /// if true, (a • b) • c is strictly equal to a • (b • c).
+    ///
+    /// `AND`, `OR`, `||` (concat) are stricly associative.
+    ///
+    /// `+` and `*` are not stricly associative when applied to floating
+    /// point values.
+    let strictlyAssociative: Bool
+    
+    /// Creates a binary operator
+    init(sql: String, neutralValue: DatabaseValue, strictlyAssociative: Bool) {
+        self.sql = sql
+        self.neutralValue = neutralValue
+        self.strictlyAssociative = strictlyAssociative
+    }
+    
+    /// The `+` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score + bonus
+    ///     [Column("score"), Column("bonus")].joined(operator: .add)
+    public static let add = SQLAssociativeBinaryOperator(
+        sql: "+",
+        neutralValue: 0.databaseValue,
+        strictlyAssociative: false)
+    
+    /// The `*` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // score * factor
+    ///     [Column("score"), Column("factor")].joined(operator: .multiply)
+    public static let multiply = SQLAssociativeBinaryOperator(
+        sql: "*",
+        neutralValue: 1.databaseValue,
+        strictlyAssociative: false)
+    
+    /// The `AND` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue AND isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .and)
+    public static let and = SQLAssociativeBinaryOperator(
+        sql: "AND",
+        neutralValue: true.databaseValue,
+        strictlyAssociative: true)
+    
+    /// The `OR` binary operator
+    ///
+    /// For example:
+    ///
+    ///     // isBlue OR isTall
+    ///     [Column("isBlue"), Column("isTall")].joined(operator: .or)
+    public static let or = SQLAssociativeBinaryOperator(
+        sql: "OR",
+        neutralValue: false.databaseValue,
+        strictlyAssociative: true)
+    
+    /// The `||` string concatenation operator
+    ///
+    /// For example:
+    ///
+    ///     // firstName || ' ' || lastName
+    ///     [Column("firstName"), " ", Column("lastName")].joined(operator: .concat)
+    public static let concat = SQLAssociativeBinaryOperator(
+        sql: "||",
+        neutralValue: "".databaseValue,
+        strictlyAssociative: true)
+}
+
+/// `_SQLExpressionAssociativeBinary` is an expression made of several
+/// expressions joined with an associative binary operator.
+///
+/// :nodoc:
+public struct _SQLExpressionAssociativeBinary: SQLExpression {
+    let expressions: [SQLExpression]
+    let op: SQLAssociativeBinaryOperator
+    
+    /// Creates an expression made of expressions joined with an associative
+    /// binary operator.
+    ///
+    ///     // length * width
+    ///     _SQLExpressionAssociativeBinary(.multiply, [Column("length"), Column("width")])
+    init(_ op: SQLAssociativeBinaryOperator, _ expressions: [SQLExpression]) {
+        self.op = op
+        
+        // flatten when possible: a • (b • c) = a • b • c
+        if op.strictlyAssociative {
+            self.expressions = expressions.flatMap { expression -> [SQLExpression] in
+                if let reduce = expression as? _SQLExpressionAssociativeBinary, reduce.op == op {
+                    return reduce.expressions
+                } else {
+                    return [expression]
+                }
+            }
+        } else {
+            self.expressions = expressions
+        }
+    }
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionAssociativeBinary(op, expressions.map { $0._qualifiedExpression(with: alias) })
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        switch expressions.count {
+        case 0:
+            try op.neutralValue._accept(&visitor)
+        case 1:
+            try expressions[0]._accept(&visitor)
+        default:
+            try visitor.visit(self)
+        }
+    }
+}
+
+extension Sequence where Element == SQLExpression {
+    /// Returns an expression by joining all elements with an associative SQL
+    /// binary operator.
+    ///
+    /// For example:
+    ///
+    ///     // SELECT * FROM player
+    ///     // WHERE (registered
+    ///     //        AND (score >= 1000)
+    ///     //        AND (name IS NOT NULL))
+    ///     let conditions = [
+    ///         Column("registered"),
+    ///         Column("score") >= 1000,
+    ///         Column("name") != nil]
+    ///     Player.filter(conditions.joined(operator: .and))
+    ///
+    /// When the sequence is empty, `joined(operator:)` returns the neutral
+    /// value of the operator. It is 0 (zero) for `.add`, 1 for ‘.multiply`,
+    /// false for `.or`, and true for `.and`.
+    public func joined(operator: SQLAssociativeBinaryOperator) -> SQLExpression {
+        _SQLExpressionAssociativeBinary(`operator`, Array(self))
+    }
+}
+
+// MARK: - _SQLExpressionEqual
+
+/// :nodoc:
+public struct _SQLExpressionEqual: SQLExpression {
     var lhs: SQLExpression
     var rhs: SQLExpression
     var op: Operator
@@ -383,67 +391,41 @@ struct SQLExpressionEqual: SQLExpression {
         }
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return """
-            \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
-            \(op.rawValue) \
-            \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
-            """
-    }
-    
-    var negated: SQLExpression {
-        return SQLExpressionEqual(op.negated, lhs, rhs)
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        // FIXME: this implementation ignores column aliases
-        switch op {
-        case .equal, .is:
-            // Look for `id ==/IS 1`, `rowid ==/IS 1`, `1 ==/IS id`, `1 ==/IS rowid`
-            func matchedRowIds(column: ColumnExpression, dbValue: DatabaseValue) -> Set<Int64>? {
-                var rowIdNames = [Column.rowID.name.lowercased()]
-                if let rowIdName = rowIdName {
-                    rowIdNames.append(rowIdName.lowercased())
-                }
-                guard rowIdNames.contains(column.name.lowercased()) else {
-                    return nil
-                }
-                if let rowId = Int64.fromDatabaseValue(dbValue) {
-                    return [rowId]
-                } else {
-                    return []
-                }
-            }
-            switch (lhs, rhs) {
-            case let (column as ColumnExpression, dbValue as DatabaseValue):
-                return matchedRowIds(column: column, dbValue: dbValue)
-            case let (dbValue as DatabaseValue, column as ColumnExpression):
-                return matchedRowIds(column: column, dbValue: dbValue)
-            default:
-                return nil
-            }
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
             
-        case .notEqual, .isNot:
-            return nil
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionEqual(op.negated, lhs, rhs)
         }
+    }
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionEqual(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionContains
+// MARK: - _SQLExpressionContains
 
-/// SQLExpressionContains is an expression that checks the inclusion of a
+/// _SQLExpressionContains is an expression that checks the inclusion of a
 /// value in a collection with the `IN` operator.
 ///
 ///     // id IN (1,2,3)
-///     SQLExpressionContains(Column("id"), SQLExpressionsArray([1,2,3]))
-struct SQLExpressionContains: SQLExpression {
+///     _SQLExpressionContains(Column("id"), _SQLExpressionsArray([1,2,3]))
+///
+/// :nodoc:
+public struct _SQLExpressionContains: SQLExpression {
     let expression: SQLExpression
     let collection: SQLCollection
     let isNegated: Bool
@@ -454,62 +436,44 @@ struct SQLExpressionContains: SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionContains(expression, collection, negated: !isNegated)
         }
-        return """
-            \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
-            \(isNegated ? "NOT IN" : "IN") \
-            (\(collection.collectionSQL(&context)))
-            """
     }
     
-    var negated: SQLExpression {
-        return SQLExpressionContains(expression, collection, negated: !isNegated)
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionContains(
+            expression._qualifiedExpression(with: alias),
+            collection._qualifiedCollection(with: alias),
+            negated: isNegated)
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
-    }
-    
-    func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        // FIXME: this implementation ignores column aliases
-        // Look for `id IN (1, 2, 3)`
-        guard let column = expression as? ColumnExpression,
-            let array = collection as? SQLExpressionsArray else
-        {
-            return nil
-        }
-        
-        var rowIdNames = [Column.rowID.name.lowercased()]
-        if let rowIdName = rowIdName {
-            rowIdNames.append(rowIdName.lowercased())
-        }
-        
-        guard rowIdNames.contains(column.name.lowercased()) else {
-            return nil
-        }
-        
-        var rowIDs: Set<Int64> = []
-        for expression in array.expressions {
-            guard let dbValue = expression as? DatabaseValue else { return nil }
-            if let rowId = Int64.fromDatabaseValue(dbValue) {
-                rowIDs.insert(rowId)
-            }
-        }
-        return rowIDs
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionBetween
+// MARK: - _SQLExpressionBetween
 
-/// SQLExpressionBetween is an expression that checks if a values is included
+/// _SQLExpressionBetween is an expression that checks if a values is included
 /// in a range with the `BETWEEN` operator.
 ///
 ///     // id BETWEEN 1 AND 3
-///     SQLExpressionBetween(Column("id"), 1.databaseValue, 3.databaseValue)
-struct SQLExpressionBetween: SQLExpression {
+///     _SQLExpressionBetween(Column("id"), 1.databaseValue, 3.databaseValue)
+///
+/// :nodoc:
+public struct _SQLExpressionBetween: SQLExpression {
     let expression: SQLExpression
     let lowerBound: SQLExpression
     let upperBound: SQLExpression
@@ -522,123 +486,71 @@ struct SQLExpressionBetween: SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
         }
-        return """
-            \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
-            \(isNegated ? "NOT BETWEEN" : "BETWEEN") \
-            \(lowerBound.expressionSQL(&context, wrappedInParenthesis: true)) \
-            AND \
-            \(upperBound.expressionSQL(&context, wrappedInParenthesis: true))
-            """
     }
     
-    var negated: SQLExpression {
-        return SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionBetween(
-            expression.qualifiedExpression(with: alias),
-            lowerBound.qualifiedExpression(with: alias),
-            upperBound.qualifiedExpression(with: alias),
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionBetween(
+            expression._qualifiedExpression(with: alias),
+            lowerBound._qualifiedExpression(with: alias),
+            upperBound._qualifiedExpression(with: alias),
             negated: isNegated)
     }
-}
-
-// MARK: - SQLExpressionFunction
-
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLFunctionName is an SQL function name.
-public struct SQLFunctionName: Hashable {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The SQL function name
-    ///
-    /// :nodoc:
-    public var sql: String
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates a function name
-    ///
-    ///     SQLFunctionName("ABS")
-    ///
     /// :nodoc:
-    public init(_ sql: String) {
-        self.sql = sql
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// SQLExpressionFunction is an SQL function call.
-///
-///     // ABS(-1)
-///     SQLExpressionFunction(.abs, [-1.databaseValue])
-///
+// MARK: - _SQLExpressionFunction
+
 /// :nodoc:
-public struct SQLExpressionFunction: SQLExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The function name
-    public let functionName: SQLFunctionName
+public struct _SQLExpressionFunction: SQLExpression {
+    let function: String
+    let arguments: [SQLExpression]
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The function arguments
-    public let arguments: [SQLExpression]
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL function call
-    ///
-    ///     // ABS(-1)
-    ///     SQLExpressionFunction(.abs, arguments: [-1.databaseValue])
-    public init(_ functionName: SQLFunctionName, arguments: [SQLExpression]) {
-        self.functionName = functionName
+    init(_ function: String, arguments: [SQLExpression]) {
+        self.function = function
         self.arguments = arguments
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates an SQL function call
-    ///
-    ///     // ABS(-1)
-    ///     SQLExpressionFunction(.abs, arguments: -1)
-    public init(_ functionName: SQLFunctionName, arguments: SQLExpressible...) {
-        self.init(functionName, arguments: arguments.map { $0.sqlExpression })
+    init(_ function: String, arguments: SQLExpressible...) {
+        self.init(function, arguments: arguments.map(\.sqlExpression))
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        var sql = functionName.sql
-        sql += "("
-        sql += arguments
-            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
-            .joined(separator: ", ")
-        sql += ")"
-        return sql
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionFunction(function, arguments: arguments.map { $0._qualifiedExpression(with: alias) })
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: alias) })
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionCount
+// MARK: - _SQLExpressionCount
 
-/// SQLExpressionCount is a call to the SQL `COUNT` function.
+/// _SQLExpressionCount is a call to the SQL `COUNT` function.
 ///
 ///     // COUNT(name)
-///     SQLExpressionCount(Column("name"))
-struct SQLExpressionCount: SQLExpression {
+///     _SQLExpressionCount(Column("name"))
+///
+/// :nodoc:
+public struct _SQLExpressionCount: SQLExpression {
     /// The counted value
     let counted: SQLSelectable
     
@@ -646,43 +558,51 @@ struct SQLExpressionCount: SQLExpression {
         self.counted = counted
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return "COUNT(" + counted.countedSQL(&context) + ")"
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionCount(counted._qualifiedSelectable(with: alias))
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCount(counted.qualifiedSelectable(with: alias))
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionCountDistinct
+// MARK: - _SQLExpressionCountDistinct
 
-/// SQLExpressionCountDistinct is a call to the SQL `COUNT(DISTINCT ...)` function.
+/// _SQLExpressionCountDistinct is a call to the SQL `COUNT(DISTINCT ...)` function.
 ///
 ///     // COUNT(DISTINCT name)
-///     SQLExpressionCountDistinct(Column("name"))
-struct SQLExpressionCountDistinct: SQLExpression {
+///     _SQLExpressionCountDistinct(Column("name"))
+///
+/// :nodoc:
+public struct _SQLExpressionCountDistinct: SQLExpression {
     let counted: SQLExpression
     
     init(_ counted: SQLExpression) {
         self.counted = counted
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return "COUNT(DISTINCT " + counted.expressionSQL(&context, wrappedInParenthesis: false) + ")"
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionCountDistinct(counted._qualifiedExpression(with: alias))
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCountDistinct(counted.qualifiedExpression(with: alias))
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionIsEmpty
+// MARK: - _SQLExpressionIsEmpty
 
 /// This one helps generating `COUNT(...) = 0` or `COUNT(...) > 0` while letting
 /// the user using the not `!` logical operator, or comparisons with booleans
 /// such as `== true` or `== false`.
-struct SQLExpressionIsEmpty: SQLExpression {
+///
+/// :nodoc:
+public struct _SQLExpressionIsEmpty: SQLExpression {
     var countExpression: SQLExpression
     var isEmpty: Bool
     
@@ -692,56 +612,56 @@ struct SQLExpressionIsEmpty: SQLExpression {
         self.isEmpty = isEmpty
     }
     
-    var negated: SQLExpression {
-        return SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
-    }
-    
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return self
+        case .false, .falsey:
+            return _SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
         }
-        return """
-            \(countExpression.expressionSQL(&context, wrappedInParenthesis: true)) \
-            \(isEmpty ? "= 0" : "> 0")
-            """
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionIsEmpty(countExpression.qualifiedExpression(with: alias), isEmpty: isEmpty)
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionIsEmpty(countExpression._qualifiedExpression(with: alias), isEmpty: isEmpty)
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - TableMatchExpression
+// MARK: - _SQLExpressionTableMatch
 
-struct TableMatchExpression: SQLExpression {
+/// :nodoc:
+public struct _SQLExpressionTableMatch: SQLExpression {
     var alias: TableAlias
     var pattern: SQLExpression
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return """
-            \(context.resolvedName(for: alias).quotedDatabaseIdentifier) \
-            MATCH \
-            \(pattern.expressionSQL(&context, wrappedInParenthesis: true))
-            """
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionTableMatch(
+            alias: self.alias,
+            pattern: pattern._qualifiedExpression(with: alias))
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return TableMatchExpression(
-            alias: self.alias,
-            pattern: pattern.qualifiedExpression(with: alias))
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
-// MARK: - SQLExpressionCollate
+// MARK: - _SQLExpressionCollate
 
-/// SQLExpressionCollate is an expression tainted by an SQLite collation.
+/// _SQLExpressionCollate is an expression tainted by an SQLite collation.
 ///
 ///     // email = 'arthur@example.com' COLLATE NOCASE
-///     SQLExpressionCollate(Column("email") == "arthur@example.com", "NOCASE")
-struct SQLExpressionCollate: SQLExpression {
+///     _SQLExpressionCollate(Column("email") == "arthur@example.com", "NOCASE")
+///
+/// :nodoc:
+public struct _SQLExpressionCollate: SQLExpression {
     let expression: SQLExpression
     let collationName: Database.CollationName
     
@@ -750,18 +670,72 @@ struct SQLExpressionCollate: SQLExpression {
         self.collationName = collationName
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
-        }
-        return """
-            \(expression.expressionSQL(&context, wrappedInParenthesis: false)) \
-            COLLATE \
-            \(collationName.rawValue)
-            """
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        _SQLExpressionCollate(expression._is(test), collationName: collationName)
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionCollate(expression._qualifiedExpression(with: alias), collationName: collationName)
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+// MARK: - _SQLExpressionFastPrimaryKey
+
+/// _SQLExpressionFastPrimaryKey is an expression that picks the fastest available
+/// primary key.
+///
+/// It crashes for WITHOUT ROWID table with a multi-columns primary key.
+/// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
+///
+/// :nodoc:
+public struct _SQLExpressionFastPrimaryKey: SQLExpression {
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionQualifiedFastPrimaryKey(alias: alias)
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
+/// :nodoc:
+public struct _SQLExpressionQualifiedFastPrimaryKey: SQLExpression {
+    let alias: TableAlias
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // Never requalify
+        self
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+    
+    /// Return the name of the fast primary key column
+    func columnName(_ db: Database) throws -> String {
+        let primaryKey = try db.primaryKey(alias.tableName)
+        if let rowIDColumn = primaryKey.rowIDColumn {
+            // Prefer the user-provided name of the rowid
+            return rowIDColumn
+        } else if primaryKey.tableHasRowID {
+            // Prefer the rowid
+            return Column.rowID.name
+        } else if primaryKey.columns.count == 1 {
+            // WITHOUT ROWID table: use primary key column
+            return primaryKey.columns[0]
+        } else {
+            fatalError("Not implemented: WITHOUT ROWID table with a multi-columns primary key")
+        }
     }
 }

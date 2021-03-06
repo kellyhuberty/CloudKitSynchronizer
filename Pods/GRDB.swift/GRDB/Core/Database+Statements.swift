@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 extension Database {
     
@@ -13,15 +6,15 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
-    ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
-    ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(sql: String) throws -> SelectStatement {
-        return try makeSelectStatement(sql: sql, prepFlags: 0)
+        try makeSelectStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -36,7 +29,7 @@ extension Database {
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
-        return try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+        try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -52,12 +45,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        return try publicStatementCache.selectStatement(sql)
+        try publicStatementCache.selectStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedSelectStatement(sql: String) throws -> SelectStatement {
-        return try internalStatementCache.selectStatement(sql)
+        try internalStatementCache.selectStatement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -70,7 +63,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try makeUpdateStatement(sql: sql, prepFlags: 0)
+        try makeUpdateStatement(sql: sql, prepFlags: 0)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -85,7 +78,7 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        return try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+        try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -101,12 +94,12 @@ extension Database {
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try publicStatementCache.updateStatement(sql)
+        try publicStatementCache.updateStatement(sql)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
     func internalCachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        return try internalStatementCache.updateStatement(sql)
+        try internalStatementCache.updateStatement(sql)
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
@@ -165,12 +158,14 @@ extension Database {
         //
         // And before we return, we'll check that all arguments were consumed.
         
-        var arguments = sqlLiteral.arguments
+        let context = SQLGenerationContext(self)
+        let sql = try sqlLiteral.sql(context)
+        var arguments = context.arguments
         let initialValuesCount = arguments.values.count
         
         // Build a C string (SQLite wants that), and execute SQL statements one
         // after the other.
-        try sqlLiteral.sql.utf8CString.withUnsafeBufferPointer { buffer in
+        try sql.utf8CString.withUnsafeBufferPointer { buffer in
             guard let sqlStart = buffer.baseAddress else { return }
             let sqlEnd = sqlStart + buffer.count // past \0
             var statementStart = sqlStart
@@ -199,7 +194,7 @@ extension Database {
                 // Extract statement arguments
                 let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
                 // unsafe is OK because we just extracted the correct number of arguments
-                statement.unsafeSetArguments(StatementArguments(bindings))
+                statement.setUncheckedArguments(StatementArguments(bindings))
                 
                 // Execute
                 try statement.execute()
@@ -225,6 +220,10 @@ extension Database {
         // transactions, and database suspension.
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         try checkForSuspensionViolation(from: statement)
+        
+        if _isRecordingSelectedRegion {
+            _selectedRegion.formUnion(statement.databaseRegion)
+        }
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
@@ -300,22 +299,7 @@ extension Database {
         try checkForSuspensionViolation(from: statement)
         
         if _isRecordingSelectedRegion {
-            // Don't record schema introspection queries, which may be
-            // run, or not, depending on the state of the schema cache.
-            //
-            // This gives us a quick way to make sure that the observation
-            // below, which runs schema introspection queries as a side effect,
-            // only tracks the "player" table:
-            //
-            //      let observation = ValueObservation.tracking { db in
-            //          try Player.fetchOne(db, key: 1)
-            //      }
-            //
-            // Strictly speaking, this prevents the recording of all schema
-            // queries. But we assume, until proven wrong, that such recording
-            // isn't needed by anyone.
-            let region = statement.databaseRegion.ignoringInternalSQLiteTables()
-            _selectedRegion.formUnion(region)
+            _selectedRegion.formUnion(statement.databaseRegion)
         }
     }
     

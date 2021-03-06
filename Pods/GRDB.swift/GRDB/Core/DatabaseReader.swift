@@ -1,21 +1,19 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
+#if canImport(Combine)
+import Combine
 #endif
+import Dispatch
 
-/// The protocol for all types that can fetch values from a database.
+/// `DatabaseReader` is the protocol for all types that can fetch values from
+/// an SQLite database.
 ///
-/// It is adopted by DatabaseQueue and DatabasePool.
+/// It is adopted by `DatabaseQueue`, `DatabasePool`, and `DatabaseSnapshot`.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
 /// Types that adopt the protocol can provide in practice stronger guarantees.
-/// For example, DatabaseQueue provides a stronger isolation level
-/// than DatabasePool.
+/// For example, `DatabaseQueue` provides a stronger isolation level
+/// than `DatabasePool`.
 ///
 /// **Warning**: Isolation guarantees stand as long as there is no external
 /// connection to the database. Should you have to cope with external
@@ -107,8 +105,7 @@ public protocol DatabaseReader: AnyObject {
     ///         let count = try Player.fetchCount(db)
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
@@ -116,16 +113,15 @@ public protocol DatabaseReader: AnyObject {
     ///   happen while establishing the read access to the database.
     func read<T>(_ block: (Database) throws -> T) throws -> T
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block that takes a
     /// database connection.
     ///
     /// Guarantee 1: the block argument is isolated. Eventual concurrent
     /// database updates are not visible inside the block:
     ///
-    ///     try reader.asyncRead { result in
+    ///     try reader.asyncRead { dbResult in
     ///         do (
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             // Those two values are guaranteed to be equal, even if the
     ///             // `player` table is modified between the two requests:
     ///             let count1 = try Player.fetchCount(db)
@@ -135,13 +131,16 @@ public protocol DatabaseReader: AnyObject {
     ///         }
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
-    #endif
+    
+    /// Same as asyncRead, but without retaining self
+    ///
+    /// :nodoc:
+    func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void)
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -209,40 +208,6 @@ public protocol DatabaseReader: AnyObject {
     func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T
     
     
-    // MARK: - Functions
-    
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     reader.add(function: fn)
-    ///     try reader.read { db in
-    ///         try Int.fetchOne(db, sql: "SELECT succ(1)")! // 2
-    ///     }
-    func add(function: DatabaseFunction)
-    
-    /// Remove an SQL function.
-    func remove(function: DatabaseFunction)
-    
-    
-    // MARK: - Collations
-    
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     reader.add(collation: collation)
-    ///     try reader.execute(sql: "SELECT * FROM file ORDER BY name COLLATE localized_standard")
-    func add(collation: DatabaseCollation)
-    
-    /// Remove a collation.
-    func remove(collation: DatabaseCollation)
-    
     // MARK: - Value Observation
     
     /// Starts a value observation.
@@ -251,18 +216,14 @@ public protocol DatabaseReader: AnyObject {
     /// method instead.
     ///
     /// - parameter observation: the stared observation
-    /// - parameter onError: a closure that is provided by eventual errors that happen
-    /// during observation
-    /// - parameter onChange: a closure that is provided fresh values
     /// - returns: a TransactionObserver
-    func add<Reducer: ValueReducer>(
+    ///
+    /// :nodoc:
+    func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: @escaping (Error) -> Void,
+        scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
-    
-    /// Remove a transaction observer.
-    func remove(transactionObserver: TransactionObserver)
+        -> DatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -278,18 +239,148 @@ extension DatabaseReader {
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
     public func backup(to writer: DatabaseWriter) throws {
-        try backup(to: writer, afterBackupInit: nil, afterBackupStep: nil)
+        try writer.writeWithoutTransaction { dbDest in
+            try backup(to: dbDest)
+        }
     }
     
-    func backup(to writer: DatabaseWriter, afterBackupInit: (() -> Void)?, afterBackupStep: (() -> Void)?) throws {
+    func backup(
+        to dbDest: Database,
+        afterBackupInit: (() -> Void)? = nil,
+        afterBackupStep: (() -> Void)? = nil)
+        throws
+    {
         try read { dbFrom in
-            try writer.writeWithoutTransaction { dbDest in
-                try Database.backup(
-                    from: dbFrom,
-                    to: dbDest,
-                    afterBackupInit: afterBackupInit,
-                    afterBackupStep: afterBackupStep)
+            try dbFrom.backup(
+                to: dbDest,
+                afterBackupInit: afterBackupInit,
+                afterBackupStep: afterBackupStep)
+        }
+    }
+}
+
+#if canImport(Combine)
+extension DatabaseReader {
+    // MARK: - Publishing Database Values
+    
+    /// Returns a Publisher that asynchronously completes with a fetched value.
+    ///
+    ///     // DatabasePublishers.Read<[Player]>
+    ///     let players = dbQueue.readPublisher { db in
+    ///         try Player.fetchAll(db)
+    ///     }
+    ///
+    /// Its value and completion are emitted on the main dispatch queue.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func readPublisher<Output>(
+        value: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Read<Output>
+    {
+        readPublisher(receiveOn: DispatchQueue.main, value: value)
+    }
+    
+    /// Returns a Publisher that asynchronously completes with a fetched value.
+    ///
+    ///     // DatabasePublishers.Read<[Player]>
+    ///     let players = dbQueue.readPublisher(
+    ///         receiveOn: DispatchQueue.global(),
+    ///         value: { db in try Player.fetchAll(db) })
+    ///
+    /// Its value and completion are emitted on `scheduler`.
+    ///
+    /// - parameter scheduler: A Combine Scheduler.
+    /// - parameter value: A closure which accesses the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func readPublisher<S, Output>(
+        receiveOn scheduler: S,
+        value: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Read<Output>
+        where S: Scheduler
+    {
+        Deferred {
+            Future { fulfill in
+                self.asyncRead { dbResult in
+                    fulfill(dbResult.flatMap { db in Result { try value(db) } })
+                }
             }
+        }
+        .receiveValues(on: scheduler)
+        .eraseToReadPublisher()
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension DatabasePublishers {
+    /// A publisher that reads a value from the database. It publishes exactly
+    /// one element, or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseReader.readPublisher(receiveOn:value:)`.
+    /// - `DatabaseReader.readPublisher(value:)`.
+    public struct Read<Output>: Publisher {
+        public typealias Output = Output
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Output, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension Publisher where Failure == Error {
+    fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
+        .init(upstream: eraseToAnyPublisher())
+    }
+}
+#endif
+
+extension DatabaseReader {
+    // MARK: - Value Observation Support
+    
+    /// Adding an observation in a read-only database emits only the
+    /// initial value.
+    func _addReadOnly<Reducer: ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> DatabaseCancellable
+    {
+        if scheduler.immediateInitialValue() {
+            do {
+                let value = try unsafeReentrantRead(observation.fetchValue)
+                onChange(value)
+            } catch {
+                observation.events.didFail?(error)
+            }
+            return AnyDatabaseCancellable(cancel: { })
+        } else {
+            var isCancelled = false
+            _weakAsyncRead { dbResult in
+                guard
+                    !isCancelled,
+                    let dbResult = dbResult
+                    else { return }
+                
+                let result = dbResult.flatMap { db in
+                    Result { try observation.fetchValue(db) }
+                }
+                
+                scheduler.schedule {
+                    guard !isCancelled else { return }
+                    do {
+                        try onChange(result.get())
+                    } catch {
+                        observation.events.didFail?(error)
+                    }
+                }
+            }
+            return AnyDatabaseCancellable(cancel: { isCancelled = true })
         }
     }
 }
@@ -306,80 +397,51 @@ public final class AnyDatabaseReader: DatabaseReader {
         self.base = base
     }
     
-    /// :nodoc:
     public var configuration: Configuration {
-        return base.configuration
+        base.configuration
     }
     
     // MARK: - Interrupting Database Operations
     
-    /// :nodoc:
     public func interrupt() {
         base.interrupt()
     }
     
     // MARK: - Reading from Database
     
-    /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.read(block)
+        try base.read(block)
     }
     
-    #if compiler(>=5.0)
-    /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
-    #endif
     
     /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
+    }
+    
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeRead(block)
+        try base.unsafeRead(block)
     }
     
-    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeReentrantRead(block)
-    }
-    
-    // MARK: - Functions
-    
-    /// :nodoc:
-    public func add(function: DatabaseFunction) {
-        base.add(function: function)
-    }
-    
-    /// :nodoc:
-    public func remove(function: DatabaseFunction) {
-        base.remove(function: function)
-    }
-    
-    // MARK: - Collations
-    
-    /// :nodoc:
-    public func add(collation: DatabaseCollation) {
-        base.add(collation: collation)
-    }
-    
-    /// :nodoc:
-    public func remove(collation: DatabaseCollation) {
-        base.remove(collation: collation)
+        try base.unsafeReentrantRead(block)
     }
     
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
-        onError: @escaping (Error) -> Void,
+        scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        return base.add(observation: observation, onError: onError, onChange: onChange)
-    }
-    
-    /// :nodoc:
-    public func remove(transactionObserver: TransactionObserver) {
-        base.remove(transactionObserver: transactionObserver)
+        base._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
     }
 }

@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 // MARK: - DatabaseValue
 
@@ -209,75 +202,60 @@ extension DatabaseValue {
 extension DatabaseValue {
     /// Returns self
     public var databaseValue: DatabaseValue {
-        return self
+        self
     }
     
     /// Returns the database value
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseValue? {
-        return dbValue
+        dbValue
     }
 }
 
 // SQLExpressible
 extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
-        return self
+        self
     }
 }
 
 // SQLExpression
 extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    // Specific boolean checks for null, true, and false
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        // fast path for NULL
-        if isNull {
-            return "NULL"
-        }
-        
-        if context.append(arguments: [self]) {
-            return "?"
-        } else {
-            // Correctness above all: use SQLite to quote the value.
-            // Assume that the Quote function always succeeds
-            return DatabaseQueue().inDatabase { try! String.fetchOne($0, sql: "SELECT QUOTE(?)", arguments: [self])! }
-        }
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public var negated: SQLExpression {
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch storage {
         case .null:
-            // SELECT NOT NULL -- NULL
             return DatabaseValue.null
-        case .int64(let int64):
-            return (int64 == 0).sqlExpression
-        case .double(let double):
-            return (double == 0.0).sqlExpression
-        case .string:
-            // We can't assume all strings are true, and return false:
-            //
-            // SELECT NOT '1' -- 0 (because '1' is turned into the integer 1, which is negated into 0)
-            // SELECT NOT '0' -- 1 (because '0' is turned into the integer 0, which is negated into 1)
-            return SQLExpressionNot(self)
-        case .blob:
-            // We can't assume all blobs are true, and return false:
-            //
-            // SELECT NOT X'31' -- 0 (because X'31' is turned into the string '1',
-            //  then into integer 1, which is negated into 0)
-            // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0',
-            //  then into integer 0, which is negated into 1)
-            return SQLExpressionNot(self)
+            
+        case .int64(let int64) where int64 == 0 || int64 == 1:
+            switch test {
+            case .true:
+                return (int64 == 1).sqlExpression
+            case .false, .falsey:
+                return (int64 == 0).sqlExpression
+            }
+            
+        default:
+            switch test {
+            case .true:
+                return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            case .false:
+                return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            case .falsey:
+                return _SQLExpressionNot(self)
+            }
         }
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        self
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 

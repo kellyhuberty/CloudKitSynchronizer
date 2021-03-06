@@ -10,14 +10,14 @@ extension Database.ConflictResolution {
     }
 }
 
-/// An error thrown by a type that adopts PersistableRecord.
+/// An error thrown by a type that adopts `MutablePersistableRecord`.
 public enum PersistenceError: Error, CustomStringConvertible {
     
-    /// Thrown by MutablePersistableRecord.update() when no matching row could be
-    /// found in the database.
+    /// Thrown by `MutablePersistableRecord.update(_:)` methods when no matching
+    /// row could be found in the database.
     ///
-    /// - databaseTableName: the table of the unfound record
-    /// - key: the key of the unfound record (column and values)
+    /// - `databaseTableName`: the table of the unfound record
+    /// - `key`: the key of the unfound record (column and values)
     case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
 }
 
@@ -33,8 +33,8 @@ extension PersistenceError {
     }
 }
 
-/// The MutablePersistableRecord protocol uses this type in order to handle SQLite
-/// conflicts when records are inserted or updated.
+/// The `MutablePersistableRecord` protocol uses this type in order to handle
+/// SQLite conflicts when records are inserted or updated.
 ///
 /// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
@@ -53,7 +53,8 @@ public struct PersistenceConflictPolicy {
     }
 }
 
-/// Types that adopt MutablePersistableRecord can be inserted, updated, and deleted.
+/// Types that adopt `MutablePersistableRecord` can be inserted, updated,
+/// and deleted.
 public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
@@ -182,7 +183,7 @@ extension MutablePersistableRecord {
     /// The default value specifies ABORT policy for both insertions and
     /// updates, which has GRDB generate regular INSERT and UPDATE queries.
     public static var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .abort, update: .abort)
+        PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// Notifies the record that it was succesfully inserted.
@@ -222,7 +223,7 @@ extension MutablePersistableRecord {
         throws
         where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
     {
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// Executes an UPDATE statement.
@@ -248,7 +249,7 @@ extension MutablePersistableRecord {
     public func update(_ db: Database) throws {
         let databaseTableName = type(of: self).databaseTableName
         let columns = try db.columns(in: databaseTableName)
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// If the record has any difference from the other record, executes an
@@ -276,7 +277,7 @@ extension MutablePersistableRecord {
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     public func updateChanges<Record: MutablePersistableRecord>(_ db: Database, from record: Record) throws -> Bool {
-        return try updateChanges(db, from: PersistenceContainer(db, record))
+        try updateChanges(db, from: PersistenceContainer(db, record))
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -322,7 +323,7 @@ extension MutablePersistableRecord {
     /// The default implementation for delete() invokes performDelete().
     @discardableResult
     public func delete(_ db: Database) throws -> Bool {
-        return try performDelete(db)
+        try performDelete(db)
     }
     
     /// Returns true if and only if the primary key matches a row in
@@ -330,7 +331,7 @@ extension MutablePersistableRecord {
     ///
     /// The default implementation for exists() invokes performExists().
     public func exists(_ db: Database) throws -> Bool {
-        return try performExists(db)
+        try performExists(db)
     }
     
     // MARK: - Record Comparison
@@ -515,7 +516,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
-        return try all().deleteAll(db)
+        try all().deleteAll(db)
     }
     
     // MARK: Batch Update
@@ -526,7 +527,7 @@ extension MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, [Column("score") <- 0])
+    ///         try Player.updateAll(db, [Column("score").set(to: 0)])
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -542,7 +543,7 @@ extension MutablePersistableRecord {
         _ assignments: [ColumnAssignment])
         throws -> Int
     {
-        return try all().updateAll(db, onConflict: conflictResolution, assignments)
+        try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
     /// Updates all records; returns the number of updated records.
@@ -551,7 +552,7 @@ extension MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, Column("score") <- 0)
+    ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -569,7 +570,7 @@ extension MutablePersistableRecord {
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 
@@ -674,18 +675,16 @@ extension MutablePersistableRecord {
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        return try deleteAll(db, keys: [key]) > 0
+        try deleteAll(db, keys: [key]) > 0
     }
 }
 
 // MARK: - PersistableRecord
 
-/// Types that adopt PersistableRecord can be inserted, updated, and deleted.
+/// Types that adopt `PersistableRecord` can be inserted, updated, and deleted.
 ///
-/// This protocol is intented for types that don't have an INTEGER PRIMARY KEY.
-///
-/// Unlike MutablePersistableRecord, the insert() and save() methods are not
-/// mutating methods.
+/// Unlike `MutablePersistableRecord`, the `insert(_:)` and `save(_:)` methods
+/// are not mutating methods.
 public protocol PersistableRecord: MutablePersistableRecord {
     
     /// Notifies the record that it was succesfully inserted.
@@ -859,7 +858,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             insertedColumns: persistenceContainer.columns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(persistenceContainer.values))
+        statement.setUncheckedArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
     
@@ -884,7 +883,7 @@ final class DAO<Record: MutablePersistableRecord> {
         
         var updatedColumns: [String] = try db
             .columns(in: databaseTableName)
-            .map { $0.name }
+            .map(\.name)
             .filter { lowercaseUpdatedColumns.contains($0.lowercased()) }
         
         if updatedColumns.isEmpty {
@@ -909,7 +908,7 @@ final class DAO<Record: MutablePersistableRecord> {
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(updatedValues + primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
     
@@ -929,7 +928,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
@@ -949,7 +948,7 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
         let statement = try db.internalCachedSelectStatement(sql: query.sql)
-        statement.unsafeSetArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
@@ -975,28 +974,28 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    static let sqlCache = ReadWriteBox(value: [InsertQuery: String]())
+    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
     var sql: String {
-        if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
+        if let sql = Self.sqlCache[self] {
             return sql
         }
-        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")
+        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql: String
         switch onConflict {
         case .abort:
             sql = """
-                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         default:
             sql = """
-                INSERT OR \(onConflict.rawValue) \
-                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT OR \(onConflict.rawValue) \
+            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         }
-        InsertQuery.sqlCache.write { $0[self] = sql }
+        Self.sqlCache[self] = sql
         return sql
     }
 }
@@ -1012,9 +1011,9 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    static let sqlCache = ReadWriteBox(value: [UpdateQuery: String]())
+    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
     var sql: String {
-        if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
+        if let sql = Self.sqlCache[self] {
             return sql
         }
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
@@ -1023,18 +1022,18 @@ extension UpdateQuery {
         switch onConflict {
         case .abort:
             sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         default:
             sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         }
-        UpdateQuery.sqlCache.write { $0[self] = sql }
+        Self.sqlCache[self] = sql
         return sql
     }
 }

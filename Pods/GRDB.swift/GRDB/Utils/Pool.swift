@@ -47,7 +47,7 @@ final class Pool<T> {
     }
     
     private let makeElement: () throws -> T
-    private var items: ReadWriteBox<[Item]> = ReadWriteBox(value: [])
+    @ReadWriteBox private var items: [Item] = []
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue
@@ -63,12 +63,12 @@ final class Pool<T> {
     /// Returns a tuple (element, release)
     /// Client must call release(), only once, after the element has been used.
     func get() throws -> (element: T, release: () -> Void) {
-        return try barrierQueue.sync {
+        try barrierQueue.sync {
             itemsSemaphore.wait()
             itemsGroup.enter()
             do {
-                let item = try items.write { items -> Item in
-                    if let item = items.first(where: { $0.isAvailable }) {
+                let item = try $items.update { items -> Item in
+                    if let item = items.first(where: \.isAvailable) {
                         item.isAvailable = false
                         return item
                     } else {
@@ -96,7 +96,7 @@ final class Pool<T> {
     }
     
     private func release(_ item: Item) {
-        items.write { _ in
+        $items.update { _ in
             // This is why Item is a class, not a struct: so that we can
             // release it without having to find in it the items array.
             item.isAvailable = true
@@ -108,7 +108,7 @@ final class Pool<T> {
     /// Performs a block on each pool element, available or not.
     /// The block is run is some arbitrary dispatch queue.
     func forEach(_ body: (T) throws -> Void) rethrows {
-        try items.read { items in
+        try $items.read { items in
             for item in items {
                 try body(item.element)
             }
@@ -118,15 +118,13 @@ final class Pool<T> {
     /// Removes all elements from the pool.
     /// Currently used elements won't be reused.
     func removeAll() {
-        items.write {
-            $0.removeAll()
-        }
+        items = []
     }
     
     /// Blocks until no element is used, and runs the `barrier` function before
     /// any other element is dequeued.
     func barrier<T>(execute barrier: () throws -> T) rethrows -> T {
-        return try barrierQueue.sync(flags: [.barrier]) {
+        try barrierQueue.sync(flags: [.barrier]) {
             itemsGroup.wait()
             return try barrier()
         }

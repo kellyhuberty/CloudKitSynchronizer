@@ -19,56 +19,64 @@ public enum ModelSaveStatus {
 }
 
 public extension Model {
+//    
+//    var databaseQueue: DatabaseQueue {
+//        return Repo.shared.databaseQueue
+//    }
     
-    var databaseQueue: DatabaseQueue {
-        return Repo.shared.databaseQueue
-    }
-    
-    func save(_ completion:((ModelSaveStatus) -> Void)? ) {
-
-        do {
-            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
-                do{
-                    try self.save(database)
-                    completion?(.success)
-                    return .commit
-                }catch{
-                    completion?(.fail(error))
-                    return .rollback
-                }
-            }
-        } catch {
-            completion?(.fail(error))
-        }
-        
-    }
-    
-    func delete(_ completion:((ModelSaveStatus) -> Void)? ) {
-        
-        do {
-            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
-                do{
-                    try self.delete(database)
-                    completion?(.success)
-                    return .commit
-                }catch{
-                    completion?(.fail(error))
-                    return .rollback
-                }
-            }
-        } catch {
-            completion?(.fail(error))
-        }
-        
-    }
+//    func save(in: _ completion:((ModelSaveStatus) -> Void)? ) {
+//
+//        do {
+//            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
+//                do{
+//                    try self.save(database)
+//                    completion?(.success)
+//                    return .commit
+//                }catch{
+//                    completion?(.fail(error))
+//                    return .rollback
+//                }
+//            }
+//        } catch {
+//            completion?(.fail(error))
+//        }
+//
+//    }
+//
+//    func delete(_ completion:((ModelSaveStatus) -> Void)? ) {
+//
+//        do {
+//            try databaseQueue.inTransaction { (database) -> Database.TransactionCompletion in
+//                do{
+//                    try self.delete(database)
+//                    completion?(.success)
+//                    return .commit
+//                }catch{
+//                    completion?(.fail(error))
+//                    return .rollback
+//                }
+//            }
+//        } catch {
+//            completion?(.fail(error))
+//        }
+//
+//    }
 
 }
 
+protocol CloudModel {
+    
+    
+    
+    
+    
+//    var cloudStatus:
+    
+}
 
-//extension Array where Element : Model{
-//    
-//    save()
-//    
-//    
-//    
-//}
+
+class ModelObserver {
+    
+    
+    
+}

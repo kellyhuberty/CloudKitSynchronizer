@@ -6,9 +6,7 @@ final class SerializedDatabase {
     private let db: Database
     
     /// The database configuration
-    var configuration: Configuration {
-        return db.configuration
-    }
+    var configuration: Configuration { db.configuration }
     
     /// The path to the database file
     var path: String
@@ -45,13 +43,24 @@ final class SerializedDatabase {
         config.threadingMode = .multiThread
         
         self.path = path
-        self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        self.queue = configuration.makeDispatchQueue(defaultLabel: defaultLabel, purpose: purpose)
+        let identifier = configuration.identifier(defaultLabel: defaultLabel, purpose: purpose)
+        self.db = try Database(
+            path: path,
+            description: identifier,
+            configuration: config,
+            schemaCache: schemaCache)
+        self.queue = configuration.makeDispatchQueue(label: identifier)
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {
-                try db.setup()
+                try db.setUp()
             } catch {
+                // Recent versions of the Swift compiler will call the
+                // deinitializer. Older ones won't.
+                // See https://bugs.swift.org/browse/SR-13746 for details.
+                //
+                // So let's close the database now. The deinitializer
+                // will only close the database if needed.
                 db.close()
                 throw error
             }
@@ -186,9 +195,22 @@ final class SerializedDatabase {
         }
     }
     
+    /// Asynchronously executes a block in the serialized dispatch queue,
+    /// without retaining self.
+    func weakAsync(_ block: @escaping (Database?) -> Void) {
+        queue.async { [weak self] in
+            if let self = self {
+                block(self.db)
+                self.preconditionNoUnsafeTransactionLeft(self.db)
+            } else {
+                block(nil)
+            }
+        }
+    }
+    
     /// Returns true if any only if the current dispatch queue is valid.
     var onValidQueue: Bool {
-        return SchedulingWatchdog.current?.allows(db) ?? false
+        SchedulingWatchdog.current?.allows(db) ?? false
     }
     
     /// Executes the block in the current queue.

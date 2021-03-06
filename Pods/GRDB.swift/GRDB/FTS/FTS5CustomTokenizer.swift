@@ -1,11 +1,4 @@
 #if SQLITE_ENABLE_FTS5
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// The protocol for custom FTS5 tokenizers.
 public protocol FTS5CustomTokenizer: FTS5Tokenizer {
@@ -39,7 +32,7 @@ extension FTS5CustomTokenizer {
     ///         t.tokenizer = tokenizer
     ///     }
     public static func tokenizerDescriptor(arguments: [String] = []) -> FTS5TokenizerDescriptor {
-        return FTS5TokenizerDescriptor(components: [name] + arguments)
+        FTS5TokenizerDescriptor(components: [name] + arguments)
     }
 }
 
@@ -169,21 +162,6 @@ extension Database {
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
             fatalError(DatabaseError(resultCode: code, message: lastErrorMessage).description)
-        }
-    }
-}
-
-extension DatabaseQueue {
-    
-    // MARK: - Custom FTS5 Tokenizers
-    
-    /// Add a custom FTS5 tokenizer.
-    ///
-    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
-    ///     dbQueue.add(tokenizer: MyTokenizer.self)
-    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-        inDatabase { db in
-            db.add(tokenizer: Tokenizer.self)
         }
     }
 }

@@ -38,6 +38,7 @@ class SQLiteTableObserver {
         self.tableName = tableName
         self.columnNames = try! SQLiteTableObserver.columnNames(for: tableName, in: databaseQueue)
         self.databaseQueue = databaseQueue
+        self.databaseQueue.add(transactionObserver: self)
     }
     
     
@@ -115,11 +116,30 @@ class SQLiteTableObserver {
     }
     */
     
-   
+    let queue: DispatchQueue = {
+        DispatchQueue(label: "TableObserver", qos: .default, attributes: [], autoreleaseFrequency: .inherit, target: nil)
+        
+    }()
     
     private func sendTableRowsAndReset() {
-        delegate?.tableObserver(self, created: currentRowsCreatingUp, updated: currentRowsUpdatingUp, deleted: currentRowsDeletingUp)
+        
+        guard currentRowsCreatingUp.count > 0 ||
+                currentRowsUpdatingUp.count > 0 ||
+                    currentRowsDeletingUp.count > 0 else {
+            return
+        }
+        
+        let creatingUp = currentRowsCreatingUp
+        let updatingUp = currentRowsUpdatingUp
+        let deletingUp = currentRowsDeletingUp
+
         resetForNextTransaction()
+        
+        queue.async { [weak self] in
+            guard let self = self else {return}
+            self.delegate?.tableObserver(self, created: creatingUp, updated: updatingUp, deleted: deletingUp)
+        }
+        
     }
     
     private func resetForNextTransaction() {
@@ -137,7 +157,12 @@ extension SQLiteTableObserver : TableObserving {
 
 extension SQLiteTableObserver : TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return eventKind.tableName == self.tableName
+        guard self.isObserving else {
+            return false
+        }
+        let isSameTable = eventKind.tableName == self.tableName
+        NSLog("log \(eventKind.tableName) == \(self.tableName) \(isSameTable)")
+        return isSameTable
     }
     
     /// Cannot touch the database.

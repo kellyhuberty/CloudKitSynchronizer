@@ -1,3 +1,22 @@
+/// SQLExpressible is free for RawRepresentable types whose raw value
+/// is itself SQLExpressible.
+///
+///     // If the RawValue adopts SQLExpressible...
+///     enum Color : Int {
+///         case red
+///         case white
+///         case rose
+///     }
+///
+///     // ... then the RawRepresentable type can freely adopt SQLExpressible:
+///     extension Color : SQLExpressible { /* empty */ }
+extension SQLExpressible where Self: RawRepresentable, Self.RawValue: SQLExpressible {
+    /// Returns the raw value as an SQL expression.
+    public var sqlExpression: SQLExpression {
+        rawValue.sqlExpression
+    }
+}
+
 /// DatabaseValueConvertible is free for RawRepresentable types whose raw value
 /// is itself DatabaseValueConvertible.
 ///
@@ -14,11 +33,11 @@ extension DatabaseValueConvertible where Self: RawRepresentable, Self.RawValue: 
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return rawValue.databaseValue
+        rawValue.databaseValue
     }
     
     /// Returns a value initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        return RawValue.fromDatabaseValue(dbValue).flatMap { self.init(rawValue: $0) }
+        RawValue.fromDatabaseValue(dbValue).flatMap { self.init(rawValue: $0) }
     }
 }

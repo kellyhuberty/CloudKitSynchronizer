@@ -1,12 +1,5 @@
 import Foundation
 import Dispatch
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// Configuration for a DatabaseQueue or DatabasePool.
 public struct Configuration {
@@ -23,7 +16,7 @@ public struct Configuration {
     /// Default: false
     public var readonly: Bool = false
     
-    /// The database label.
+    /// The configuration label.
     ///
     /// You can query this label at runtime:
     ///
@@ -35,45 +28,42 @@ public struct Configuration {
     ///         print(db.configuration.label) // Prints "MyDatabase"
     ///     }
     ///
-    /// The database label is also used to name the various dispatch queues
-    /// created by GRDB, visible in debugging sessions and crash logs. However
-    /// those dispatch queue labels are intended for debugging only. Their
-    /// format may change between GRDB releases. Applications should not depend
-    /// on the GRDB dispatch queue labels.
+    /// The configuration label is also used to name Database connections (the
+    /// `Database.description` property), and the various dispatch queues
+    /// created by GRDB, visible in debugging sessions and crash logs.
     ///
-    /// If the database label is nil, the current GRDB implementation uses the
-    /// following dispatch queue labels:
+    /// Those connection names and dispatch queue labels are intended for
+    /// debugging only. Their format may change between GRDB releases.
+    /// Applications should not depend on connection names and dispatch
+    /// queue labels.
     ///
-    /// - `GRDB.DatabaseQueue`: the (unique) dispatch queue of a DatabaseQueue
-    /// - `GRDB.DatabasePool.writer`: the (unique) writer dispatch queue of
+    /// If the configuration label is nil, the current GRDB implementation uses
+    /// the following names:
+    ///
+    /// - `GRDB.DatabaseQueue`: the (unique) connection of a DatabaseQueue
+    /// - `GRDB.DatabasePool.writer`: the (unique) writer connection of
     ///   a DatabasePool
     /// - `GRDB.DatabasePool.reader.N`, where N is 1, 2, ...: one of the reader
-    ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
-    ///   connections: it may get bigger than the maximum number of concurrent
-    ///   readers, as SQLite connections get closed and new ones are opened.
-    /// - `GRDB.DatabasePool.snapshot.N`: the dispatch queue of a
-    ///   DatabaseSnapshot. N grows with the number of snapshots.
+    ///   connection(s) of a DatabasePool. N may get bigger than the maximum
+    ///   number of concurrent readers, as SQLite connections get closed and new
+    ///   ones are opened.
+    /// - `GRDB.DatabasePool.snapshot.N`: the connection of a DatabaseSnapshot.
+    ///   N grows with the number of snapshots.
     ///
-    /// If the database label is not nil, for example "MyDatabase", the current
-    /// GRDB implementation uses the following dispatch queue labels:
+    /// If the configuration label is not nil, for example "MyDatabase", the
+    /// current GRDB implementation uses the following names:
     ///
-    /// - `MyDatabase`: the (unique) dispatch queue of a DatabaseQueue
-    /// - `MyDatabase.writer`: the (unique) writer dispatch queue of
-    ///   a DatabasePool
+    /// - `MyDatabase`: the (unique) connection of a DatabaseQueue
+    /// - `MyDatabase.writer`: the (unique) writer connection of a DatabasePool
     /// - `MyDatabase.reader.N`, where N is 1, 2, ...: one of the reader
-    ///   dispatch queue(s) of a DatabasePool. N grows with the number of SQLite
-    ///   connections: it may get bigger than the maximum number of concurrent
-    ///   readers, as SQLite connections get closed and new ones are opened.
-    /// - `MyDatabase.snapshot.N`: the dispatch queue of a
-    ///   DatabaseSnapshot. N grows with the number of snapshots.
+    ///   connection(s) of a DatabasePool. N may get bigger than the maximum
+    ///   number of concurrent readers, as SQLite connections get closed and new
+    ///   ones are opened.
+    /// - `MyDatabase.snapshot.N`: the connection of a DatabaseSnapshot. N grows
+    ///   with the number of snapshots.
     ///
-    /// The default label is nil.
+    /// The default configuration label is nil.
     public var label: String? = nil
-    
-    /// A function that is called on every statement executed by the database.
-    ///
-    /// Default: nil
-    public var trace: TraceFunction?
     
     /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
     /// string as a string literal if it does not match any valid identifier.
@@ -111,34 +101,25 @@ public struct Configuration {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var observesSuspensionNotifications = false
     
-    // MARK: - Encryption
-    
-    #if SQLITE_HAS_CODEC
-    // TODO: remove when the deprecated passphrase turns unavailable.
-    var _passphrase: String?
-    
-    /// The passphrase for the encrypted database.
-    ///
-    /// Default: nil
-    @available(*, deprecated, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")
-    public var passphrase: String? {
-        get { return _passphrase }
-        set { _passphrase = newValue }
-    }
-    #endif
-    
     // MARK: - Managing SQLite Connections
     
-    /// A function that is run when an SQLite connection is opened, before the
-    /// connection is made available for database access methods.
+    private var setups: [(Database) throws -> Void] = []
+    
+    /// The function argument is run when an SQLite connection is opened,
+    /// before the connection is made available for database access methods.
     ///
     /// For example:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.prepareDatabase { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
-    public var prepareDatabase: ((Database) throws -> Void)?
+    ///
+    /// This method can be called several times. The setup functions are run in
+    /// the same order.
+    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+        setups.append(setup)
+    }
     
     // MARK: - Transactions
     
@@ -187,6 +168,10 @@ public struct Configuration {
     /// Default: immediateError
     public var busyMode: Database.BusyMode = .immediateError
     
+    /// The behavior in case of SQLITE_BUSY error, for read-only connections.
+    /// If nil, GRDB picks a default one.
+    var readonlyBusyMode: Database.BusyMode? = nil
+    
     /// The maximum number of concurrent readers (applies to database
     /// pools only).
     ///
@@ -197,8 +182,8 @@ public struct Configuration {
     ///
     /// The quality of service is ignored if you supply a target queue.
     ///
-    /// Default: .default (.unspecified on macOS < 10.10)
-    public var qos: DispatchQoS
+    /// Default: .default
+    public var qos: DispatchQoS = .default
     
     /// The target queue for all database accesses.
     ///
@@ -216,14 +201,7 @@ public struct Configuration {
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration
-    public init() {
-        if #available(OSX 10.10, *) {
-            qos = .default
-        } else {
-            qos = .unspecified
-        }
-    }
-    
+    public init() { }
     
     // MARK: - Not Public
     
@@ -236,8 +214,17 @@ public struct Configuration {
         return threadingMode.SQLiteOpenFlags | readWriteFlags
     }
     
-    func makeDispatchQueue(defaultLabel: String, purpose: String? = nil) -> DispatchQueue {
-        let label = (self.label ?? defaultLabel) + (purpose.map { "." + $0 } ?? "")
+    func setUp(_ db: Database) throws {
+        for f in setups {
+            try f(db)
+        }
+    }
+    
+    func identifier(defaultLabel: String, purpose: String? = nil) -> String {
+        (self.label ?? defaultLabel) + (purpose.map { "." + $0 } ?? "")
+    }
+    
+    func makeDispatchQueue(label: String) -> DispatchQueue {
         if let targetQueue = targetQueue {
             return DispatchQueue(label: label, target: targetQueue)
         } else {
@@ -245,6 +232,3 @@ public struct Configuration {
         }
     }
 }
-
-/// A tracing function that takes an SQL string.
-public typealias TraceFunction = (String) -> Void

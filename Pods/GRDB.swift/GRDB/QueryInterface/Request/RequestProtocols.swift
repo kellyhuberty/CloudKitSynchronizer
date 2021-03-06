@@ -1,11 +1,32 @@
 // MARK: - SelectionRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that can refine their selection.
-///
-/// :nodoc:
 public protocol SelectionRequest {
+    /// Creates a request which selects *selection promise*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     var request = Player.all()
+    ///     request = request.select { db in [Column("id"), Column("email") })
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT email FROM player
+    ///     request
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("email")] }
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+    
+    /// Creates a request which appends *selection promise*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: { db in [Column("name")] })
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+}
+
+extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -18,20 +39,10 @@ public protocol SelectionRequest {
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
-    func select(_ selection: [SQLSelectable]) -> Self
+    public func select(_ selection: [SQLSelectable]) -> Self {
+        select { _ in selection }
+    }
     
-    /// Creates a request which appends *selection*.
-    ///
-    ///     // SELECT id, email, name FROM player
-    ///     var request = Player.all()
-    ///     request = request
-    ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: [Column("name")])
-    func annotated(with selection: [SQLSelectable]) -> Self
-}
-
-/// :nodoc:
-extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -45,7 +56,7 @@ extension SelectionRequest {
     ///         .select(Column("id"))
     ///         .select(Column("email"))
     public func select(_ selection: SQLSelectable...) -> Self {
-        return select(selection)
+        select(selection)
     }
     
     /// Creates a request which selects *sql*.
@@ -61,7 +72,7 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
+        select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
@@ -91,7 +102,18 @@ extension SelectionRequest {
     ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return select(SQLSelectionLiteral(literal: sqlLiteral))
+        select(sqlLiteral.sqlSelectable)
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> Self {
+        annotated(with: { _ in selection })
     }
     
     /// Creates a request which appends *selection*.
@@ -102,17 +124,13 @@ extension SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
     public func annotated(with selection: SQLSelectable...) -> Self {
-        return annotated(with: selection)
+        annotated(with: selection)
     }
 }
 
 // MARK: - FilteredRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that can be filtered.
-///
-/// :nodoc:
 public protocol FilteredRequest {
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
@@ -121,31 +139,31 @@ public protocol FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// Requests expecting a single result may ignore the second parameter of
-    /// the `FetchRequest.prepare(_:forSingleResult:)` method, in order to
-    /// produce sharply tailored SQL.
-    ///
-    /// This method has a default implementation which returns self.
-    func expectingSingleResult() -> Self
 }
 
-/// :nodoc:
 extension FilteredRequest {
-    public func expectingSingleResult() -> Self {
-        return self
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    ///
+    ///     // SELECT * FROM player WHERE 0
+    ///     var request = Player.all()
+    ///     request = request.filter(false)
+    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
+    public func filter(_ predicate: SQLExpressible) -> Self {
+        filter { _ in predicate }
     }
     
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
-    public func filter(_ predicate: SQLExpressible) -> Self {
-        return filter { _ in predicate }
+    public func filter(_ predicate: SQLSpecificExpressible) -> Self {
+        filter { _ in predicate }
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -155,7 +173,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
+        filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -174,7 +192,7 @@ extension FilteredRequest {
     ///     request = request.filter(literal: "name = \("O'Brien")")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return filter(SQLExpressionLiteral(literal: sqlLiteral))
+        filter(sqlLiteral.sqlExpression)
     }
     
     /// Creates a request that matches nothing.
@@ -183,17 +201,13 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.none()
     public func none() -> Self {
-        return filter(false)
+        filter { _ in false }
     }
 }
 
-// MARK: - TableRequest {
+// MARK: - TableRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that feed from a database table
-///
-/// :nodoc:
 public protocol TableRequest {
     /// The name of the database table
     var databaseTableName: String { get }
@@ -218,7 +232,6 @@ public protocol TableRequest {
     func aliased(_ alias: TableAlias) -> Self
 }
 
-/// :nodoc:
 extension TableRequest where Self: FilteredRequest {
     
     /// Creates a request with the provided primary key *predicate*.
@@ -234,19 +247,13 @@ extension TableRequest where Self: FilteredRequest {
         -> Self
         where Sequence.Element: DatabaseValueConvertible
     {
-        var request = self
         let keys = Array(keys)
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
@@ -271,18 +278,12 @@ extension TableRequest where Self: FilteredRequest {
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
     public func filter(keys: [[String: DatabaseValueConvertible?]]) -> Self {
-        var request = self
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             try keys
                 .map { key in
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
@@ -311,7 +312,6 @@ extension TableRequest where Self: FilteredRequest {
     }
 }
 
-/// :nodoc:
 extension TableRequest where Self: OrderedRequest {
     /// Creates a request ordered by primary key.
     public func orderByPrimaryKey() -> Self {
@@ -322,77 +322,83 @@ extension TableRequest where Self: OrderedRequest {
     }
 }
 
-/// :nodoc:
 extension TableRequest where Self: AggregatingRequest {
     /// Creates a request grouped by primary key.
     public func groupByPrimaryKey() -> Self {
         let tableName = self.databaseTableName
         return group { db in
-            try db.primaryKey(tableName).columns.map { Column($0) }
+            let primaryKey = try db.primaryKey(tableName)
+            if let rowIDColumn = primaryKey.rowIDColumn {
+                // Prefer the user-provided name of the rowid
+                return [Column(rowIDColumn)]
+            } else if primaryKey.tableHasRowID {
+                // Prefer the rowid
+                return [Column.rowID]
+            } else {
+                // WITHOUT ROWID table: group by primary key columns
+                return primaryKey.columns.map { Column($0) }
+            }
         }
     }
 }
 
 // MARK: - AggregatingRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that can aggregate.
-///
-/// :nodoc:
 public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
     
-    /// Creates a request with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    func having(_ predicate: SQLExpressible) -> Self
+    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
 }
 
-/// :nodoc:
 extension AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: [SQLExpressible]) -> Self {
-        return group { _ in expressions }
+        group { _ in expressions }
     }
     
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: SQLExpressible...) -> Self {
-        return group(expressions)
+        group(expressions)
     }
     
     /// Creates a request with a new grouping.
     public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return group(literal: SQLLiteral(sql: sql, arguments: arguments))
+        group(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return group(SQLExpressionLiteral(literal: sqlLiteral))
+        group(sqlLiteral.sqlExpression)
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    public func having(_ predicate: SQLExpressible) -> Self {
+        having { _ in predicate }
     }
     
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return having(literal: SQLLiteral(sql: sql, arguments: arguments))
+        having(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return having(SQLExpressionLiteral(literal: sqlLiteral))
+        having(sqlLiteral.sqlExpression)
     }
 }
 
 // MARK: - OrderedRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that can be ordered.
-///
-/// :nodoc:
 public protocol OrderedRequest {
     /// Creates a request with the provided *orderings promise*.
     ///
@@ -430,7 +436,6 @@ public protocol OrderedRequest {
     func unordered() -> Self
 }
 
-/// :nodoc:
 extension OrderedRequest {
     /// Creates a request with the provided *orderings*.
     ///
@@ -446,7 +451,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: SQLOrderingTerm...) -> Self {
-        return order { _ in orderings }
+        order { _ in orderings }
     }
     
     /// Creates a request with the provided *orderings*.
@@ -463,7 +468,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: [SQLOrderingTerm]) -> Self {
-        return order { _ in orderings }
+        order { _ in orderings }
     }
     
     /// Creates a request sorted according to *sql*.
@@ -479,7 +484,7 @@ extension OrderedRequest {
     ///         .order(sql: "email")
     ///         .order(sql: "name")
     public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return order(literal: SQLLiteral(sql: sql, arguments: arguments))
+        order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.
@@ -496,47 +501,41 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return order(SQLExpressionLiteral(literal: sqlLiteral))
+        order(sqlLiteral.sqlOrderingTerm)
     }
 }
 
 // MARK: - JoinableRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
-/// Type-unsafe support for the JoinableRequest protocol.
+/// Implementation details of `JoinableRequest`.
 ///
 /// :nodoc:
 public protocol _JoinableRequest {
     /// Creates a request that prefetches an association.
-    func _including(all association: SQLAssociation) -> Self
+    func _including(all association: _SQLAssociation) -> Self
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
-    func _including(optional association: SQLAssociation) -> Self
+    func _including(optional association: _SQLAssociation) -> Self
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
-    func _including(required association: SQLAssociation) -> Self
+    func _including(required association: _SQLAssociation) -> Self
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
-    func _joining(optional association: SQLAssociation) -> Self
+    func _joining(optional association: _SQLAssociation) -> Self
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
-    func _joining(required association: SQLAssociation) -> Self
+    func _joining(required association: _SQLAssociation) -> Self
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The protocol for all requests that can be associated.
-///
-/// :nodoc:
 public protocol JoinableRequest: _JoinableRequest {
     /// The record type that can be associated to.
     ///
@@ -556,43 +555,39 @@ public protocol JoinableRequest: _JoinableRequest {
 extension JoinableRequest {
     /// Creates a request that prefetches an association.
     public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(all: association.sqlAssociation)
+        _including(all: association._sqlAssociation)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(optional: association.sqlAssociation)
+        _including(optional: association._sqlAssociation)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(required: association.sqlAssociation)
+        _including(required: association._sqlAssociation)
     }
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _joining(optional: association.sqlAssociation)
+        _joining(optional: association._sqlAssociation)
     }
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _joining(required: association.sqlAssociation)
+        _joining(required: association._sqlAssociation)
     }
 }
 
 // MARK: - DerivableRequest
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The base protocol for all requests that can be refined.
-///
-/// :nodoc:
 public protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest, TableRequest { }

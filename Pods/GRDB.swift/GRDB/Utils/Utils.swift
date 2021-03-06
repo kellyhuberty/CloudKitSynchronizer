@@ -18,30 +18,20 @@ extension String {
 ///     databaseQuestionMarks(count: 3) // "?,?,?"
 @inlinable
 public func databaseQuestionMarks(count: Int) -> String {
-    return repeatElement("?", count: count).joined(separator: ",")
+    repeatElement("?", count: count).joined(separator: ",")
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// This protocol is an implementation detail of GRDB. Don't use it.
 ///
 /// :nodoc:
 public protocol _OptionalProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    associatedtype _Wrapped
+    associatedtype Wrapped
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// This conformance is an implementation detail of GRDB. Don't rely on it.
 ///
 /// :nodoc:
-extension Optional: _OptionalProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public typealias _Wrapped = Wrapped
-}
+extension Optional: _OptionalProtocol { }
 
 
 // MARK: - Internal
@@ -64,7 +54,7 @@ func GRDBPrecondition(
 
 // Workaround Swift inconvenience around factory methods of non-final classes
 func cast<T, U>(_ value: T) -> U? {
-    return value as? U
+    value as? U
 }
 
 extension RangeReplaceableCollection {
@@ -93,15 +83,13 @@ extension DispatchQueue {
     }()
     
     static var isMain: Bool {
-        return DispatchQueue.getSpecific(key: mainKey) != nil
+        DispatchQueue.getSpecific(key: mainKey) != nil
     }
 }
 
-// Has SE-0220 been removed in Xcode 10.2 beta 4?
-// #if compiler(<5.0)
 extension Sequence {
     @inlinable
-    func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+    func countElements(where predicate: (Element) throws -> Bool) rethrows -> Int {
         var count = 0
         for e in self where try predicate(e) {
             count += 1
@@ -109,16 +97,111 @@ extension Sequence {
         return count
     }
 }
-// #endif
 
-#if !compiler(>=5.0)
-extension Character {
-    func uppercased() -> String {
-        return String(self).uppercased()
+/// Makes sure the `finally` function is executed even if `execute` throws, and
+/// rethrows the eventual first thrown error.
+///
+/// Usage:
+///
+///     try setup()
+///     try throwingFirstError(
+///         execute: work,
+///         finally: cleanup)
+@inline(__always)
+func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) throws -> T {
+    var result: T?
+    var firstError: Error?
+    do {
+        result = try execute()
+    } catch {
+        firstError = error
     }
-    
-    func lowercased() -> String {
-        return String(self).lowercased()
+    do {
+        try finally()
+    } catch {
+        if firstError == nil {
+            firstError = error
+        }
+    }
+    if let firstError = firstError {
+        throw firstError
+    }
+    return result!
+}
+
+struct PrintOutputStream: TextOutputStream {
+    func write(_ string: String) {
+        Swift.print(string)
     }
 }
-#endif
+
+/// Concatenates two functions
+func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs()
+            lhs()
+        }
+    }
+}
+
+/// Concatenates two functions
+func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs($0)
+            lhs($0)
+        }
+    }
+}
+
+extension NSRecursiveLock {
+    @inlinable
+    @inline(__always)
+    func synchronized<T>(
+        _ message: @autoclosure () -> String = #function,
+        _ block: () throws -> T)
+        rethrows -> T
+    {
+        lock()
+        defer { unlock() }
+        return try block()
+    }
+    
+//    // Verbose version which helps understanding locking bugs
+//    func synchronized<T>(_ message: @autoclosure () -> String = "", _ block: () throws -> T) rethrows -> T {
+//        let queueName = String(validatingUTF8: __dispatch_queue_get_label(nil))
+//        print("\(queueName ?? "n/d"): \(message()) acquiring \(self)")
+//        lock()
+//        print("\(queueName ?? "n/d"): \(message()) acquired \(self)")
+//        defer {
+//            print("\(queueName ?? "n/d"): \(message()) releasing \(self)")
+//            unlock()
+//            print("\(queueName ?? "n/d"): \(message()) released \(self)")
+//        }
+//        return try block()
+//    }
+    
+    /// Performs the side effect outside of the synchronized block. This allows
+    /// avoiding deadlocks, when the side effect feedbacks.
+    @inlinable
+    @inline(__always)
+    func synchronized(
+        _ message: @autoclosure () -> String = #function,
+        _ block: (inout (() -> Void)?) -> Void)
+    {
+        var sideEffect: (() -> Void)?
+        synchronized(message()) { block(&sideEffect) }
+        sideEffect?()
+    }
+}

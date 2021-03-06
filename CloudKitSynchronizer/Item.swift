@@ -9,7 +9,7 @@
 import Foundation
 
 
-class Item : Model, Codable {
+struct Item : Model, Hashable, Codable {
     
     init() {
         identifier = UUID().uuidString
@@ -20,3 +20,19 @@ class Item : Model, Codable {
     var nextIdentifier:String?
     
 }
+
+//extension Item: Hashable {
+//    static func == (lhs: Item, rhs: Item) -> Bool {
+//        return lhs.identifier == rhs.identifier
+//    }
+//
+//    func hash(into hasher: inout Hasher) {
+//        hasher.combine(identifier)
+//    }
+//}
+
+//extension Item: Identifiable{
+//    var id: ObjectIdentifier {
+//        return identifier
+//    }
+//}

@@ -42,6 +42,11 @@ class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailabl
             
         }
         
+        createZoneOperation.completionBlock = {
+            self.completionToken?.finish()
+
+        }
+        
         createZoneOperation.start()
         
     }

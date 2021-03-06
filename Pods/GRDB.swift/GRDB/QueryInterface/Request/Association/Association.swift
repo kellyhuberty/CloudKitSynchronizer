@@ -1,11 +1,18 @@
 import Foundation
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// Implementation details of `Association`.
 ///
+/// :nodoc:
+public protocol _Association {
+    init(sqlAssociation: _SQLAssociation)
+    var _sqlAssociation: _SQLAssociation { get }
+}
+
 /// The base protocol for all associations that define a connection between two
 /// record types.
-public protocol Association: DerivableRequest {
-    // OriginRowDecoder and RowDecoder provide type safety:
+public protocol Association: _Association, DerivableRequest {
+    // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
+    // type safety:
     //
     //      Book.including(required: Book.author)  // compiles
     //      Fruit.including(required: Book.author) // does not compile
@@ -19,9 +26,6 @@ public protocol Association: DerivableRequest {
     ///         static let author = belongsTo(Author.self)
     ///     }
     associatedtype OriginRowDecoder: TableRecord
-    
-    /// :nodoc:
-    var sqlAssociation: SQLAssociation { get }
     
     /// Creates an association with the given key.
     ///
@@ -38,41 +42,38 @@ public protocol Association: DerivableRequest {
     ///         let team: Team = row["custom"]
     ///     }
     func forKey(_ key: String) -> Self
-    
-    /// :nodoc:
-    init(sqlAssociation: SQLAssociation)
 }
 
 extension Association {
     /// :nodoc:
-    public func _including(all association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(all: association) }
+    public func _including(all association: _SQLAssociation) -> Self {
+        mapDestinationRelation { $0._including(all: association) }
     }
     
     /// :nodoc:
-    public func _including(optional association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(optional: association) }
+    public func _including(optional association: _SQLAssociation) -> Self {
+        mapDestinationRelation { $0._including(optional: association) }
     }
     
     /// :nodoc:
-    public func _including(required association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._including(required: association) }
+    public func _including(required association: _SQLAssociation) -> Self {
+        mapDestinationRelation { $0._including(required: association) }
     }
     
     /// :nodoc:
-    public func _joining(optional association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._joining(optional: association) }
+    public func _joining(optional association: _SQLAssociation) -> Self {
+        mapDestinationRelation { $0._joining(optional: association) }
     }
     
     /// :nodoc:
-    public func _joining(required association: SQLAssociation) -> Self {
-        return mapDestinationRelation { $0._joining(required: association) }
+    public func _joining(required association: _SQLAssociation) -> Self {
+        mapDestinationRelation { $0._joining(required: association) }
     }
 }
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        return .init(sqlAssociation: sqlAssociation.mapDestinationRelation(transform))
+        .init(sqlAssociation: _sqlAssociation.map(\.destination.relation, transform))
     }
 }
 
@@ -102,9 +103,7 @@ extension Association {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    var key: SQLAssociationKey {
-        return sqlAssociation.destination.key
-    }
+    var key: SQLAssociationKey { _sqlAssociation.destination.key }
     
     /// Creates an association which selects *selection*.
     ///
@@ -115,7 +114,7 @@ extension Association {
     ///     // SELECT player.*, team.color
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.select([Column("color")])
+    ///     let association = Player.team.select { db in [Column("color")]
     ///     var request = Player.including(required: association)
     ///
     /// Any previous selection is replaced:
@@ -124,11 +123,11 @@ extension Association {
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
     ///     let association = Player.team
-    ///         .select([Column("id")])
-    ///         .select([Column("color")])
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("color") }
     ///     var request = Player.including(required: association)
-    public func select(_ selection: [SQLSelectable]) -> Self {
-        return mapDestinationRelation { $0.select(selection) }
+    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        mapDestinationRelation { $0.select(selection) }
     }
     
     /// Creates an association which appends *selection*.
@@ -142,10 +141,10 @@ extension Association {
     ///     // JOIN team ON team.id = player.teamId
     ///     let association = Player.team
     ///         .select([Column("color")])
-    ///         .annotated(with: [Column("name")])
+    ///         .annotated(with: { db in [Column("name")] })
     ///     var request = Player.including(required: association)
-    public func annotated(with selection: [SQLSelectable]) -> Self {
-        return mapDestinationRelation { $0.annotated(with: selection) }
+    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        mapDestinationRelation { $0.annotated(with: selection) }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -161,7 +160,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        return mapDestinationRelation { $0.filter(predicate) }
+        mapDestinationRelation { $0.filter(predicate) }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -189,7 +188,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        return mapDestinationRelation { $0.order(orderings) }
+        mapDestinationRelation { $0.order(orderings) }
     }
     
     /// Creates an association that reverses applied orderings.
@@ -213,7 +212,7 @@ extension Association {
     ///     let association = Player.team.reversed()
     ///     var request = Player.including(required: association)
     public func reversed() -> Self {
-        return mapDestinationRelation { $0.reversed() }
+        mapDestinationRelation { $0.reversed() }
     }
     
     /// Creates an association without any ordering.
@@ -228,7 +227,7 @@ extension Association {
     ///     let association = Player.team.order(Column("name")).unordered()
     ///     var request = Player.including(required: association)
     public func unordered() -> Self {
-        return mapDestinationRelation { $0.unordered() }
+        mapDestinationRelation { $0.unordered() }
     }
     
     /// Creates an association with the given key.
@@ -254,7 +253,7 @@ extension Association {
     ///     let playerInfos = PlayerInfo.all().fetchAll(db)
     ///     print(playerInfos.first?.team)
     public func forKey(_ codingKey: CodingKey) -> Self {
-        return forKey(codingKey.stringValue)
+        forKey(codingKey.stringValue)
     }
     
     /// Creates an association that allows you to define expressions that target
@@ -286,201 +285,36 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        return mapDestinationRelation { $0.qualified(with: alias) }
+        mapDestinationRelation { $0.qualified(with: alias) }
     }
 }
 
 // TableRequest
 extension Association {
     /// :nodoc:
-    public var databaseTableName: String { return RowDecoder.databaseTableName }
+    public var databaseTableName: String { RowDecoder.databaseTableName }
 }
 
 // MARK: - AssociationToOne
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The base protocol for all associations that define a one-to-one connection.
 public protocol AssociationToOne: Association { }
 
 extension AssociationToOne {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedSingular(key)
-        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
 }
 
 // MARK: - AssociationToMany
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The base protocol for all associations that define a one-to-many connection.
 public protocol AssociationToMany: Association { }
 
 extension AssociationToMany {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedPlural(key)
-        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
-    }
-}
-
-extension AssociationToMany {
-    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
-        return AssociationAggregate { request in
-            let tableAlias = TableAlias()
-            let request = request
-                .joining(optional: self.aliased(tableAlias))
-                .groupByPrimaryKey()
-            let expression = tableAlias[expression]
-            return (request: request, expression: expression)
-        }
-    }
-    
-    /// The number of associated records.
-    ///
-    /// It has a default name, which is "[key]Count", where key is the key of
-    /// the association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var playerCount: Int
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.count())
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
-    public var count: AssociationAggregate<OriginRowDecoder> {
-        return makeAggregate(SQLExpressionCountDistinct(Column.rowID))
-            .forKey("\(key.singularizedName)Count")
-    }
-    
-    /// Creates an aggregate that is true if there exists no associated records.
-    ///
-    /// It has a default name, which is "hasNo[Key]", where key is the key of
-    /// the association. For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var hasNoPlayer: Bool
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.isEmpty())
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.isEmpty()).fetchAll(db)
-    ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
-    ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
-    public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        return makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
-            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
-    }
-    
-    /// Creates an aggregate which evaluate to the average value of the given
-    /// expression in associated records.
-    ///
-    /// When the averaged expression is a column, the aggregate has a default
-    /// name which is "average[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var averagePlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.average(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
-    public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the maximum value of the given
-    /// expression in associated records.
-    ///
-    /// When the maximized expression is a column, the aggregate has a default
-    /// name which is "maximum[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var maxPlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.max(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
-    public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the minimum value of the given
-    /// expression in associated records.
-    ///
-    /// When the minimized expression is a column, the aggregate has a default
-    /// name which is "minimum[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var minPlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.min(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
-    public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the sum of the given expression
-    /// in associated records.
-    ///
-    /// When the summed expression is a column, the aggregate has a default
-    /// name which is "[key][Column]Sum", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var playerScoreSum: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.sum(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
-    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
-        } else {
-            return aggregate
-        }
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
 }
