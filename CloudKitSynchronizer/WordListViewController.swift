@@ -242,6 +242,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
             responder.addKeyCommand(upArrow)
             firstResponderKeyCommands.append(delete)
             firstResponderKeyCommands.append(selectAll)
+            firstResponderKeyCommands.append(reload)
         }
     
         let downArrow =
@@ -267,6 +268,17 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
                          image: nil,
                          action: #selector(selectAllAction(_:)),
                          input: "a", modifierFlags: [.command],
+                         propertyList: nil,
+                         alternates: [],
+                         discoverabilityTitle: nil,
+                         attributes: [],
+                         state: .on)
+        
+        let reload =
+            UIKeyCommand(title: "Reload",
+                         image: nil,
+                         action: #selector(refreshAction(_:)),
+                         input: "r", modifierFlags: [.command],
                          propertyList: nil,
                          alternates: [],
                          discoverabilityTitle: nil,
@@ -345,7 +357,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     }
 
     @objc func refreshAction(_ sender: Any) {
-        Repo.shared.cloudSynchronizer?.refreshFromCloud {
+        repo.cloudSynchronizer?.refreshFromCloud {
             DispatchQueue.main.async {
                 (sender as? UIRefreshControl)?.endRefreshing()
             }
