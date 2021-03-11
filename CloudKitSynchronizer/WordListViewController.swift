@@ -9,54 +9,12 @@
 import UIKit
 import GRDB
 
-//class FetchedRecordsController {
-//
-//    init(_ queue: DatabaseQueue, request:SQLRequest){
-//
-//
-//
-//    }
-//
-//
-//
-//
-//}
-
 class WordListViewController: UIViewController, WordListTableCellDelegate {
-    
-//    enum CellModel: CaseIterable, Hashable {
-//        static var allCases: Self.AllCases { [.item, .allCases] }
-//        case item(Item)
-//        case addItem
-//    }
     
     enum Section: String, CaseIterable, Hashable {
         case item = "item"
         case addItem = "addItem"
     }
-    
-
-    
-    
-    
-    
-//    lazy var resultsController:FetchedRecordsController<Item> = {
-//
-//        let request = SQLRequest<Item>("select * from Item order by `text`")
-//        let resultsController = try! FetchedRecordsController<Item>(Repo.shared.databaseQueue, request: request)
-//
-//        resultsController.trackChanges(willChange: { (item) in
-//
-//        }, onChange: { (controller, item, change) in
-//
-//        }, didChange: { [weak self] (controller) in
-//            self?.tableView.reloadData()
-//        })
-//
-//        try! resultsController.performFetch()
-//        return resultsController
-//    }()
-    
     
     let repo: Repo
     
@@ -94,7 +52,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     
     lazy var diffableDataSource: UITableViewDiffableDataSource<Section, Item> = {
         
-        return UITableViewDiffableDataSource(tableView: tableView) { (tableView, indexPath, item) -> UITableViewCell? in
+        let dataSource = CustomTableViewDiffableDataSource<Section, Item>(tableView: tableView) { (tableView, indexPath, item) -> UITableViewCell? in
             let cell = tableView.dequeueReusableCell(withIdentifier: Section.item.rawValue, for: indexPath) as! WordListTableCell
 
             let section = Section.allCases[indexPath.section]
@@ -114,6 +72,10 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
             
             return cell
         }
+        
+        dataSource.delegate = self
+        
+        return dataSource
     }()
     
 //    lazy var dataSource: FetchedRecordsDataSource<Item> = {
@@ -232,7 +194,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
 //                }
 //                else {
 //                    removeFirstResponderCommands()
-//                } 
+//                }
             }
         }
         
@@ -308,17 +270,13 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        //let modelRequest = SQLRequest<Item>("select * from Item order by `text`")
-
-//        let regionObservation = DatabaseRegionObservation(tracking: modelRequest)
+        
         observer = try! regionObservation.start(in: repo.databaseQueue) { [weak self] (database) in
             DispatchQueue.main.async {
                 self?.refetchResults()
             }
         }
 
-        tableView.delegate = self
         view.addSubview(tableView)
         
         tableView.register(WordListTableCell.self, forCellReuseIdentifier: Section.item.rawValue)
@@ -400,48 +358,6 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         tableView.selectAll()
     }
     
-    // MARK: - Table view data source
-/*
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 2
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        let section = Section.allCases[section]
-        
-        if section == .item {
-            
-            return resultsController.sections.first?.numberOfRecords ?? 0
-            
-        }
-        
-        return 1
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: Section.item.rawValue, for: indexPath) as! WordListTableCell
-
-        let section = Section.allCases[indexPath.section]
-
-        switch section {
-        case .item:
-            let record = resultsController.record(at: indexPath)
-            cell.textView.text = record.text
-            cell.item = record
-        case .addItem:
-            cell.textView.text = nil
-            cell.textView.placeholder = NSLocalizedString("Add Item", comment: "Add Item")
-            cell.item = nil
-        }
-        cell.textView.inputAccessoryView = editingToolbar
-        cell.delegate = self
-        
-        return cell
-    }
-*/
-    
     func editItem(_ item: Item) {
         try! repo.databaseQueue.write { (db) -> Void in
             try! item.save(db)
@@ -461,12 +377,8 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     }
     
     func itemCellDidBeginEditing(_ itemCell: WordListTableCell) {
-        
-
         keyController.removeFirstResponderCommands()
-        
         tableView.deselectAll()
-        
     }
     
     func itemCellDidChange(_ itemCell:WordListTableCell){
@@ -496,59 +408,23 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         }
 
         item.text = itemCell.textView.text
-
         addEditItem(item)
         
     }
-    
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
-    
 }
 
-extension WordListViewController: UITableViewDelegate {
+extension WordListViewController: CustomTableViewDiffableDataSourceDelegate {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        let section = Section.allCases[indexPath.section]
+        
+        switch section {
+        case .item:
+            return true
+        default:
+            return false
+        }
+    }
+    
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         guard editingStyle == .delete else {
             return
@@ -556,13 +432,14 @@ extension WordListViewController: UITableViewDelegate {
         
         let section = Section.allCases[indexPath.section]
         
-//        switch section {
-//        case .item:
-//            let record = resultsController.record(at: indexPath)
-//            removeItem(record)
-//        default:
-//            break
-//        }
+        switch section {
+        case .item:
+            if let item = diffableDataSource.itemIdentifier(for: indexPath) {
+                removeItem(item)
+            }
+        default:
+            break
+        }
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -665,58 +542,69 @@ extension UITableView {
     
 }
 
-
-/*
-typealias SectionIdentifierType = Int
-
-class FetchedRecordsObserver<ModelType, ViewModelType>: UITableViewDiffableDataSource<SectionIdentifierType, ModelType> where ModelType: Hashable, ModelType: FetchableRecord {
+class CustomTableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierType>:
+    UITableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierType>
+    where SectionIdentifierType : Hashable, ItemIdentifierType : Hashable {
     
-//    typealias SectionIdentifierType = Int
+    weak var delegate: CustomTableViewDiffableDataSourceDelegate?
+    
+    override func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath) {
         
-    let diffableDataSource: UITableViewDiffableDataSource<SectionIdentifierType, ModelType>
+        if let delegate = delegate,
+           delegate.responds(to: #selector(CustomTableViewDiffableDataSourceDelegate.tableView(_:commit:forRowAt:))) {
+            delegate.tableView?(tableView, commit: editingStyle, forRowAt: indexPath)
+        }
+        else {
+            super.tableView(tableView, commit: editingStyle, forRowAt: indexPath)
+        }
         
-    let modelRequest: SQLRequest<ModelType>
+    }
     
-    let databaseQueue: DatabaseQueue
-    
-    let transactionObserver: TransactionObserver
-
-    weak var delegate: UITableViewDelegate?
-
-    var data: [ModelType] = [] {
-        didSet {
-            
-            var snapshot = NSDiffableDataSourceSnapshot<SectionIdentifierType, ModelType>()
-            
-            snapshot.appendSections([0])
-            snapshot.appendItems(data, toSection: 0)
-            
-            diffableDataSource.apply(snapshot)
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        if let delegate = delegate,
+           delegate.responds(to: #selector(CustomTableViewDiffableDataSourceDelegate.tableView(_:canEditRowAt:))) {
+            return delegate.tableView?(tableView, canEditRowAt: indexPath) ??
+                super.tableView(tableView, canEditRowAt: indexPath)
+        }
+        else {
+            return super.tableView(tableView, canEditRowAt: indexPath)
         }
     }
     
-    init(database databaseQueue: DatabaseQueue,
-         request modelRequest: SQLRequest<ModelType>,
-         tableView: UITableView) {
-
-        self.modelRequest = modelRequest
-        let regionObserver = DatabaseRegionObservation(tracking: modelRequest)
-        self.databaseQueue = databaseQueue
-        transactionObserver = try! regionObserver.start(in: databaseQueue) { [weak self] (database) in
-            DispatchQueue.main.async {
-                self?.refetchResults()
-            }
+    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        if let delegate = delegate,
+           delegate.responds(to: #selector(CustomTableViewDiffableDataSourceDelegate.tableView(_:canMoveRowAt:))) {
+            return delegate.tableView?(tableView, canMoveRowAt: indexPath) ??
+                super.tableView(tableView, canMoveRowAt: indexPath)
         }
-        
-        super.init()
+        else {
+            return super.tableView(tableView, canMoveRowAt: indexPath)
+        }
     }
     
-    func refetchResults() {
-        data = self.databaseQueue.read { [weak self] (db) -> [ModelType] in
-            guard let self = self else { return [] }
-            return try! ModelType.fetchAll(db, self.modelRequest)
+    override func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath,
+                   to destinationIndexPath: IndexPath) {
+        if let delegate = delegate,
+           delegate.responds(to: #selector(CustomTableViewDiffableDataSourceDelegate.tableView(_:moveRowAt:to:))) {
+            return delegate.tableView?(tableView, moveRowAt: sourceIndexPath, to: destinationIndexPath) ??
+                self.tableView(tableView, moveRowAt: sourceIndexPath, to: destinationIndexPath)
         }
+        else {
+            return super.tableView(tableView, moveRowAt: sourceIndexPath, to: destinationIndexPath)
+        }
+        
     }
-
 }
-*/
+
+@objc protocol CustomTableViewDiffableDataSourceDelegate: NSObjectProtocol {
+    @objc optional func tableView(_ tableView: UITableView,
+                   commit editingStyle: UITableViewCell.EditingStyle,
+                   forRowAt indexPath: IndexPath)
+    @objc optional func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool
+    
+    @objc optional func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool
+    @objc optional func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath,
+                   to destinationIndexPath: IndexPath)
+}
