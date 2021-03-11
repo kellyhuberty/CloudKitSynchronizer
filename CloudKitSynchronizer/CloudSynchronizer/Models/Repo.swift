@@ -13,11 +13,7 @@ protocol RepoManufacturing {
     func loadRepo(for domain:String) -> Repo?
 }
 
-public class Repo{
-    
-    public private(set) static var shared: Repo = {
-        Repo.applicationDelegate(for: "")
-    }()
+public class Repo {
     
     public let databaseQueue: DatabaseQueue
     
