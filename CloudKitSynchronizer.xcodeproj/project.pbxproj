@@ -23,7 +23,6 @@
 		C7653B642243390B000CDABB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C7653B692243390D000CDABB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
 		C7653B6C2243390D000CDABB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */; };
-		C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */; };
 		C7653B832243396F000CDABB /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
 		C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
 		C7653B912243F219000CDABB /* CloudSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8C2243F219000CDABB /* CloudSynchronizer.swift */; };
@@ -36,7 +35,6 @@
 		C7744CA8235D161900D7F2F6 /* Repo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA7235D161900D7F2F6 /* Repo.swift */; };
 		C7744CAA235D162C00D7F2F6 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7744CA9235D162C00D7F2F6 /* Directories.swift */; };
 		C7800EA222E52F57008D96D0 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */; };
-		C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */ = {isa = PBXBuildFile; fileRef = C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */; };
 		C7ABA0B523CC940700EF0A70 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7ABA0B423CC940700EF0A70 /* Log.swift */; };
 		C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
 		C7E421F122876C79002E0392 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7E421F022876C78002E0392 /* TableObserving.swift */; };
@@ -92,7 +90,6 @@
 		C7744CA7235D161900D7F2F6 /* Repo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Repo.swift; sourceTree = "<group>"; };
 		C7744CA9235D162C00D7F2F6 /* Directories.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
 		C7800EA122E52F57008D96D0 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
-		C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedMocks.swift; sourceTree = "<group>"; };
 		C7ABA0B423CC940700EF0A70 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
 		C7E421F022876C78002E0392 /* TableObserving.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserving.swift; sourceTree = "<group>"; };
@@ -245,8 +242,6 @@
 			isa = PBXGroup;
 			children = (
 				C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */,
-				C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */,
-				C72FB75725F9D822001764B0 /* CloudSyncIntegrationTests.swift */,
 				C7653B782243390D000CDABB /* Info.plist */,
 			);
 			path = CloudKitSynchronizerTests;
@@ -296,7 +291,6 @@
 				C7653B6E2243390D000CDABB /* Sources */,
 				C7653B6F2243390D000CDABB /* Frameworks */,
 				C7653B702243390D000CDABB /* Resources */,
-				737331CD4CCD7CE2176BB640 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -393,23 +387,6 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizer/Pods-CloudKitSynchronizer-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		737331CD4CCD7CE2176BB640 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 		99AFC0ADD2A3FC4500017F31 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -444,7 +421,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Define output file. Change \"${PROJECT_DIR}/${PROJECT_NAME}Tests\" to your test's root source folder, if it's not the default name.\nOUTPUT_FILE=\"${PROJECT_DIR}/${PROJECT_NAME}Tests/GeneratedMocks.swift\"\necho \"Generated Mocks File = ${OUTPUT_FILE}\"\n\n# Define input directory. Change \"${PROJECT_DIR}/${PROJECT_NAME}\" to your project's root source folder, if it's not the default name.\nINPUT_DIR=\"${PROJECT_DIR}/${PROJECT_NAME}\"\necho \"Mocks Input Directory = ${INPUT_DIR}\"\n\n# Generate mock files, include as many input files as you'd like to create mocks for.\n\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"${PROJECT_NAME}\" \\\n--output \"${OUTPUT_FILE}\" \\\n\"${INPUT_DIR}/CloudSynchronizer/Operations/CloudOperationProtocols.swift\" \\\n\"${INPUT_DIR}/CloudSynchronizer/TableObserver/TableObserverProtocols.swift\" \\\n\"${INPUT_DIR}/CloudSynchronizer/CloudRecordStore/CloudRecordStoringProtocols.swift\"\n# ... and so forth, the last line should never end with a backslash\n\n# After running once, locate `GeneratedMocks.swift` and drag it into your Xcode test target group.\n";
+			shellScript = "#exit 0;\n#\n## Define output file. Change \"${PROJECT_DIR}/${PROJECT_NAME}Tests\" to your test's root source folder, if it's not the default name.\n#OUTPUT_FILE=\"${PROJECT_DIR}/${PROJECT_NAME}Tests/GeneratedMocks.swift\"\n#echo \"Generated Mocks File = ${OUTPUT_FILE}\"\n#\n## Define input directory. Change \"${PROJECT_DIR}/${PROJECT_NAME}\" to your project's root source folder, if it's not the default name.\n#INPUT_DIR=\"${PROJECT_DIR}/${PROJECT_NAME}\"\n#echo \"Mocks Input Directory = ${INPUT_DIR}\"\n#\n## Generate mock files, include as many input files as you'd like to create mocks for.\n#\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"${PROJECT_NAME}\" \\\n#--output \"${OUTPUT_FILE}\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/Operations/CloudOperationProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/TableObserver/TableObserverProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/CloudRecordStore/CloudRecordStoringProtocols.swift\"\n## ... and so forth, the last line should never end with a backslash\n#\n## After running once, locate `GeneratedMocks.swift` and drag it into your Xcode test target group.\n";
 		};
 		E8D5DBD136536A0296938195 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -504,9 +481,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */,
-				C72FB75825F9D822001764B0 /* CloudSyncIntegrationTests.swift in Sources */,
-				C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -709,7 +683,7 @@
 			baseConfigurationReference = B7200153EBD7878E90A555E6 /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;
@@ -733,7 +707,7 @@
 			baseConfigurationReference = 256681AE651DDDC1F00227D0 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
-				CLANG_ENABLE_MODULES = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;

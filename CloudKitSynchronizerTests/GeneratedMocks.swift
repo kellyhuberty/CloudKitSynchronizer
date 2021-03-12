@@ -8,7 +8,7 @@
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import CloudKit
@@ -258,7 +258,7 @@ import GRDB
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import CloudKit
@@ -1574,7 +1574,7 @@ import CloudKit
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import Foundation
