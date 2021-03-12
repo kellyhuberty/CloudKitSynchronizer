@@ -38,15 +38,15 @@ class CloudSynchronizerTests: XCTestCase {
     
     var databaseQueue: DatabaseQueue!
     
-    var pullOperation: MockCloudRecordPullOperation!
-    var pushOperation: MockCloudRecordPushOperation!
-    var zoneAvailablityOperation: MockCloudZoneAvailablityOperation!
- 
-    var mockOperationProducer: MockCloudKitOperationProducer?
-    var mockCloudRecordStore: MockCloudRecordStoring?
-    var mockTableObserverProducer: MockTableObserverProducing?
-
-    var subject: CloudSynchronizer?
+//    var pullOperation: MockCloudRecordPullOperation!
+//    var pushOperation: MockCloudRecordPushOperation!
+//    var zoneAvailablityOperation: MockCloudZoneAvailablityOperation!
+// 
+//    var mockOperationProducer: MockCloudKitOperationProducer?
+//    var mockCloudRecordStore: MockCloudRecordStoring?
+//    var mockTableObserverProducer: MockTableObserverProducing?
+//
+//    var subject: CloudSynchronizer?
     
     
 //    var operationFactory: 
