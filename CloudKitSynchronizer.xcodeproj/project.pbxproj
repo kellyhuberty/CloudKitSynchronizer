@@ -10,6 +10,7 @@
 		80C64DAEF400D928859F50A3 /* Pods_CloudKitSynchronizer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B403EC43B6FF3FF4A1FBC930 /* Pods_CloudKitSynchronizer.framework */; };
 		B534A841BE03EE627826CD17 /* Pods_CloudKitSynchronizerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E78516C54DB2465A3D39413 /* Pods_CloudKitSynchronizerTests.framework */; };
 		C71BC6DA235D103D00F430F8 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C71BC6D9235D103D00F430F8 /* Model.swift */; };
+		C72FB75825F9D822001764B0 /* CloudSyncIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C72FB75725F9D822001764B0 /* CloudSyncIntegrationTests.swift */; };
 		C735FB3823AF4D14007C7CC7 /* TableObserverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C735FB3723AF4D14007C7CC7 /* TableObserverProtocols.swift */; };
 		C744A7EC2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */; };
 		C744A7EE2309BEC9004C163A /* AsynchronousOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */; };
@@ -60,6 +61,7 @@
 		B403EC43B6FF3FF4A1FBC930 /* Pods_CloudKitSynchronizer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7200153EBD7878E90A555E6 /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Pods/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C71BC6D9235D103D00F430F8 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
+		C72FB75725F9D822001764B0 /* CloudSyncIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = CloudSyncIntegrationTests.swift; path = IntegrationTests/CloudSyncIntegrationTests.swift; sourceTree = SOURCE_ROOT; };
 		C735FB3723AF4D14007C7CC7 /* TableObserverProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableObserverProtocols.swift; sourceTree = "<group>"; };
 		C744A7EB2309B5B7004C163A /* CloudKitZoneAvailablityOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitZoneAvailablityOperation.swift; sourceTree = "<group>"; };
 		C744A7ED2309BEC9004C163A /* AsynchronousOperation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AsynchronousOperation.swift; sourceTree = "<group>"; };
@@ -139,6 +141,13 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		C72FB75025F9D76A001764B0 /* IntegrationTests */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = IntegrationTests;
+			sourceTree = "<group>";
+		};
 		C744A7EF231377CA004C163A /* Operations */ = {
 			isa = PBXGroup;
 			children = (
@@ -197,6 +206,7 @@
 			isa = PBXGroup;
 			children = (
 				C7653B602243390B000CDABB /* CloudKitSynchronizer */,
+				C72FB75025F9D76A001764B0 /* IntegrationTests */,
 				C7653B752243390D000CDABB /* CloudKitSynchronizerTests */,
 				C7653B5F2243390B000CDABB /* Products */,
 				C23CA4D600A1CA8EB934ADA6 /* Pods */,
@@ -236,6 +246,7 @@
 			children = (
 				C7653B762243390D000CDABB /* CloudSynchronizerTests.swift */,
 				C79DC5BC23A7015C00CC2B17 /* GeneratedMocks.swift */,
+				C72FB75725F9D822001764B0 /* CloudSyncIntegrationTests.swift */,
 				C7653B782243390D000CDABB /* Info.plist */,
 			);
 			path = CloudKitSynchronizerTests;
@@ -321,7 +332,7 @@
 					};
 					C7653B712243390D000CDABB = {
 						CreatedOnToolsVersion = 10.1;
-						LastSwiftMigration = 1100;
+						LastSwiftMigration = 1240;
 						TestTargetID = C7653B5D2243390B000CDABB;
 					};
 				};
@@ -494,6 +505,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7653B772243390D000CDABB /* CloudSynchronizerTests.swift in Sources */,
+				C72FB75825F9D822001764B0 /* CloudSyncIntegrationTests.swift in Sources */,
 				C79DC5BD23A7015C00CC2B17 /* GeneratedMocks.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -644,6 +656,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = CloudKitSynchronizer/CloudKitSynchronizer.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = K8244XD42E;
@@ -655,6 +669,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -667,6 +683,8 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = CloudKitSynchronizer/CloudKitSynchronizer.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = K8244XD42E;
@@ -678,6 +696,8 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizer;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -689,6 +709,7 @@
 			baseConfigurationReference = B7200153EBD7878E90A555E6 /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;
@@ -700,6 +721,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.kellyhuberty.CloudKitSynchronizerTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/CloudKitSynchronizer.app/CloudKitSynchronizer";
@@ -711,6 +733,7 @@
 			baseConfigurationReference = 256681AE651DDDC1F00227D0 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = CloudKitSynchronizerTests/Info.plist;
