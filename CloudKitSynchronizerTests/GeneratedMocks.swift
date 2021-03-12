@@ -33,14 +33,6 @@ import GRDB
         cuckoo_manager.enableDefaultStubImplementation()
     }
     
-
-    
-
-    
-
-    
-    
-    
      func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord] {
         
     return try cuckoo_manager.callThrows("checkoutRecord(with: [String], from: String, for: CloudRecordStatus, sorted: Bool, using: Database) throws -> [CKRecord]",

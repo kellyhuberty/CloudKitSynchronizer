@@ -10,7 +10,7 @@ import Foundation
 import CloudKit
 import GRDB
 
-class SynchronizedTable : SynchronizedTableProtocol{
+public class SynchronizedTable : SynchronizedTableProtocol{
     let tableName:String
     
     init(table:String){

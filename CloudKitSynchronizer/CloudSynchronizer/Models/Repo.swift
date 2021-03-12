@@ -19,7 +19,7 @@ public class Repo {
     
     var cloudSynchronizer: CloudSynchronizer?
     
-    init(domain: String,
+    public init(domain: String,
          path: String,
          migrator: DatabaseMigrator,
          synchronizedTables: [SynchronizedTable]? ) {
