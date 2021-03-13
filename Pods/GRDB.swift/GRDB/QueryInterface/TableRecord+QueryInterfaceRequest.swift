@@ -3,9 +3,7 @@ extension TableRecord {
     // MARK: Request Derivation
     
     static var relationForAll: SQLRelation {
-        SQLRelation(
-            source: .table(tableName: databaseTableName, alias: nil),
-            selectionPromise: DatabasePromise(value: databaseSelection))
+        .all(fromTable: databaseTableName, selection: { _ in databaseSelection.map(\.sqlSelection) })
     }
     
     /// Creates a request which fetches all records.
@@ -48,7 +46,7 @@ extension TableRecord {
     public static func select(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+    -> QueryInterfaceRequest<Self>
     {
         select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -72,7 +70,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         _ selection: [SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         all().select(selection, as: type)
     }
@@ -88,7 +86,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         _ selection: SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         all().select(selection, as: type)
     }
@@ -105,7 +103,7 @@ extension TableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
@@ -121,7 +119,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         literal sqlLiteral: SQLLiteral,
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         all().select(literal: sqlLiteral, as: type)
     }
@@ -183,8 +181,8 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
-        -> QueryInterfaceRequest<Self>
-        where PrimaryKeyType: DatabaseValueConvertible
+    -> QueryInterfaceRequest<Self>
+    where PrimaryKeyType: DatabaseValueConvertible
     {
         all().filter(key: key)
     }
@@ -198,8 +196,8 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<Sequence>(keys: Sequence)
-        -> QueryInterfaceRequest<Self>
-        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    -> QueryInterfaceRequest<Self>
+    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -245,7 +243,7 @@ extension TableRecord {
     public static func filter(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+    -> QueryInterfaceRequest<Self>
     {
         filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -320,7 +318,7 @@ extension TableRecord {
     public static func order(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+    -> QueryInterfaceRequest<Self>
     {
         all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -374,5 +372,42 @@ extension TableRecord {
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public static func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<Self> {
         all().aliased(alias)
+    }
+    
+    /// Returns a request which embeds the common table expression.
+    ///
+    /// If a common table expression with the same table name had already been
+    /// embedded, it is replaced by the new one.
+    ///
+    /// For example, you can build a request that fetches all chats with their
+    /// latest post:
+    ///
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
+    ///     // FROM chat
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
+    ///     let request = Chat
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: A request.
+    public static func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> QueryInterfaceRequest<Self> {
+        all().with(cte)
     }
 }

@@ -5,7 +5,7 @@ import Foundation
 /// DatabaseValue is the intermediate type between SQLite and your values.
 ///
 /// See https://www.sqlite.org/datatype3.html
-public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLExpression {
+public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLSpecificExpressible {
     /// The SQLite storage
     public let storage: Storage
     
@@ -115,6 +115,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
+    @usableFromInline
     init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
@@ -213,49 +214,8 @@ extension DatabaseValue {
 
 // SQLExpressible
 extension DatabaseValue {
-    /// :nodoc:
     public var sqlExpression: SQLExpression {
-        self
-    }
-}
-
-// SQLExpression
-extension DatabaseValue {
-    // Specific boolean checks for null, true, and false
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
-        switch storage {
-        case .null:
-            return DatabaseValue.null
-            
-        case .int64(let int64) where int64 == 0 || int64 == 1:
-            switch test {
-            case .true:
-                return (int64 == 1).sqlExpression
-            case .false, .falsey:
-                return (int64 == 0).sqlExpression
-            }
-            
-        default:
-            switch test {
-            case .true:
-                return _SQLExpressionEqual(.equal, self, true.sqlExpression)
-            case .false:
-                return _SQLExpressionEqual(.equal, self, false.sqlExpression)
-            case .falsey:
-                return _SQLExpressionNot(self)
-            }
-        }
-    }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        self
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+        .databaseValue(self)
     }
 }
 

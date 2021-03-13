@@ -102,9 +102,32 @@ public struct SQLRequest<RowDecoder> {
 }
 
 extension SQLRequest: FetchRequest {
-    /// :nodoc:
-    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public var sqlSubquery: SQLSubquery {
+        .literal(sqlLiteral)
+    }
+    
+    public func fetchCount(_ db: Database) throws -> Int {
+        try SQLRequest<Int>("SELECT COUNT(*) FROM (\(self))").fetchOne(db)!
+    }
+    
+    public func makePreparedRequest(
+        _ db: Database,
+        forSingleResult singleResult: Bool = false)
+    throws -> PreparedRequest
+    {
+        let context = SQLGenerationContext(db)
+        let sql = try sqlLiteral.sql(context)
+        let statement: SelectStatement
+        switch cache {
+        case .none:
+            statement = try db.makeSelectStatement(sql: sql)
+        case .public?:
+            statement = try db.cachedSelectStatement(sql: sql)
+        case .internal?:
+            statement = try db.internalCachedSelectStatement(sql: sql)
+        }
+        try statement.setArguments(context.arguments)
+        return PreparedRequest(statement: statement, adapter: adapter)
     }
 }
 

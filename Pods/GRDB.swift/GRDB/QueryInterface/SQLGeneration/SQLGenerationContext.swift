@@ -9,9 +9,7 @@
 ///   and columns.
 ///
 /// - It gathers SQL arguments in order to prevent SQL injection.
-///
-/// :nodoc:
-public final class SQLGenerationContext {
+final class SQLGenerationContext {
     private enum Parent {
         case none(db: Database, argumentsSink: StatementArgumentsSink)
         case context(SQLGenerationContext)
@@ -63,13 +61,18 @@ public final class SQLGenerationContext {
     ///
     /// - parameter parent: A parent context.
     /// - parameter aliases: An array of table aliases to disambiguate.
-    init(
+    private init(
         parent: SQLGenerationContext,
-        aliases: [TableAlias] = [])
+        aliases: [TableAlias])
     {
         self.parent = .context(parent)
         self.resolvedNames = aliases.resolvedNames
         self.ownAliases = Set(aliases)
+    }
+    
+    /// Returns a generation context suitable for subqueries.
+    func subqueryContext(aliases: [TableAlias] = []) -> SQLGenerationContext {
+        SQLGenerationContext(parent: self, aliases: aliases)
     }
     
     /// Returns whether arguments could be appended.
@@ -289,6 +292,10 @@ public class TableAlias: Hashable {
     }
     
     func becomeProxy(of base: TableAlias) {
+        if self === base {
+            return
+        }
+        
         switch impl {
         case let .undefined(userName):
             if let userName = userName {
@@ -312,6 +319,10 @@ public class TableAlias: Hashable {
     
     /// Returns nil if aliases can't be merged (conflict in tables, aliases...)
     func merged(with other: TableAlias) -> TableAlias? {
+        if self === other {
+            return self
+        }
+        
         let root = self.root
         let otherRoot = other.root
         switch (root.impl, otherRoot.impl) {
@@ -366,28 +377,28 @@ public class TableAlias: Hashable {
     
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ selectable: SQLSelectable) -> SQLSelectable {
-        selectable._qualifiedSelectable(with: self)
+    public subscript(_ selectable: SQLSelectable) -> SQLSelection {
+        selectable.sqlSelection.qualified(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ expression: SQLExpression) -> SQLExpression {
-        expression._qualifiedExpression(with: self)
+    public subscript(_ expression: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
+        expression.sqlExpression.qualified(with: self)
     }
     
     /// Returns a qualified ordering that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
-        ordering._qualifiedOrdering(with: self)
+    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrdering {
+        ordering.sqlOrdering.qualified(with: self)
     }
     
     /// Returns a qualified columnn that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ column: String) -> SQLExpression {
-        Column(column)._qualifiedExpression(with: self)
+        .qualifiedColumn(column, self)
     }
-
+    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// An expression that evaluates to true if the record refered by this
@@ -405,7 +416,7 @@ public class TableAlias: Hashable {
     ///     }
     public var exists: SQLExpression {
         // TODO: this fails with SQL views. Can we do something?
-        _SQLExpressionQualifiedFastPrimaryKey(alias: self) != nil
+        SQLExpression.qualifiedFastPrimaryKey(self) != nil
     }
     
     /// :nodoc:

@@ -1,13 +1,5 @@
 // MARK: - FetchRequest
 
-/// Implementation details of `FetchRequest`.
-///
-/// :nodoc:
-public protocol _FetchRequest {
-    /// Accepts a visitor
-    func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws
-}
-
 /// The protocol for all requests that fetch database rows, and tell how those
 /// rows should be interpreted.
 ///
@@ -18,27 +10,65 @@ public protocol _FetchRequest {
 ///     try request.fetchSet(db)    // Set<Player>
 ///     try request.fetchOne(db)    // Player?
 ///     try request.fetchCount(db)  // Int
-public protocol FetchRequest: _FetchRequest, DatabaseRegionConvertible, SQLExpression, SQLCollection {
+public protocol FetchRequest: SQLSubqueryable, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
+    
+    /// Returns a PreparedRequest that is ready to be executed.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter singleResult: A hint that a single result row will be
+    ///   consumed. Implementations can optionally use it to optimize the
+    ///   prepared statement, for example by adding a `LIMIT 1` SQL clause.
+    ///
+    ///       // Calls makePreparedRequest(db, forSingleResult: true)
+    ///       try request.fetchOne(db)
+    ///
+    ///       // Calls makePreparedRequest(db, forSingleResult: false)
+    ///       try request.fetchAll(db)
+    /// - returns: A prepared request.
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
+    
+    /// Returns the number of rows fetched by the request.
+    ///
+    /// - parameter db: A database connection.
+    func fetchCount(_ db: Database) throws -> Int
 }
 
 extension FetchRequest {
-    /// :nodoc:
-    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        self
-    }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        self
-    }
-    
-    /// Returns an expression which applies the `IN` SQL operator.
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
-        _SQLExpressionContains(value, self)
+    /// Returns the database region that the request feeds from.
+    ///
+    /// - parameter db: A database connection.
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        try makePreparedRequest(db, forSingleResult: false).statement.databaseRegion
     }
 }
+
+// MARK: - PreparedRequest
+
+/// A PreparedRequest is a request that is ready to be executed.
+public struct PreparedRequest {
+    /// A prepared statement
+    public var statement: SelectStatement
+    
+    /// An eventual adapter for rows fetched by the select statement
+    public var adapter: RowAdapter?
+    
+    /// Support for eager loading of hasMany associations.
+    var supplementaryFetch: ((Database, [Row]) throws -> Void)?
+    
+    init(
+        statement: SelectStatement,
+        adapter: RowAdapter?,
+        supplementaryFetch: ((Database, [Row]) throws -> Void)? = nil)
+    {
+        self.statement = statement
+        self.adapter = adapter
+        self.supplementaryFetch = supplementaryFetch
+    }
+}
+
+extension PreparedRequest: Refinable { }
 
 // MARK: - AdaptedFetchRequest
 
@@ -63,9 +93,28 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         self.adapter = adapter
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public var sqlSubquery: SQLSubquery {
+        base.sqlSubquery
+    }
+    
+    public func fetchCount(_ db: Database) throws -> Int {
+        try base.fetchCount(db)
+    }
+    
+    public func makePreparedRequest(
+        _ db: Database,
+        forSingleResult singleResult: Bool = false)
+    throws -> PreparedRequest
+    {
+        var preparedRequest = try base.makePreparedRequest(db, forSingleResult: singleResult)
+        
+        if let baseAdapter = preparedRequest.adapter {
+            preparedRequest.adapter = try ChainedAdapter(first: baseAdapter, second: adapter(db))
+        } else {
+            preparedRequest.adapter = try adapter(db)
+        }
+        
+        return preparedRequest
     }
 }
 
@@ -86,28 +135,46 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
         AnyFetchRequest<RowDecoder>(request: request)
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        try request._accept(&visitor)
+    public var sqlSubquery: SQLSubquery {
+        request.sqlSubquery
+    }
+    
+    public func fetchCount(_ db: Database) throws -> Int {
+        try request.fetchCount(db)
+    }
+    
+    public func makePreparedRequest(
+        _ db: Database,
+        forSingleResult singleResult: Bool = false)
+    throws -> PreparedRequest
+    {
+        try request.makePreparedRequest(db, forSingleResult: singleResult)
     }
 }
 
 extension AnyFetchRequest {
     /// Creates a request that wraps and forwards operations to `request`.
     public init<Request: FetchRequest>(_ request: Request)
-        where Request.RowDecoder == RowDecoder
+    where Request.RowDecoder == RowDecoder
     {
         self.init(request: ConcreteFetchRequestEraser(request: request))
     }
 }
 
-// Class-based type erasure, so that we preserve full type information in
-// the generic `_accept<Visitor: _FetchRequestVisitor>(_:)`
+// Class-based type erasure, so that we preserve full type information.
 private class FetchRequestEraser: FetchRequest {
     typealias RowDecoder = Void
     
-    func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        fatalError("Abstract Method")
+    var sqlSubquery: SQLSubquery {
+        fatalError("subclass must override")
+    }
+    
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        fatalError("subclass must override")
+    }
+    
+    func fetchCount(_ db: Database) throws -> Int {
+        fatalError("subclass must override")
     }
 }
 
@@ -118,7 +185,15 @@ private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequ
         self.request = request
     }
     
-    override func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        try request._accept(&visitor)
+    override var sqlSubquery: SQLSubquery {
+        request.sqlSubquery
+    }
+    
+    override func fetchCount(_ db: Database) throws -> Int {
+        try request.fetchCount(db)
+    }
+    
+    override func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        try request.makePreparedRequest(db, forSingleResult: singleResult)
     }
 }

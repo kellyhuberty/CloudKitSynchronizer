@@ -7,7 +7,7 @@
 ///
 ///     // SELECT * FROM player WHERE email = 'arthur@example.com' COLLATE NOCASE
 ///     Player.filter(email == "arthur@example.com")
-public struct SQLCollatedExpression {
+public struct SQLCollatedExpression: SQLOrderingTerm {
     /// The tainted expression
     public let expression: SQLExpression
     
@@ -22,10 +22,10 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.asc)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var asc: SQLOrderingTerm {
-        _SQLOrdering.asc(sqlExpression)
+    public var asc: SQLOrdering {
+        .asc(sqlExpression)
     }
-    
+
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
@@ -34,10 +34,10 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.desc)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var desc: SQLOrderingTerm {
-        _SQLOrdering.desc(sqlExpression)
+    public var desc: SQLOrdering {
+        .desc(sqlExpression)
     }
-    
+
     #if GRDBCUSTOMSQLITE
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
     ///
@@ -47,10 +47,10 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.ascNullsLast)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var ascNullsLast: SQLOrderingTerm {
-        _SQLOrdering.ascNullsLast(sqlExpression)
+    public var ascNullsLast: SQLOrdering {
+        .ascNullsLast(sqlExpression)
     }
-    
+
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
@@ -59,8 +59,8 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.descNullsFirst)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    public var descNullsFirst: SQLOrderingTerm {
-        _SQLOrdering.descNullsFirst(sqlExpression)
+    public var descNullsFirst: SQLOrdering {
+        .descNullsFirst(sqlExpression)
     }
     #elseif !GRDBCIPHER
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -72,10 +72,10 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
-    public var ascNullsLast: SQLOrderingTerm {
-        _SQLOrdering.ascNullsLast(sqlExpression)
+    public var ascNullsLast: SQLOrdering {
+        .ascNullsLast(sqlExpression)
     }
-    
+
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
@@ -85,35 +85,21 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
-    public var descNullsFirst: SQLOrderingTerm {
-        _SQLOrdering.descNullsFirst(sqlExpression)
+    public var descNullsFirst: SQLOrdering {
+        .descNullsFirst(sqlExpression)
     }
     #endif
-    
+
     init(_ expression: SQLExpression, collationName: Database.CollationName) {
         self.expression = expression
         self.collationName = collationName
     }
     
     var sqlExpression: SQLExpression {
-        _SQLExpressionCollate(expression, collationName: collationName)
-    }
-}
-
-/// :nodoc:
-extension SQLCollatedExpression: SQLOrderingTerm {
-    /// :nodoc:
-    public var _reversed: SQLOrderingTerm {
-        desc
+        .collated(expression, collationName)
     }
     
-    /// :nodoc:
-    public func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        SQLCollatedExpression(expression._qualifiedExpression(with: alias), collationName: collationName)
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLOrderingTermVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public var sqlOrdering: SQLOrdering {
+        .expression(sqlExpression)
     }
 }

@@ -17,7 +17,7 @@
 ///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public protocol ColumnExpression: SQLExpression {
+public protocol ColumnExpression: SQLSpecificExpressible {
     /// The unqualified name of a database column.
     ///
     /// "score" is a valid unqualified name. "player.score" is not.
@@ -25,14 +25,8 @@ public protocol ColumnExpression: SQLExpression {
 }
 
 extension ColumnExpression {
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLQualifiedColumn(name, alias: alias)
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public var sqlExpression: SQLExpression {
+        .column(name)
     }
 }
 
@@ -42,7 +36,7 @@ extension ColumnExpression {
 /// Instead, adopt the ColumnExpression protocol.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct Column: ColumnExpression {
+public struct Column: ColumnExpression, Equatable {
     /// The hidden rowID column
     public static let rowID = Column("rowid")
     
@@ -57,31 +51,6 @@ public struct Column: ColumnExpression {
     /// Creates a column given a CodingKey.
     public init(_ codingKey: CodingKey) {
         self.name = codingKey.stringValue
-    }
-}
-
-/// A qualified column in the database, as in `SELECT t.a FROM t`
-/// 
-/// :nodoc:
-public struct _SQLQualifiedColumn: ColumnExpression {
-    public var name: String
-    let alias: TableAlias
-    
-    /// Creates a column given its name.
-    init(_ name: String, alias: TableAlias) {
-        self.name = name
-        self.alias = alias
-    }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        // Never requalify
-        self
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
     }
 }
 

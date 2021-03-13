@@ -1,86 +1,121 @@
-// MARK: - SQLCollection
-
-/// Implementation details of `SQLCollection`.
+/// The right-hand side of the `IN` or `NOT IN` SQL operators
 ///
-/// :nodoc:
-public protocol _SQLCollection {
-    /// Returns a qualified collection
-    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection
+/// See https://sqlite.org/lang_expr.html#the_in_and_not_in_operators
+public struct SQLCollection {
+    private var impl: Impl
     
-    /// Accepts a visitor
-    func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws
-}
-
-/// SQLCollection is the protocol for types that can be checked for inclusion.
-public protocol SQLCollection: _SQLCollection {
-    /// Returns an expression that check whether the collection contains
-    /// the expression.
-    func contains(_ value: SQLExpressible) -> SQLExpression
-}
-
-// MARK: - _SQLExpressionsArray
-
-/// _SQLExpressionsArray wraps an array of expressions
-///
-///     _SQLExpressionsArray([1, 2, 3])
-///
-/// :nodoc:
-public struct _SQLExpressionsArray: SQLCollection {
-    let expressions: [SQLExpression]
-    
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
-        guard let expression = expressions.first else {
-            return false.databaseValue
-        }
+    private enum Impl {
+        /// An array collection
+        ///
+        ///     id IN (1, 2, 3)
+        ///           ~~~~~~~~~
+        case array([SQLExpression])
         
-        // With SQLite, `expr IN (NULL)` never succeeds.
-        //
-        // We must not provide special handling of NULL, because we can not
-        // guess if our `expressions` array contains a value evaluates to NULL.
+        /// A subquery
+        ///
+        ///     score IN (SELECT ...)
+        ///              ~~~~~~~~~~~~
+        case subquery(SQLSubquery)
         
-        if expressions.count == 1 {
-            // Output `expr = value` instead of `expr IN (value)`, because it
-            // looks nicer. And make sure we do not produce 'expr IS NULL'.
-            return _SQLExpressionEqual(.equal, value.sqlExpression, expression)
-        }
-        
-        return _SQLExpressionContains(value, self)
+        /// A table
+        ///
+        ///     score IN table
+        ///              ~~~~~
+        case table(String)
     }
     
-    /// :nodoc:
-    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        _SQLExpressionsArray(expressions: expressions.map { $0._qualifiedExpression(with: alias) })
+    static func array(_ expressions: [SQLExpression]) -> Self {
+        self.init(impl: .array(expressions))
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    static func subquery(_ subquery: SQLSubquery) -> Self {
+        self.init(impl: .subquery(subquery))
+    }
+    
+    static func table(_ tableName: String) -> Self {
+        self.init(impl: .table(tableName))
     }
 }
-
-// MARK: - SQLCollectionExpressions
 
 extension SQLCollection {
-    func expressions() -> [SQLExpression]? {
-        var visitor = SQLCollectionExpressions()
-        try! _accept(&visitor)
-        return visitor.expressions
-    }
-}
-
-/// Support for SQLCollection.expressions
-private struct SQLCollectionExpressions: _SQLCollectionVisitor {
-    var expressions: [SQLExpression]?
-    
-    mutating func visit(_ collection: _SQLExpressionsArray) throws {
-        expressions = collection.expressions
+    /// Returns a qualified collection.
+    func qualified(with alias: TableAlias) -> SQLCollection {
+        switch impl {
+        case .subquery,
+             .table:
+            return self
+            
+        case let .array(expressions):
+            return .array(expressions.map { $0.qualified(with: alias) })
+        }
     }
     
-    // MARK: _FetchRequestVisitor
+    /// The expressions in the collection, if known.
+    ///
+    /// This property makes it possible to track individual rows identified by
+    /// their row ids, and ignore modifications to other rows:
+    ///
+    ///     // Track rows 1, 2, 3 only
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///     let regionObservation = DatabaseRegionObservation(tracking: request)
+    ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
+    var collectionExpressions: [SQLExpression]? {
+        switch impl {
+        case .subquery,
+             .table:
+            return nil
+            
+        case let .array(expressions):
+            return expressions
+        }
+    }
     
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    /// Returns an SQL string that represents the collection.
+    ///
+    /// - parameter context: An SQL generation context which accepts
+    ///   statement arguments.
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        switch impl {
+        case let .array(expressions):
+            return try "("
+                + expressions.map { try $0.sql(context) }.joined(separator: ", ")
+                + ")"
+            
+        case let .subquery(subquery):
+            return try "("
+                + subquery.sql(context)
+                + ")"
+            
+        case let .table(tableName):
+            return tableName.quotedDatabaseIdentifier
+        }
+    }
     
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
+    /// Returns an expression that check whether the collection contains
+    /// the expression.
+    func contains(_ value: SQLExpression) -> SQLExpression {
+        switch impl {
+        case .subquery,
+             .table:
+            return .in(value, self)
+            
+        case let .array(expressions):
+            guard let expression = expressions.first else {
+                return false.sqlExpression
+            }
+            
+            // With SQLite, `expr IN (NULL)` never succeeds.
+            //
+            // We must not provide special handling of NULL, because we can not
+            // guess if our `expressions` array contains a value evaluates to NULL.
+            
+            if expressions.count == 1 {
+                // Output `expr = value` instead of `expr IN (value)`, because it
+                // looks nicer. And make sure we do not produce 'expr IS NULL'.
+                return .compare(.equal, value, expression)
+            }
+            
+            return .in(value, self)
+        }
+    }
 }
