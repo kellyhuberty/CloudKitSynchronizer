@@ -51,7 +51,7 @@ struct TableNames{
 
 class CloudSynchronizer {
 
-    enum Status {
+    public enum Status {
         case unstarted
         case syncing
         case stopped
@@ -85,8 +85,7 @@ class CloudSynchronizer {
 
     private let _tableObserverFactory:TableObserverProducing
 
-    
-    private var status:Status
+    public private(set) var status:Status
     
     var operationFactory:CloudOperationProducing? {
         get{
@@ -276,10 +275,20 @@ class CloudSynchronizer {
         
         try self.initilizeSyncDatabase(db)
     }
-    
+        
     func initilizeSyncDatabase(_ db:Database) throws {
-
-        var version = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description )
+        
+//        let udversion = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description )
+//
+//        if let udversion = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description ) {
+//
+//        }
+        
+        let versionRow = try? Row.fetchOne(db, sql: "SELECT version FROM \(TableNames.Migration) ORDER BY version DESC")
+        
+        var versionStr: String = versionRow?["version"] as? String ?? "0"
+        
+        var version = Int(versionStr) ?? 0
         
         if version <= 0 {
 
@@ -310,7 +319,9 @@ class CloudSynchronizer {
 
         }
         
-        UserDefaults.standard.set(version, forKey: UserDefaultsKeys.migrationVersion.description)
+        try db.execute(
+            sql: "INSERT INTO \(TableNames.Migration) (version, completionDate) VALUES (?, ?)",
+                arguments: [version, Date()])
     }
     
     private func propagatePulledChangesToDatabase() throws {
