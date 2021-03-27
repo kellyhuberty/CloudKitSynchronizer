@@ -58,6 +58,11 @@ class CloudSynchronizer {
         case halted(error:Error?)
     }
     
+    public enum ZoneName {
+        public static let defaultZoneName = Domain.current
+        public static let testingZoneName = Domain.current + ".testing"
+    }
+    
     private static let defaultZoneIdDomain = Domain.current
     
     let log = OSLog(subsystem: Domain.current, category: "CloudSynchronizer")
@@ -72,12 +77,12 @@ class CloudSynchronizer {
      let container:CKContainer = CKContainer.default()
      let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
      */
-    static let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.defaultZoneIdDomain,
-    ownerName: CKCurrentUserDefaultName)
+    //let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.defaultZoneIdDomain, ownerName: CKCurrentUserDefaultName)
     
-    var zoneId: CKRecordZone.ID {
-        return CloudSynchronizer.defaultZoneId
-    }
+    var zoneId: CKRecordZone.ID
+//    {
+//        return CloudSynchronizer.defaultZoneId
+//    }
     
     private let localDatabasePool:DatabaseQueue
 
@@ -153,7 +158,8 @@ class CloudSynchronizer {
     init(databaseQueue: DatabaseQueue,
          operationFactory: CloudOperationProducing? = nil,
          tableObserverFactory: TableObserverProducing? = nil,
-         cloudRecordStore: CloudRecordStoring? = nil) throws {
+         cloudRecordStore: CloudRecordStoring? = nil,
+         defaultZoneName: String = ZoneName.defaultZoneName) throws {
         
         self.localDatabasePool = databaseQueue
         
@@ -178,6 +184,8 @@ class CloudSynchronizer {
             self.cloudRecordStore = CloudRecordStore()
         }
         
+        self.zoneId = CKRecordZone.ID(zoneName: defaultZoneName, ownerName: CKCurrentUserDefaultName)
+
         self.status = .unstarted
         
         //Error: databaseMigration
@@ -733,7 +741,7 @@ extension CloudSynchronizer: TableObserverDelegate {
 
         let rowIdentifers = tableRows.map { $0.identifier }
 
-        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, from: table, for: status, sorted: true, using: db)
+        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: status, sorted: true, using: db)
 
         let ckRecordsDictionary:[String:CKRecord] = ckRecords.reduce(into: [String:CKRecord]()) { return $0[$1.recordID.recordName] = $1 }
 
@@ -767,7 +775,7 @@ extension CloudSynchronizer: TableObserverDelegate {
         do {
             try write { (db) in
                 
-                recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, from: table, for: .pushingDelete, sorted: true, using: db)
+                recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, zoneID:zoneId, from: table, for: .pushingDelete, sorted: true, using: db)
                 recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
                 recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
             }

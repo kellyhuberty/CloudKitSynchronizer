@@ -12,27 +12,27 @@ import GRDB
 
 class CloudRecordStore : CloudRecordStoring {
     
-    private func newCloudRecord(with identifier:String, tableName:String, ckRecord:CKRecord?, status: CloudRecordMutationType, error: CloudRecordError? = nil) -> CloudRecord{
+    private func newCloudRecord(with identifier:String, zoneID:CKRecordZone.ID, tableName:String, ckRecord:CKRecord?, status: CloudRecordMutationType, error: CloudRecordError? = nil) -> CloudRecord{
         
         let cloudRecord = CloudRecord(identifier: identifier, tableName: tableName, status: status)
         if let ckRecord = ckRecord {
             cloudRecord.record = ckRecord
         } else{
-            cloudRecord.record = createNewCKRecord(with:identifier, tableName:tableName)
+            cloudRecord.record = createNewCKRecord(with:identifier, zoneID:zoneID, tableName:tableName)
         }
         return cloudRecord
     }
     
-    private func createNewCKRecord(with identifier:String, tableName:String) -> CKRecord{
+    private func createNewCKRecord(with identifier:String, zoneID:CKRecordZone.ID, tableName:String) -> CKRecord{
         
         //TODO: Fix so that we aren't calling to the cloud synchronizer.
-        let ckId = CKRecord.ID(recordName: identifier, zoneID: CloudSynchronizer.defaultZoneId)
+        let ckId = CKRecord.ID(recordName: identifier, zoneID: zoneID)
         let ckRecord = CKRecord(recordType: tableName, recordID: ckId)
         return ckRecord
     }
     
     //MARK:- Cloud Record Checkout/Checkin
-    func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordMutationType, sorted: Bool = true, using db: Database) throws -> [CKRecord] {
+    func checkoutRecord(with ids:[String], zoneID:CKRecordZone.ID, from table:String, for status:CloudRecordMutationType, sorted: Bool = true, using db: Database) throws -> [CKRecord] {
         
         guard ids.count > 0 else {
             return []
@@ -74,7 +74,7 @@ class CloudRecordStore : CloudRecordStoring {
         let createIds = Set(ids).subtracting(updatedIds)
         
         for createId in createIds {
-            let newRecord = newCloudRecord(with: createId, tableName: table, ckRecord:nil, status: status)
+            let newRecord = newCloudRecord(with: createId, zoneID: zoneID, tableName: table, ckRecord:nil, status: status)
             try newRecord.save(db)
             
             guard let record = newRecord.record else{
@@ -134,7 +134,7 @@ class CloudRecordStore : CloudRecordStoring {
                 cloudRecordsToSave.append(cloudRecord)
             }else{
                 if let status = status {
-                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, tableName: record.recordType, ckRecord: record, status: status, error: error)
+                    let cloudRecord = self.newCloudRecord(with: record.recordID.recordName, zoneID: record.recordID.zoneID, tableName: record.recordType, ckRecord: record, status: status, error: error)
                     cloudRecordsToSave.append(cloudRecord)
                 }
             }

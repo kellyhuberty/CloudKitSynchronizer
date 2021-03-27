@@ -13,7 +13,7 @@ import GRDB
 protocol CloudRecordStoring {
     
     //MARK:- Cloud Record Checkout/Checkin
-    func checkoutRecord(with ids:[String], from table:String, for status:CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord]
+    func checkoutRecord(with ids:[String], zoneID:CKRecordZone.ID, from table:String, for status:CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord]
 
     func checkinCloudRecords(_ records:[CKRecord],
                              with status:CloudRecordMutationType?,
