@@ -32,7 +32,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         try! repo1.databaseQueue.write { (db) in
             try! Item.deleteAll(db)
         }
-        
+
         try! repo2.databaseQueue.write { (db) in
             try! Item.deleteAll(db)
         }
@@ -114,8 +114,75 @@ class CloudSyncIntegrationTests: XCTestCase {
             items2 = try! Item.fetchAll(db)
             return Set(items1) == Set(items2)
         }
-        
+        XCTAssertEqual(items1.count, 3)
+        XCTAssertEqual(items2.count, 3)
+
         XCTAssertEqual(Set(items1), Set(items2))
+    }
+    
+    func testCloudKitAddEdit() {
+        
+        waitUntilSyncing(repo1)
+        waitUntilSyncing(repo2)
+
+        var stella = Item()
+        stella.text = "Stella"
+        
+        var theo = Item()
+        theo.text = "Theo"
+        
+        var gemma = Item()
+        gemma.text = "Gemma"
+        
+        
+        try! repo1.databaseQueue.write { (db) in
+            try! stella.save(db)
+            try! theo.save(db)
+            try! gemma.save(db)
+        }
+        
+        var items1:[Item] = []
+        var items2:[Item] = []
+
+        try! repo1.databaseQueue.read { (db) in
+            items1 = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo2) { (db) -> Bool in
+            items2 = try! Item.fetchAll(db)
+            return Set(items1) == Set(items2)
+        }
+        XCTAssertEqual(items1.count, 3)
+        XCTAssertEqual(items2.count, 3)
+        XCTAssertEqual(Set(items1), Set(items2))
+        
+        var editedItem = (items2.first { $0.text == "Stella" })!
+        editedItem.text = "Stella Jean"
+        
+        var items1Edited:[Item] = []
+        var items2Edited:[Item] = []
+        
+        try! repo2.databaseQueue.write { (db) in
+            try! editedItem.save(db)
+        }
+        
+        try! repo2.databaseQueue.read { (db) in
+            items2Edited = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo1) { (db) -> Bool in
+            items1Edited = try! Item.fetchAll(db)
+            return Set(items1Edited) == Set(items2Edited)
+        }
+        
+        XCTAssertEqual(items1Edited.count, 3)
+        XCTAssertEqual(items2Edited.count, 3)
+        XCTAssertEqual(Set(items1Edited), Set(items2Edited))
+        
+        let names = items1Edited.map { $0.text }
+        
+        XCTAssertTrue(names.contains("Stella Jean"))
+        
     }
     
     func testExample() throws {
