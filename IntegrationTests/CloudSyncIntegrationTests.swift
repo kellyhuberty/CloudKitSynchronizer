@@ -185,6 +185,71 @@ class CloudSyncIntegrationTests: XCTestCase {
         
     }
     
+    func testCloudKitAddDelete() {
+        
+        waitUntilSyncing(repo1)
+        waitUntilSyncing(repo2)
+
+        var stella = Item()
+        stella.text = "Stella"
+        
+        var theo = Item()
+        theo.text = "Theo"
+        
+        var gemma = Item()
+        gemma.text = "Gemma"
+        
+        
+        try! repo1.databaseQueue.write { (db) in
+            try! stella.save(db)
+            try! theo.save(db)
+            try! gemma.save(db)
+        }
+        
+        var items1:[Item] = []
+        var items2:[Item] = []
+
+        try! repo1.databaseQueue.read { (db) in
+            items1 = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo2) { (db) -> Bool in
+            items2 = try! Item.fetchAll(db)
+            return Set(items1) == Set(items2)
+        }
+        XCTAssertEqual(items1.count, 3)
+        XCTAssertEqual(items2.count, 3)
+        XCTAssertEqual(Set(items1), Set(items2))
+        
+        let deletedItem = (items2.first { $0.text == "Stella" })!
+        
+        var items1Edited:[Item] = []
+        var items2Edited:[Item] = []
+        
+        try! repo2.databaseQueue.write { (db) in
+            try! deletedItem.delete(db)
+        }
+        
+        try! repo2.databaseQueue.read { (db) in
+            items2Edited = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo1) { (db) -> Bool in
+            items1Edited = try! Item.fetchAll(db)
+            return Set(items1Edited) == Set(items2Edited)
+        }
+        
+        XCTAssertEqual(items1Edited.count, 2)
+        XCTAssertEqual(items2Edited.count, 2)
+        XCTAssertEqual(Set(items1Edited), Set(items2Edited))
+        
+        let names = items1Edited.map { $0.text }
+        
+        XCTAssertTrue(names.contains("Theo"))
+        XCTAssertTrue(names.contains("Gemma"))
+
+    }
+    
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
