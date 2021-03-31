@@ -68,21 +68,8 @@ class CloudSynchronizer {
     let log = OSLog(subsystem: Domain.current, category: "CloudSynchronizer")
     
     static let Prefix = "cloudRecord"
-    
-    //Constants
-    
-    /// These two vars are currently unused, but I imagine tey will be at some point (And were previously.) Because they are both
-    /// Default, they are usually assumed by CloudKit.
-    /**
-     let container:CKContainer = CKContainer.default()
-     let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
-     */
-    //let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.defaultZoneIdDomain, ownerName: CKCurrentUserDefaultName)
-    
+        
     var zoneId: CKRecordZone.ID
-//    {
-//        return CloudSynchronizer.defaultZoneId
-//    }
     
     private let localDatabasePool:DatabaseQueue
 
@@ -271,7 +258,7 @@ class CloudSynchronizer {
     
     func initilizeZones(completion:@escaping ()->Void) {
         let createZoneOperation = _operationFactory.newZoneAvailablityOperation()
-        createZoneOperation.zoneIds = [zoneId]
+        createZoneOperation.zoneIdsToCreate = [zoneId]
         
         createZoneOperation.completionBlock = {
             completion()
@@ -456,6 +443,17 @@ class CloudSynchronizer {
 
             completion()
         }
+    }
+    
+    public func resetZones(_ completion: @escaping (() -> Void)) {
+
+        let deleteZoneOperation = _operationFactory.newZoneAvailablityOperation()
+        deleteZoneOperation.zoneIdsToDelete = [zoneId]
+        
+        deleteZoneOperation.completionBlock = {
+            completion()
+        }
+        deleteZoneOperation.start()
     }
     
     public func pullFromCloud(_ completion: @escaping (() -> Void)) {

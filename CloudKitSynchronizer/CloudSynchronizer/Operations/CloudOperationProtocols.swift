@@ -70,7 +70,10 @@ protocol CloudZoneAvailablityOperation : Operating {
 //    class CKModifyRecordZonesOperation
 //    
     
-    var zoneIds:[CKRecordZone.ID] { get set }
+    var zoneIdsToCreate:[CKRecordZone.ID] { get set }
+    var zoneIdsToDelete:[CKRecordZone.ID] { get set }
+
+    
     
     //var delegate: CloudZoneAvailablityOperationDelegate? { get set }
     

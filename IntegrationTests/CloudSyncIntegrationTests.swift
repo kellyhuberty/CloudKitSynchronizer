@@ -29,13 +29,11 @@ class CloudSyncIntegrationTests: XCTestCase {
     }
     
     override func tearDown() {
-        try! repo1.databaseQueue.write { (db) in
-            try! Item.deleteAll(db)
+        let expectation = self.expectation(description: "resetZones")
+        repo1.cloudSynchronizer?.resetZones {
+            expectation.fulfill()
         }
-
-        try! repo2.databaseQueue.write { (db) in
-            try! Item.deleteAll(db)
-        }
+        self.wait(for: [expectation], timeout: 60)
     }
     
     func repo(identifier: String) -> Repo {

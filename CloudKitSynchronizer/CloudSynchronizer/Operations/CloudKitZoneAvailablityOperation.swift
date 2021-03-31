@@ -11,7 +11,9 @@ import CloudKit
 
 class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailablityOperation {
     
-    var zoneIds: [CKRecordZone.ID] = []
+    var zoneIdsToCreate: [CKRecordZone.ID] = []
+    var zoneIdsToDelete: [CKRecordZone.ID] = []
+    
     
     var completionToken: AsynchronousOperation.Token?
     
@@ -23,12 +25,13 @@ class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailabl
         
         var zones = [CKRecordZone]()
         
-        for zoneId in zoneIds {
+        for zoneId in zoneIdsToCreate {
             let zoneToCreate = CKRecordZone(zoneID: zoneId)
             zones.append(zoneToCreate)
         }
         
         createZoneOperation.recordZonesToSave = zones
+        createZoneOperation.recordZoneIDsToDelete = zoneIdsToDelete
         
         createZoneOperation.modifyRecordZonesCompletionBlock = { (zones, zoneIds, error) in
             //Args are (zones, zoneIds, error)
