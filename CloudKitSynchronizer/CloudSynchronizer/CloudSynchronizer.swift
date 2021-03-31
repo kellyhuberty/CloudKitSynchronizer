@@ -273,16 +273,9 @@ class CloudSynchronizer {
         
     func initilizeSyncDatabase(_ db:Database) throws {
         
-//        let udversion = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description )
-//
-//        if let udversion = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description ) {
-//
-//        }
-        
         let versionRow = try? Row.fetchOne(db, sql: "SELECT version FROM \(TableNames.Migration) ORDER BY version DESC")
         
-        var versionStr: String = versionRow?["version"] as? String ?? "0"
-        
+        let versionStr: String = versionRow?["version"] as? String ?? "0"
         var version = Int(versionStr) ?? 0
         
         if version <= 0 {
