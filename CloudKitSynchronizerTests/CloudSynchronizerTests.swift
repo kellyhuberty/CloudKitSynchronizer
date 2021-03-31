@@ -7,7 +7,7 @@
 //
 
 import XCTest
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 import GRDB
 
@@ -38,21 +38,21 @@ class CloudSynchronizerTests: XCTestCase {
     
     var databaseQueue: DatabaseQueue!
     
-    var pullOperation: MockCloudRecordPullOperation!
-    var pushOperation: MockCloudRecordPushOperation!
-    var zoneAvailablityOperation: MockCloudZoneAvailablityOperation!
- 
-    var mockOperationProducer: MockCloudKitOperationProducer?
-    var mockCloudRecordStore: MockCloudRecordStoring?
-    var mockTableObserverProducer: MockTableObserverProducing?
-
-    var subject: CloudSynchronizer?
+//    var pullOperation: MockCloudRecordPullOperation!
+//    var pushOperation: MockCloudRecordPushOperation!
+//    var zoneAvailablityOperation: MockCloudZoneAvailablityOperation!
+// 
+//    var mockOperationProducer: MockCloudKitOperationProducer?
+//    var mockCloudRecordStore: MockCloudRecordStoring?
+//    var mockTableObserverProducer: MockTableObserverProducing?
+//
+//    var subject: CloudSynchronizer?
     
     
 //    var operationFactory: 
     
     override func setUp() {
-        
+        /*
         databaseQueue = try! DatabaseQueue(path: Directories.documents + "/" + currentTestName + ".db")
         mockOperationProducer = MockCloudKitOperationProducer()
         mockTableObserverProducer = MockTableObserverProducing()
@@ -74,6 +74,7 @@ class CloudSynchronizerTests: XCTestCase {
             tableObserverFactory: mockTableObserverProducer,
             cloudRecordStore: mockCloudRecordStore
         )
+ */
 //
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }

@@ -25,7 +25,7 @@ public protocol Association: _Association, DerivableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype OriginRowDecoder: TableRecord
+    associatedtype OriginRowDecoder
     
     /// Creates an association with the given key.
     ///
@@ -72,13 +72,12 @@ extension Association {
 }
 
 extension Association {
-    private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
+    fileprivate func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
         .init(sqlAssociation: _sqlAssociation.map(\.destination.relation, transform))
     }
 }
 
 extension Association {
-    
     /// The association key defines how rows fetched from this association
     /// should be consumed.
     ///
@@ -104,131 +103,6 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     var key: SQLAssociationKey { _sqlAssociation.destination.key }
-    
-    /// Creates an association which selects *selection*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.select { db in [Column("color")]
-    ///     var request = Player.including(required: association)
-    ///
-    /// Any previous selection is replaced:
-    ///
-    ///     // SELECT player.*, team.color
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team
-    ///         .select { db in [Column("id")] }
-    ///         .select { db in [Column("color") }
-    ///     var request = Player.including(required: association)
-    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        mapDestinationRelation { $0.select(selection) }
-    }
-    
-    /// Creates an association which appends *selection*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.color, team.name
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team
-    ///         .select([Column("color")])
-    ///         .annotated(with: { db in [Column("name")] })
-    ///     var request = Player.including(required: association)
-    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        mapDestinationRelation { $0.annotated(with: selection) }
-    }
-    
-    /// Creates an association with the provided *predicate promise* added to
-    /// the eventual set of already applied predicates.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId AND 1
-    ///     let association = Player.team.filter { db in true }
-    ///     var request = Player.including(required: association)
-    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        mapDestinationRelation { $0.filter(predicate) }
-    }
-    
-    /// Creates an association with the provided *orderings promise*.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name
-    ///     let association = Player.team.order { _ in [Column("name")] }
-    ///     var request = Player.including(required: association)
-    ///
-    /// Any previous ordering is replaced:
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name
-    ///     let association = Player.team
-    ///         .order{ _ in [Column("color")] }
-    ///         .reversed()
-    ///         .order{ _ in [Column("name")] }
-    ///     var request = Player.including(required: association)
-    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        mapDestinationRelation { $0.order(orderings) }
-    }
-    
-    /// Creates an association that reverses applied orderings.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     // ORDER BY team.name DESC
-    ///     let association = Player.team.order(Column("name")).reversed()
-    ///     var request = Player.including(required: association)
-    ///
-    /// If no ordering was applied, the returned association is identical.
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.reversed()
-    ///     var request = Player.including(required: association)
-    public func reversed() -> Self {
-        mapDestinationRelation { $0.reversed() }
-    }
-    
-    /// Creates an association without any ordering.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // FROM player
-    ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.order(Column("name")).unordered()
-    ///     var request = Player.including(required: association)
-    public func unordered() -> Self {
-        mapDestinationRelation { $0.unordered() }
-    }
     
     /// Creates an association with the given key.
     ///
@@ -285,14 +159,180 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        mapDestinationRelation { $0.qualified(with: alias) }
+        mapDestinationRelation { $0.aliased(alias) }
     }
 }
 
-// TableRequest
-extension Association {
-    /// :nodoc:
-    public var databaseTableName: String { RowDecoder.databaseTableName }
+extension Association where Self: SelectionRequest {
+    
+    /// Creates an association which selects *selection*.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.select { db in [Column("color")]
+    ///     var request = Player.including(required: association)
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("color") }
+    ///     var request = Player.including(required: association)
+    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        mapDestinationRelation { $0.select { try selection($0).map(\.sqlSelection) } }
+    }
+    
+    /// Creates an association which appends *selection*.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.color, team.name
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team
+    ///         .select([Column("color")])
+    ///         .annotated(with: { db in [Column("name")] })
+    ///     var request = Player.including(required: association)
+    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        mapDestinationRelation { $0.annotated { try selection($0).map(\.sqlSelection) } }
+    }
+}
+
+extension Association where Self: FilteredRequest {
+    /// Creates an association with the provided *predicate promise* added to
+    /// the eventual set of already applied predicates.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId AND 1
+    ///     let association = Player.team.filter { db in true }
+    ///     var request = Player.including(required: association)
+    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        mapDestinationRelation { $0.filter { try predicate($0).sqlExpression } }
+    }
+}
+
+extension Association where Self: OrderedRequest {
+    /// Creates an association with the provided *orderings promise*.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name
+    ///     let association = Player.team.order { _ in [Column("name")] }
+    ///     var request = Player.including(required: association)
+    ///
+    /// Any previous ordering is replaced:
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name
+    ///     let association = Player.team
+    ///         .order{ _ in [Column("color")] }
+    ///         .reversed()
+    ///         .order{ _ in [Column("name")] }
+    ///     var request = Player.including(required: association)
+    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
+        mapDestinationRelation { $0.order { try orderings($0).map(\.sqlOrdering) } }
+    }
+    
+    /// Creates an association that reverses applied orderings.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     // ORDER BY team.name DESC
+    ///     let association = Player.team.order(Column("name")).reversed()
+    ///     var request = Player.including(required: association)
+    ///
+    /// If no ordering was applied, the returned association is identical.
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.reversed()
+    ///     var request = Player.including(required: association)
+    public func reversed() -> Self {
+        mapDestinationRelation { $0.reversed() }
+    }
+    
+    /// Creates an association without any ordering.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // FROM player
+    ///     // JOIN team ON team.id = player.teamId
+    ///     let association = Player.team.order(Column("name")).unordered()
+    ///     var request = Player.including(required: association)
+    public func unordered() -> Self {
+        mapDestinationRelation { $0.unordered() }
+    }
+}
+
+extension Association where Self: TableRequest {
+    public var databaseTableName: String {
+        _sqlAssociation.destination.relation.source.tableName
+    }
+}
+
+extension Association where Self: AggregatingRequest {
+    /// Creates an association grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self {
+        mapDestinationRelation { $0.group { try expressions($0).map(\.sqlExpression) } }
+    }
+    
+    /// Creates an association with the provided *predicate promise* added to
+    /// the eventual set of already applied predicates.
+    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        mapDestinationRelation { $0.having { try predicate($0).sqlExpression } }
+    }
+}
+
+extension Association where Self: DerivableRequest {
+    /// Creates an association for returns distinct rows.
+    public func distinct() -> Self {
+        mapDestinationRelation { $0.with(\.isDistinct, true) }
+    }
+    
+    /// Creates an association that fetches *limit* rows, starting at *offset*.
+    ///
+    /// Any previous limit is replaced.
+    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
+        mapDestinationRelation { $0.with(\.limit, SQLLimit(limit: limit, offset: offset)) }
+    }
+    
+    /// Returns an association that embeds the common table expression.
+    ///
+    /// See `QueryInterfaceRequest.with(_:)` for more information.
+    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+        mapDestinationRelation { $0.with(\.ctes[cte.tableName], cte.cte) }
+    }
 }
 
 // MARK: - AssociationToOne

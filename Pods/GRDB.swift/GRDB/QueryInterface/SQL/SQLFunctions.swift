@@ -1,15 +1,3 @@
-// MARK: - Custom Functions
-
-extension DatabaseFunction {
-    /// Returns an SQL expression that applies the function.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
-        _SQLExpressionFunction(name, arguments: arguments.map(\.sqlExpression))
-    }
-}
-
-
 // MARK: - ABS(...)
 
 /// Returns an expression that evaluates the `ABS` SQL function.
@@ -17,7 +5,7 @@ extension DatabaseFunction {
 ///     // ABS(amount)
 ///     abs(Column("amount"))
 public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("ABS", arguments: value)
+    .function("ABS", [value.sqlExpression])
 }
 
 
@@ -28,18 +16,19 @@ public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // AVG(length)
 ///     average(Column("length"))
 public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("AVG", arguments: value)
+    .aggregate("AVG", [value.sqlExpression])
 }
 
 
 // MARK: - COUNT(...)
 
+// TODO: deprecate, replace with count(expression)
 /// Returns an expression that evaluates the `COUNT` SQL function.
 ///
 ///     // COUNT(email)
 ///     count(Column("email"))
 public func count(_ counted: SQLSelectable) -> SQLExpression {
-    _SQLExpressionCount(counted)
+    counted.sqlSelection.countExpression
 }
 
 
@@ -50,7 +39,7 @@ public func count(_ counted: SQLSelectable) -> SQLExpression {
 ///     // COUNT(DISTINCT email)
 ///     count(distinct: Column("email"))
 public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionCountDistinct(value.sqlExpression)
+    .countDistinct(value.sqlExpression)
 }
 
 
@@ -61,7 +50,7 @@ public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
 ///     // IFNULL(name, 'Anonymous')
 ///     Column("name") ?? "Anonymous"
 public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    _SQLExpressionFunction("IFNULL", arguments: lhs, rhs)
+    .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
 }
 
 
@@ -72,7 +61,7 @@ public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 ///     // LENGTH(name)
 ///     length(Column("name"))
 public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("LENGTH", arguments: value)
+    .function("LENGTH", [value.sqlExpression])
 }
 
 
@@ -83,7 +72,7 @@ public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // MAX(score)
 ///     max(Column("score"))
 public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("MAX", arguments: value)
+    .aggregate("MAX", [value.sqlExpression])
 }
 
 
@@ -94,7 +83,7 @@ public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // MIN(score)
 ///     min(Column("score"))
 public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("MIN", arguments: value)
+    .aggregate("MIN", [value.sqlExpression])
 }
 
 
@@ -105,7 +94,7 @@ public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // SUM(amount)
 ///     sum(Column("amount"))
 public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionFunction("SUM", arguments: value)
+    .aggregate("SUM", [value.sqlExpression])
 }
 
 
@@ -186,7 +175,7 @@ extension SQLSpecificExpressible {
 /// `dateTime(_:_:)`.
 ///
 /// For more information, see https://www.sqlite.org/lang_datefunc.html
-public enum SQLDateModifier: SQLExpression {
+public enum SQLDateModifier: SQLSpecificExpressible {
     /// Adds the specified amount of seconds
     case second(Double)
     
@@ -226,6 +215,10 @@ public enum SQLDateModifier: SQLExpression {
     /// See https://www.sqlite.org/lang_datefunc.html
     case utc
     
+    public var sqlExpression: SQLExpression {
+        rawValue.sqlExpression
+    }
+    
     var rawValue: String {
         switch self {
         case let .day(value):
@@ -256,16 +249,6 @@ public enum SQLDateModifier: SQLExpression {
             return "utc"
         }
     }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        self
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try rawValue.databaseValue._accept(&visitor)
-    }
 }
 
 // MARK: JULIANDAY(...)
@@ -280,7 +263,7 @@ public enum SQLDateModifier: SQLExpression {
 ///
 /// For more information, see https://www.sqlite.org/lang_datefunc.html
 public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
-    _SQLExpressionFunction("JULIANDAY", arguments: [value.sqlExpression] + modifiers)
+    .function("JULIANDAY", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }
 
 // MARK: DATETIME(...)
@@ -295,5 +278,5 @@ public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModif
 ///
 /// For more information, see https://www.sqlite.org/lang_datefunc.html
 public func dateTime(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
-    _SQLExpressionFunction("DATETIME", arguments: [value.sqlExpression] + modifiers)
+    .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }

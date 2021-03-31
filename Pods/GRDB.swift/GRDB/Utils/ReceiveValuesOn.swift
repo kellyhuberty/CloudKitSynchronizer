@@ -32,7 +32,7 @@ struct ReceiveValuesOn<Upstream: Publisher, Context: Scheduler>: Publisher {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscription, Subscriber
-    where
+where
     Upstream: Publisher,
     Context: Scheduler,
     Downstream: Subscriber,
@@ -107,7 +107,7 @@ private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscr
             }
         }
     }
-
+    
     // MARK: Subscriber
     
     func receive(subscription: Subscription) {
@@ -119,8 +119,22 @@ private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscr
                     subscription.request(currentDemand)
                 }
                 
-            case .waitingForRequest, .subscribed, .finished:
+            case .waitingForRequest, .subscribed:
                 preconditionFailure()
+                
+            case .finished:
+                // We receive the upstream subscription requested by
+                // `upstream.receive(subscriber: self)` above.
+                //
+                // But self has been cancelled since, so let's cancel this
+                // upstream subscription that has turned purposeless.
+                //
+                // This cancellation avoids the bug described in
+                // https://github.com/groue/GRDB.swift/pull/932
+                // TODO: write a regression test.
+                sideEffect = {
+                    subscription.cancel()
+                }
             }
         }
     }
@@ -130,9 +144,9 @@ private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscr
             switch state {
             case let .subscribed(target, _):
                 sideEffect = {
-                target.context.schedule(options: target.options) {
-                    self._receive(input)
-                }
+                    target.context.schedule(options: target.options) {
+                        self._receive(input)
+                    }
                 }
             case .waitingForRequest, .waitingForSubscription, .finished:
                 break
@@ -154,9 +168,9 @@ private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscr
                 break
             case let .subscribed(target, _):
                 sideEffect = {
-                target.context.schedule(options: target.options) {
-                    self._receive(completion: completion)
-                }
+                    target.context.schedule(options: target.options) {
+                        self._receive(completion: completion)
+                    }
                 }
             case .finished:
                 break
@@ -172,7 +186,7 @@ private class ReceiveValuesOnSubscription<Upstream, Context, Downstream>: Subscr
             case let .subscribed(target, _):
                 // TODO: don't ignore demand
                 sideEffect = {
-                _ = target.downstream.receive(input)
+                    _ = target.downstream.receive(input)
                 }
             case .finished:
                 break

@@ -13,13 +13,10 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAnyTokenIn string: String) {
-        guard
-            let tokens = try? DatabaseQueue().inDatabase({ db in
-                try db
-                    .makeTokenizer(.ascii())
-                    .nonSynonymTokens(in: string, for: .query) })
-            else {
-                return nil
+        guard let tokens = try? DatabaseQueue()
+                .inDatabase({ try $0.makeTokenizer(.ascii()) .nonSynonymTokens(in: string, for: .query) })
+        else {
+            return nil
         }
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
@@ -33,13 +30,10 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAllTokensIn string: String) {
-        guard
-            let tokens = try? DatabaseQueue().inDatabase({ db in
-                try db
-                    .makeTokenizer(.ascii())
-                    .nonSynonymTokens(in: string, for: .query) })
-            else {
-                return nil
+        guard let tokens = try? DatabaseQueue()
+                .inDatabase({ try $0.makeTokenizer(.ascii()).nonSynonymTokens(in: string, for: .query) })
+        else {
+            return nil
         }
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: tokens.joined(separator: " "))
@@ -53,33 +47,30 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPhrase string: String) {
-        guard
-            let tokens = try? DatabaseQueue().inDatabase({ db in
-                try db
-                    .makeTokenizer(.ascii())
-                    .nonSynonymTokens(in: string, for: .query) })
-            else {
-                return nil
+        guard let tokens = try? DatabaseQueue()
+                .inDatabase({ try $0.makeTokenizer(.ascii()) .nonSynonymTokens(in: string, for: .query) })
+        else {
+            return nil
         }
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
     
-    /// Creates a pattern that matches a contiguous string prefix; returns
-    /// nil if no pattern could be built.
+    /// Creates a pattern that matches the prefix of an indexed document;
+    /// returns nil if no pattern could be built.
     ///
-    ///     FTS5Pattern(matchingPrefixPhrase: "")        // nil
-    ///     FTS5Pattern(matchingPrefixPhrase: "foo bar") // ^"foo bar"
+    ///     FTS5Pattern(matchingPrefixPhrase: "")         // nil
+    ///     FTS5Pattern(matchingPrefixPhrase: "the word") // ^"the word"
+    ///
+    /// This pattern matches a prefix made of full tokens: "the bat" matches
+    /// "the bat is happy", but not "mind the bat", or "the batcave is dark".
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPrefixPhrase string: String) {
-        guard
-            let tokens = try? DatabaseQueue().inDatabase({ db in
-                try db
-                    .makeTokenizer(.ascii())
-                    .nonSynonymTokens(in: string, for: .query) })
-            else {
-                return nil
+        guard let tokens = try? DatabaseQueue()
+                .inDatabase({ try $0.makeTokenizer(.ascii()) .nonSynonymTokens(in: string, for: .query) })
+        else {
+            return nil
         }
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "^\"" + tokens.joined(separator: " ") + "\"")

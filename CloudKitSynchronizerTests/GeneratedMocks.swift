@@ -8,7 +8,7 @@
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import CloudKit
@@ -32,14 +32,6 @@ import GRDB
         __defaultImplStub = stub
         cuckoo_manager.enableDefaultStubImplementation()
     }
-    
-
-    
-
-    
-
-    
-    
     
      func checkoutRecord(with ids: [String], from table: String, for status: CloudRecordMutationType, sorted: Bool, using db: Database) throws -> [CKRecord] {
         
@@ -266,7 +258,7 @@ import GRDB
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import CloudKit
@@ -1582,7 +1574,7 @@ import CloudKit
 //  Copyright © 2019 Kelly Huberty. All rights reserved.
 //
 
-import Cuckoo
+//import Cuckoo
 @testable import CloudKitSynchronizer
 
 import Foundation

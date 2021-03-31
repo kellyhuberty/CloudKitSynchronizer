@@ -10,7 +10,7 @@ import Foundation
 import CloudKit
 import GRDB
 
-class SynchronizedTable : SynchronizedTableProtocol{
+public class SynchronizedTable : SynchronizedTableProtocol{
     let tableName:String
     
     init(table:String){
@@ -51,11 +51,16 @@ struct TableNames{
 
 class CloudSynchronizer {
 
-    enum Status {
+    public enum Status {
         case unstarted
         case syncing
         case stopped
         case halted(error:Error?)
+    }
+    
+    public enum ZoneName {
+        public static let defaultZoneName = Domain.current
+        public static let testingZoneName = Domain.current + ".testing"
     }
     
     private static let defaultZoneIdDomain = Domain.current
@@ -63,21 +68,8 @@ class CloudSynchronizer {
     let log = OSLog(subsystem: Domain.current, category: "CloudSynchronizer")
     
     static let Prefix = "cloudRecord"
-    
-    //Constants
-    
-    /// These two vars are currently unused, but I imagine tey will be at some point (And were previously.) Because they are both
-    /// Default, they are usually assumed by CloudKit.
-    /**
-     let container:CKContainer = CKContainer.default()
-     let cloudDatabase:CKDatabase = CKContainer.default().privateCloudDatabase
-     */
-    static let defaultZoneId: CKRecordZone.ID = CKRecordZone.ID(zoneName: CloudSynchronizer.defaultZoneIdDomain,
-    ownerName: CKCurrentUserDefaultName)
-    
-    var zoneId: CKRecordZone.ID {
-        return CloudSynchronizer.defaultZoneId
-    }
+        
+    var zoneId: CKRecordZone.ID
     
     private let localDatabasePool:DatabaseQueue
 
@@ -85,8 +77,7 @@ class CloudSynchronizer {
 
     private let _tableObserverFactory:TableObserverProducing
 
-    
-    private var status:Status
+    public private(set) var status:Status
     
     var operationFactory:CloudOperationProducing? {
         get{
@@ -154,7 +145,8 @@ class CloudSynchronizer {
     init(databaseQueue: DatabaseQueue,
          operationFactory: CloudOperationProducing? = nil,
          tableObserverFactory: TableObserverProducing? = nil,
-         cloudRecordStore: CloudRecordStoring? = nil) throws {
+         cloudRecordStore: CloudRecordStoring? = nil,
+         defaultZoneName: String = ZoneName.defaultZoneName) throws {
         
         self.localDatabasePool = databaseQueue
         
@@ -179,6 +171,8 @@ class CloudSynchronizer {
             self.cloudRecordStore = CloudRecordStore()
         }
         
+        self.zoneId = CKRecordZone.ID(zoneName: defaultZoneName, ownerName: CKCurrentUserDefaultName)
+
         self.status = .unstarted
         
         //Error: databaseMigration
@@ -264,7 +258,7 @@ class CloudSynchronizer {
     
     func initilizeZones(completion:@escaping ()->Void) {
         let createZoneOperation = _operationFactory.newZoneAvailablityOperation()
-        createZoneOperation.zoneIds = [zoneId]
+        createZoneOperation.zoneIdsToCreate = [zoneId]
         
         createZoneOperation.completionBlock = {
             completion()
@@ -276,10 +270,13 @@ class CloudSynchronizer {
         
         try self.initilizeSyncDatabase(db)
     }
-    
+        
     func initilizeSyncDatabase(_ db:Database) throws {
-
-        var version = UserDefaults.standard.integer(forKey: UserDefaultsKeys.migrationVersion.description )
+        
+        let versionRow = try? Row.fetchOne(db, sql: "SELECT version FROM \(TableNames.Migration) ORDER BY version DESC")
+        
+        let versionStr: String = versionRow?["version"] as? String ?? "0"
+        var version = Int(versionStr) ?? 0
         
         if version <= 0 {
 
@@ -310,7 +307,9 @@ class CloudSynchronizer {
 
         }
         
-        UserDefaults.standard.set(version, forKey: UserDefaultsKeys.migrationVersion.description)
+        try db.execute(
+            sql: "INSERT INTO \(TableNames.Migration) (version, completionDate) VALUES (?, ?)",
+                arguments: [version, Date()])
     }
     
     private func propagatePulledChangesToDatabase() throws {
@@ -437,6 +436,17 @@ class CloudSynchronizer {
 
             completion()
         }
+    }
+    
+    public func resetZones(_ completion: @escaping (() -> Void)) {
+
+        let deleteZoneOperation = _operationFactory.newZoneAvailablityOperation()
+        deleteZoneOperation.zoneIdsToDelete = [zoneId]
+        
+        deleteZoneOperation.completionBlock = {
+            completion()
+        }
+        deleteZoneOperation.start()
     }
     
     public func pullFromCloud(_ completion: @escaping (() -> Void)) {
@@ -722,7 +732,7 @@ extension CloudSynchronizer: TableObserverDelegate {
 
         let rowIdentifers = tableRows.map { $0.identifier }
 
-        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, from: table, for: status, sorted: true, using: db)
+        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: status, sorted: true, using: db)
 
         let ckRecordsDictionary:[String:CKRecord] = ckRecords.reduce(into: [String:CKRecord]()) { return $0[$1.recordID.recordName] = $1 }
 
@@ -756,7 +766,7 @@ extension CloudSynchronizer: TableObserverDelegate {
         do {
             try write { (db) in
                 
-                recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, from: table, for: .pushingDelete, sorted: true, using: db)
+                recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, zoneID:zoneId, from: table, for: .pushingDelete, sorted: true, using: db)
                 recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
                 recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
             }

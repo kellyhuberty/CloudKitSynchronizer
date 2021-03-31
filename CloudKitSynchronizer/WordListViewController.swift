@@ -42,7 +42,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     }
     
     func refetchResults() {
-        let data = repo.databaseQueue.read { [weak self] (db) -> [Item] in
+        let data = try! repo.databaseQueue.read { [weak self] (db) -> [Item] in
             guard let self = self else { return [] }
             return try! Item.fetchAll(db, self.modelRequest)
         }
