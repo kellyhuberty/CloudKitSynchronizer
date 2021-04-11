@@ -49,7 +49,7 @@ struct TableNames{
     static let ChangeTags = "SyncChangeTags"
 }
 
-class CloudSynchronizer {
+public class CloudSynchronizer {
 
     public enum Status {
         case unstarted
