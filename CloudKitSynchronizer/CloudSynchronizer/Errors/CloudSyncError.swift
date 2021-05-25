@@ -8,24 +8,25 @@
 
 import CloudKit
 
-public struct CloudKitError : Error {
+public enum RecoveryType: String {
+    /// This particular item isn't handled by this verson's scopr of CKS.
+    case unhandled
+    /// An issue occured that requires pausing syncing until a later date.
+    case haltSync
+    /// Retry syncing the offending Records later.
+    case retryLater
+    /// Particular record has a conflict with another record in the cloud.
+    case recordConflict
+    /// There is a constraint voilation that needs to be addressed.
+    case constraintViolation
+    /// A full repull of CloudKit data needs to be preformed before syncing can continue.
+    case fullRepull
+    /// Non-actionary error occured. Recommend logging and reviewing for later.
+    case message
+}
 
-    enum RecoveryType: String {
-        /// This particular item isn't handled by this verson's scopr of CKS.
-        case unhandled
-        /// An issue occured that requires pausing syncing until a later date.
-        case haltSync
-        /// Retry syncing the offending Records later.
-        case retryLater
-        /// Particular record has a conflict with another record in the cloud.
-        case recordConflict
-        /// There is a constraint voilation that needs to be addressed.
-        case constraintViolation
-        /// A full repull of CloudKit data needs to be preformed before syncing can continue.
-        case fullRepull
-        /// Non-actionary error occured. Recommend logging and reviewing for later.
-        case message
-    }
+
+internal struct CloudKitError : Error {
     
     let underlyingError: CKError
     let code: RecoveryType
@@ -129,3 +130,46 @@ extension CloudKitError: LocalizedError {
         return (underlyingError as? LocalizedError)?.failureReason
     }
 }
+
+
+protocol CloudSynchronizerError: Error {
+    var recoveryType: RecoveryType { get }
+}
+
+public struct CloudKitSynchronizerError : Error {
+
+    var recoveryType: RecoveryType {
+        cloudKitError.code
+    }
+    
+//    var issue:
+    
+    
+    private let cloudKitError: CloudKitError
+    
+    init(_ cloudKitError: CloudKitError) {
+        self.cloudKitError = cloudKitError
+        
+    }
+    
+}
+
+
+//enum CloudSynchronizerError: Error {
+//
+//    case recordIssue(_ error: CloudRecordError)
+//    //case synchronizerIssue(_ error: CloudSyncError)
+//    case sqlLite(_ error:Error)
+//    case cloudKitError(_ error:Error)
+//    case archivalError(_ error:Error)
+//
+//}
+
+//protocol CloudSynchronizerDelegate : class {
+//
+//    func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
+//
+//    func cloudSynchronizerNetworkBecameUnavailable(_ synchronizer:CloudSynchronizer)
+//
+//    func cloudSynchronizerNetworkBecameAvailable(_ synchronizer:CloudSynchronizer)
+//}

@@ -24,25 +24,6 @@ protocol SynchronizedTableProtocol {
 
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
-enum CloudSynchronizerError: Error {
-    
-    case recordIssue(_ error: CloudRecordError)
-    //case synchronizerIssue(_ error: CloudSyncError)
-    case sqlLite(_ error:Error)
-    case cloudKitError(_ error:Error)
-    case archivalError(_ error:Error)
-    
-}
-
-protocol CloudSynchronizerDelegate : class {
-    
-    func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
-    
-    func cloudSynchronizerNetworkBecameUnavailable(_ synchronizer:CloudSynchronizer)
-    
-    func cloudSynchronizerNetworkBecameAvailable(_ synchronizer:CloudSynchronizer)
-}
-
 struct TableNames{
     static let Migration = "SyncMigration"
     static let CloudRecords = "SyncCloudRecords"
@@ -140,7 +121,7 @@ public class CloudSynchronizer {
     var observers:[TableObserving] = []
     
     ///Unused
-    weak var delegate: CloudSynchronizerDelegate?
+    // weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue: DatabaseQueue,
          operationFactory: CloudOperationProducing? = nil,
