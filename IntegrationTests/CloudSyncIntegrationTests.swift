@@ -25,15 +25,18 @@ class CloudSyncIntegrationTests: XCTestCase {
     
     override func setUp() {
         repo1 = repo(identifier: "1")
-        repo2 = repo(identifier: "2")
-    }
-    
-    override func tearDown() {
+        
         let expectation = self.expectation(description: "resetZones")
         repo1.cloudSynchronizer?.resetZones {
             expectation.fulfill()
         }
         self.wait(for: [expectation], timeout: 60)
+        
+        repo2 = repo(identifier: "2")
+    }
+    
+    override func tearDown() {
+
     }
     
     func repo(identifier: String) -> Repo {

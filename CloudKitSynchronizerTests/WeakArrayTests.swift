@@ -27,16 +27,11 @@ class WeakArrayTests: XCTestCase {
     }
     
     override func setUpWithError() throws {
-        
         subject = WeakArray<TestObject>()
-        
-        // Put setup code here. This method is called before the invocation of each test method in the class.
     }
 
     override func tearDownWithError() throws {
-        
         subject = nil
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
     func testAddObject() throws {
@@ -95,13 +90,6 @@ class WeakArrayTests: XCTestCase {
         XCTAssert(subject.contains(object1))
         XCTAssert(subject.contains(object3))
 
-    }
-    
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
     }
 
 }
