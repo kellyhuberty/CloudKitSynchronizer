@@ -8,7 +8,7 @@
 
 import Foundation
 
-internal protocol CloudSynchronizerErrorReceiving: AnyObject {
+protocol CloudSynchronizerErrorReceiving: AnyObject {
     
     func cloudSynchronizer(_ synchronizer: CloudSynchronizer, threwError error: CloudSynchronizerError) -> Bool
     
@@ -86,7 +86,7 @@ class ErrorDispatcher: CloudSynchronizerErrorReceiving {
 class ErrorDispatchTable<CloudSynchronizerErrorReceiving> {}   
 
 
-class DispatchTable<Type: AnyObject> {
+class DispatchTable<Type> {
         
     var dispatchers = WeakArray<Type>()
     
@@ -98,9 +98,13 @@ class DispatchTable<Type: AnyObject> {
             }
         }
     }
+    
+    func add(_ item: Type) {
+        dispatchers.append(item)
+    }
 }
 
-class WeakArray<Type: AnyObject> {
+class WeakArray<Type> {
     
     typealias Index = Int
     typealias Element = Type
@@ -117,19 +121,20 @@ class WeakArray<Type: AnyObject> {
         }
     }
     
-    private struct WeakContainer<Type: AnyObject> {
-        weak var _value : Type? {
-            willSet {
-                print("WeakContainer val \(_value) changing to \(newValue)")
+    private struct WeakContainer<Type> {
+        
+        let _valueFunction: () -> Type?
+
+        init (_ value: Type) {
+            
+            let reference = value as AnyObject
+            _valueFunction = { [weak reference] in
+                return reference as? Type
             }
         }
 
-        init (_ value: Type) {
-            _value = value
-        }
-
         func get() -> Type? {
-            return _value
+            return _valueFunction()
         }
     }
     
@@ -140,14 +145,12 @@ class WeakArray<Type: AnyObject> {
     private func cleanup() {
         wrappedContent = wrappedContent.filter { $0.get() != nil }
     }
-    
-//    func append(_ newValue: Type) {
-//
-//        let container = WeakContainer(newValue)
-//
-//        wrappedContent.append(container)
-//    }
-//
+}
+
+extension WeakArray: Sequence {
+    func makeIterator() -> IndexingIterator<[Type]> {
+        return content.makeIterator()
+    }
 }
 
 extension WeakArray: Collection, MutableCollection {
