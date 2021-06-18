@@ -11,6 +11,6 @@
 #endif
 
 
-FOUNDATION_EXPORT double Pods_CloudKitSynchronizerVersionNumber;
-FOUNDATION_EXPORT const unsigned char Pods_CloudKitSynchronizerVersionString[];
+FOUNDATION_EXPORT double CloudKitSynchronizerVersionNumber;
+FOUNDATION_EXPORT const unsigned char CloudKitSynchronizerVersionString[];
 
