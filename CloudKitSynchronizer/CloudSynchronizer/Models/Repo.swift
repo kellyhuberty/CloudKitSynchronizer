@@ -41,14 +41,5 @@ public class Repo {
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
         cloudSynchronizer?.refreshFromCloud(completion)
     }
-    
-    static func applicationDelegate(for domain:String) -> Repo {
-        guard let appDelegate = UIApplication.shared.delegate as? RepoManufacturing else {
-            fatalError("Cannot load Repo")
-        }
-        guard let repo = appDelegate.loadRepo(for: domain) else {
-            fatalError("Cannot load Repo")
-        }
-        return repo
-    }
+
 }

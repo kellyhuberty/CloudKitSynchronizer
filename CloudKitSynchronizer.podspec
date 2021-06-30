@@ -9,6 +9,5 @@ Pod::Spec.new do |spec|
   spec.authors      = { 'Kelly Huberty' => 'kellyhuberty@gmail.com' }
   spec.summary      = "Cloud Kit Synchronizer (CKS) is an addition to a Cocoa app's data stack for syncing data between tables in an SQLite database to corresponding entities in CloudKit. CKS is based off of features of GRDB, and is written in Swift."
   spec.source_files = 'CloudKitSynchronizer/CloudSynchronizer/**/*.{swift}'
-  spec.framework    = 'UIKit'
   spec.dependency 'GRDB.swift'
 end

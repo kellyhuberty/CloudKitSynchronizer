@@ -206,7 +206,6 @@ extension SQLiteTableObserver : TransactionObserver {
     }
 }
 
-
 extension DatabasePreUpdateEvent {
     
     func initialTableRow(for columnNames: [String]) -> TableRow? {
