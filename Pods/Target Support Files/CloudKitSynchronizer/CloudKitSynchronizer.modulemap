@@ -1,0 +1,6 @@
+framework module CloudKitSynchronizer {
+  umbrella header "CloudKitSynchronizer-umbrella.h"
+
+  export *
+  module * { export * }
+}

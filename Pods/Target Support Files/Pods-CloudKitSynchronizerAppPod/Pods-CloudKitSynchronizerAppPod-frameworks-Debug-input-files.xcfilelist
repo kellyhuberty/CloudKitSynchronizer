@@ -1,0 +1,3 @@
+${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerAppPod/Pods-CloudKitSynchronizerAppPod-frameworks.sh
+${BUILT_PRODUCTS_DIR}/CloudKitSynchronizer/CloudKitSynchronizer.framework
+${BUILT_PRODUCTS_DIR}/GRDB.swift/GRDB.framework

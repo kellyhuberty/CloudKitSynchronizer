@@ -9,7 +9,7 @@
 import Foundation
 import GRDB
 
-public protocol Model : Codable, FetchableRecord, TableRecord, PersistableRecord {
+public protocol Model : Codable, FetchableRecord, PersistableRecord {
 
 }
 

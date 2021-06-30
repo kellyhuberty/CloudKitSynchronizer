@@ -9,7 +9,7 @@
 import Foundation
 import GRDB
 
-protocol RepoManufacturing {
+public protocol RepoManufacturing {
     func loadRepo(for domain:String) -> Repo?
 }
 
@@ -36,6 +36,10 @@ public class Repo {
             synchronizer.startSync()
             self.cloudSynchronizer = synchronizer
         }
+    }
+    
+    public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
+        cloudSynchronizer?.refreshFromCloud(completion)
     }
     
     static func applicationDelegate(for domain:String) -> Repo {

@@ -9,11 +9,11 @@
 import Foundation
 
 
-protocol TableObserverProducing : class{
+protocol TableObserverProducing : AnyObject {
     func newTableObserver(_ tableName: String) -> TableObserving
 }
 
-protocol TableObserving: class {
+protocol TableObserving: AnyObject {
     var tableName:String { get }
     var columnNames:[String] { get }
     var isObserving: Bool { get set }
@@ -26,6 +26,6 @@ extension TableObserving {
     }
 }
 
-protocol TableObserverDelegate : class{
+protocol TableObserverDelegate : AnyObject {
     func tableObserver(_ observer:TableObserving, created:[TableRow], updated:[TableRow], deleted:[TableRow])
 }

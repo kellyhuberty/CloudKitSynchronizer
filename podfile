@@ -1,12 +1,14 @@
 use_frameworks!
-target 'CloudKitSynchronizer' do
-# 	platform :ios, '13.0'
+target 'CloudKitSynchronizerAppPod' do
+ 	platform :ios, '13.0'
 	pod 'GRDB.swift'
+	pod 'CloudKitSynchronizer', :path => '.'
 end
 
 target 'CloudKitSynchronizerTests' do
 	platform :ios, '13.0'
 	pod 'GRDB.swift'
+	pod 'CloudKitSynchronizer', :path => '.'
 #	pod 'MockFive'
 end
 

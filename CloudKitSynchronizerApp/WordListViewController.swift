@@ -8,6 +8,7 @@
 
 import UIKit
 import GRDB
+import CloudKitSynchronizer
 
 class WordListViewController: UIViewController, WordListTableCellDelegate {
     
@@ -315,7 +316,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
     }
 
     @objc func refreshAction(_ sender: Any) {
-        repo.cloudSynchronizer?.refreshFromCloud {
+        repo.refreshFromCloud {
             DispatchQueue.main.async {
                 (sender as? UIRefreshControl)?.endRefreshing()
             }

@@ -13,7 +13,7 @@ enum CloudRecordOperationStatus{
     case error(_ error:CloudKitError)
 }
 
-protocol CloudRecordPushOperationDelegate: class {
+protocol CloudRecordPushOperationDelegate: AnyObject {
     func cloudPushOperation(_ operation:CloudRecordPushOperation,
                             processedUpdatedRecords:[CKRecord],
                             status:CloudRecordOperationStatus)
@@ -34,7 +34,7 @@ protocol CloudRecordPushOperation : Operating {
     
 }
 
-protocol CloudRecordPullOperationDelegate: class {
+protocol CloudRecordPullOperationDelegate: AnyObject {
     func cloudPullOperation(_ operation:CloudRecordPullOperation,
                             processedUpdatedRecords:[CKRecord],
                             status:CloudRecordOperationStatus)
@@ -96,7 +96,7 @@ class CloudKitOperationProducer: CloudOperationProducing {
     
 }
 
-protocol Operating : class{
+protocol Operating : AnyObject {
     func start()
     var completionBlock: (() -> Void)? { get set }
 }

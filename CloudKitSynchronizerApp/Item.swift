@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import CloudKitSynchronizer
 
 struct Item : Model, Hashable, Codable {
     

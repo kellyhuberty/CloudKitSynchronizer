@@ -13,7 +13,7 @@ import GRDB
 public class SynchronizedTable : SynchronizedTableProtocol{
     let tableName:String
     
-    init(table:String){
+    public init(table:String){
         tableName = table
     }
 }
@@ -34,7 +34,7 @@ enum CloudSynchronizerError: Error {
     
 }
 
-protocol CloudSynchronizerDelegate : class {
+protocol CloudSynchronizerDelegate : AnyObject {
     
     func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
     
@@ -808,7 +808,7 @@ enum UserDefaultsKeys : CustomStringConvertible {
     case migrationVersion
 }
 
-protocol CloudOperationProducing : class{
+protocol CloudOperationProducing : AnyObject {
     func newPullOperation(delegate: CloudRecordPullOperationDelegate) -> CloudRecordPullOperation
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation

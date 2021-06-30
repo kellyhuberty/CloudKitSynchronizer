@@ -8,6 +8,7 @@
 
 import UIKit
 import GRDB
+import CloudKitSynchronizer
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
