@@ -15,9 +15,22 @@ public struct SQLRequest<RowDecoder> {
     /// The request adapter
     public var adapter: RowAdapter?
     
-    private(set) var sqlLiteral: SQLLiteral
+    private(set) var sqlLiteral: SQL
     let cache: Cache?
     
+    private init(
+        literal sqlLiteral: SQL,
+        adapter: RowAdapter?,
+        fromCache cache: Cache?,
+        type: RowDecoder.Type)
+    {
+        self.sqlLiteral = sqlLiteral
+        self.adapter = adapter
+        self.cache = cache
+    }
+}
+
+extension SQLRequest {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
@@ -42,62 +55,87 @@ public struct SQLRequest<RowDecoder> {
         cached: Bool = false)
     {
         self.init(
-            literal: SQLLiteral(sql: sql, arguments: arguments),
+            literal: SQL(sql: sql, arguments: arguments),
             adapter: adapter,
-            fromCache: cached ? .public : nil)
+            fromCache: cached ? .public : nil,
+            type: RowDecoder.self)
     }
     
-    /// Creates a request from an SQLLiteral, and optional row adapter.
+    /// Creates a request from an `SQL` literal, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
-    ///         SELECT name FROM player
-    ///         """))
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE name = ?
-    ///         """, arguments: ["O'Brien"]))
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
+    ///     let name = "O'brien"
     ///     let request = SQLRequest<Player>(literal: """
-    ///         SELECT * FROM player WHERE name = \("O'brien")
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """)
     ///
     /// - parameters:
-    ///     - sqlLiteral: An SQLLiteral.
+    ///     - sqlLiteral: An `SQL` literal.
     ///     - adapter: Optional RowAdapter.
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
-        self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
+    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
+        self.init(
+            literal: sqlLiteral,
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: RowDecoder.self)
+    }
+}
+
+extension SQLRequest where RowDecoder == Row {
+    /// Creates a request from an SQL string, optional arguments, and
+    /// optional row adapter.
+    ///
+    ///     let request = SQLRequest(sql: """
+    ///         SELECT * FROM player WHERE id = ?
+    ///         """, arguments: [1])
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter.
+    ///     - cached: Defaults to false. If true, the request reuses a cached
+    ///       prepared statement.
+    /// - returns: A SQLRequest
+    public init(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil,
+        cached: Bool = false)
+    {
+        self.init(
+            literal: SQL(sql: sql, arguments: arguments),
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: Row.self)
     }
     
-    /// Creates a request from an SQLLiteral, and optional row adapter.
+    /// Creates a request from an `SQL` literal, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
-    ///         SELECT name FROM player
-    ///         """))
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE name = ?
-    ///         """, arguments: ["O'Brien"]))
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let request = SQLRequest<Player>(literal: """
-    ///         SELECT * FROM player WHERE name = \("O'brien")
+    ///     let name = "O'brien"
+    ///     let request = SQLRequest(literal: """
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """)
     ///
     /// - parameters:
-    ///     - sqlLiteral: An SQLLiteral.
+    ///     - sqlLiteral: An `SQL` literal.
     ///     - adapter: Optional RowAdapter.
-    ///     - cache: The eventual cache
+    ///     - cached: Defaults to false. If true, the request reuses a cached
+    ///       prepared statement.
     /// - returns: A SQLRequest
-    init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
-        self.sqlLiteral = sqlLiteral
-        self.adapter = adapter
-        self.cache = cache
+    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
+        self.init(
+            literal: sqlLiteral,
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: Row.self)
     }
 }
 
@@ -149,6 +187,6 @@ extension SQLRequest: ExpressibleByStringInterpolation {
     
     /// :nodoc:
     public init(stringInterpolation sqlInterpolation: SQLInterpolation) {
-        self.init(literal: SQLLiteral(stringInterpolation: sqlInterpolation))
+        self.init(literal: SQL(stringInterpolation: sqlInterpolation))
     }
 }

@@ -53,7 +53,7 @@ extension QueryInterfaceRequest: FetchRequest {
         let associations = relation.prefetchedAssociations
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
-            preparedRequest = preparedRequest.with(\.supplementaryFetch) { [relation] db, rows in
+            preparedRequest.supplementaryFetch = { [relation] db, rows in
                 try prefetch(db, associations: associations, from: relation, into: rows)
             }
         }
@@ -122,42 +122,27 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
+        select(SQL(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
-    ///     try dbQueue.read { db in
-    ///         // SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42
-    ///         let request = Player.
-    ///             .filter(primaryKey: 42)
-    ///             .select(
-    ///                 SQLLiteral(
-    ///                     sql: "IFNULL(name, ?)",
-    ///                     arguments: ["Anonymous"]),
-    ///                 as: String.self)
-    ///         let name: String? = try request.fetchOne(db)
-    ///     }
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     try dbQueue.read { db in
-    ///         // SELECT IFNULL(name, 'Anonymous') FROM player WHERE id = 42
-    ///         let request = Player.
-    ///             .filter(primaryKey: 42)
-    ///             .select(
-    ///                 literal: "IFNULL(name, \("Anonymous"))",
-    ///                 as: String.self)
-    ///         let name: String? = try request.fetchOne(db)
-    ///     }
+    ///     // SELECT IFNULL(name, 'Anonymous') FROM player
+    ///     let defaultName = "Anonymous"
+    ///     let request = Player.all().select(
+    ///         literal: "IFNULL(name, \(defaultName))",
+    ///         as: String.self)
+    ///     let name: String? = try request.fetchOne(db)
     public func select<RowDecoder>(
-        literal sqlLiteral: SQLLiteral,
+        literal sqlLiteral: SQL,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        select(sqlLiteral.sqlSelection, as: type)
+        select(sqlLiteral, as: type)
     }
     
     /// Creates a request which appends *selection promise*.
@@ -303,6 +288,13 @@ extension QueryInterfaceRequest: DerivableRequest {
         with(\.relation.isDistinct, true)
     }
     
+    /// Creates a request which fetches *limit* rows, starting at *offset*.
+    ///
+    ///     // SELECT * FROM player LIMIT 10 OFFSET 20
+    ///     var request = Player.all()
+    ///     request = request.limit(10, offset: 20)
+    ///
+    /// Any previous limit is replaced.
     public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
         with(\.relation.limit, SQLLimit(limit: limit, offset: offset))
     }

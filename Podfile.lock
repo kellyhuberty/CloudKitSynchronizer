@@ -1,16 +1,16 @@
 PODS:
   - CloudKitSynchronizer (0.1.0):
     - GRDB.swift
-  - GRDB.swift (5.6.0):
-    - GRDB.swift/standard (= 5.6.0)
-  - GRDB.swift/standard (5.6.0)
+  - GRDB.swift (5.8.0):
+    - GRDB.swift/standard (= 5.8.0)
+  - GRDB.swift/standard (5.8.0)
 
 DEPENDENCIES:
   - CloudKitSynchronizer (from `.`)
   - GRDB.swift
 
 SPEC REPOS:
-  trunk:
+  https://github.com/cocoapods/specs.git:
     - GRDB.swift
 
 EXTERNAL SOURCES:
@@ -19,8 +19,8 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   CloudKitSynchronizer: 42f41619336f35c816149029591b10ff806b7faa
-  GRDB.swift: c91e3a2a59b5cdef17c2190015fd29ffee76922c
+  GRDB.swift: 9b9beec114435e1d852ad68c136cff4c71134627
 
-PODFILE CHECKSUM: 6490d463e9e8915acd1f7c3a1618a47d823bcdac
+PODFILE CHECKSUM: 0d7871b0d6ea2db201d6ebc5e0673b507d6074a0
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.7.5
