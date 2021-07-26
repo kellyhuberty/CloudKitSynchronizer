@@ -49,6 +49,84 @@ struct TableNames{
     static let ChangeTags = "SyncChangeTags"
 }
 
+@propertyWrapper class CloudKitAvailablity {
+    
+    public struct Status {
+        enum Availablity {
+            init(_ accountStatus: CKAccountStatus) {
+                switch accountStatus {
+                case .available:
+                    self = .available
+                case .couldNotDetermine:
+                    self = .couldNotDetermine
+                case .noAccount:
+                    self = .noAccount
+                case .restricted:
+                    self = .restricted
+                case .temporarilyUnavailable:
+                    self = .temporarilyUnavailable
+                default:
+                    self = .couldNotDetermine
+                }
+            }
+            
+            case available
+            case couldNotDetermine
+            case noAccount
+            case restricted
+            case temporarilyUnavailable
+            case retrieving
+        }
+        
+        public let accountStatus: Availablity
+        fileprivate let error: Error?
+        public var errorMessage: String? {
+            return error?.localizedDescription
+        }
+        
+        fileprivate init(_ accountStatus: Availablity, error: Error? = nil) {
+            self.accountStatus = accountStatus
+            self.error = error
+        }
+    }
+    
+    var wrappedValue: Status {
+        return currentStatus
+    }
+    
+    private(set) var currentStatus: Status = Status(.retrieving) {
+        didSet{
+            delivery?(currentStatus)
+        }
+    }
+
+    private let container: CKContainer
+    private let deliveryQueue: DispatchQueue
+    private let delivery: ((Status) -> Void)?
+    private var observer: NSObjectProtocol! = nil
+            
+    init(_ container: CKContainer, queue: DispatchQueue = .main, delivery: ((Status) -> Void)? ) {
+        
+        self.container = container
+        self.deliveryQueue = queue
+        self.delivery = delivery
+        
+        observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: nil) { _ in
+            self.checkAvailablity(nil)
+        }
+    }
+    
+    public func checkAvailablity(_ completion: ((Status) -> Void)? ){
+        CKContainer.default().accountStatus { [weak self] accountStatus, error in
+            self?.deliveryQueue.async {
+                let status = Status(Status.Availablity(accountStatus), error: error)
+                self?.currentStatus = status
+                completion?(status)
+            }
+        }
+    }
+}
+
 class CloudSynchronizer {
 
     public enum Status {
@@ -57,7 +135,7 @@ class CloudSynchronizer {
         case stopped
         case halted(error:Error?)
     }
-    
+
     public enum ZoneName {
         public static let defaultZoneName = Domain.current
         public static let testingZoneName = Domain.current + ".testing"
@@ -77,9 +155,9 @@ class CloudSynchronizer {
 
     private let _tableObserverFactory:TableObserverProducing
 
-    public private(set) var status:Status
+    public private(set) var status: Status
     
-    var operationFactory:CloudOperationProducing? {
+    private var operationFactory:CloudOperationProducing? {
         get{
             switch status {
             case .syncing:
@@ -91,11 +169,13 @@ class CloudSynchronizer {
         }
     }
     
-    let cloudRecordStore: CloudRecordStoring
+    private let cloudRecordStore: CloudRecordStoring
+    
+    @CloudKitAvailablity var availability: CloudKitAvailablity.Status
     
     private var currentChangeTagCache:CKServerChangeToken?
     
-    var currentChangeTag:CKServerChangeToken? {
+    private var currentChangeTag:CKServerChangeToken? {
         get{
             guard currentChangeTagCache == nil else {
                 return currentChangeTagCache
@@ -137,7 +217,7 @@ class CloudSynchronizer {
         }
     }
     
-    var observers:[TableObserving] = []
+    private var observers:[TableObserving] = []
     
     ///Unused
     weak var delegate: CloudSynchronizerDelegate?
@@ -175,6 +255,12 @@ class CloudSynchronizer {
 
         self.status = .unstarted
         
+        _availability = CloudKitAvailablity(CKContainer.default()) { status in
+            
+        }
+        
+        
+        
         //Error: databaseMigration
         try! databaseQueue.write { (db) in
             try runSynchronizerMigrations(db)
@@ -200,10 +286,11 @@ class CloudSynchronizer {
             return
         }
         
-        initilizeZones{            
-            self.status = .syncing
+        _availability.checkAvailablity { [weak self] status in
+            self?.initilizeZones{
+                self?.status = .syncing
+            }
         }
-        
     }
     
     public func stopSync() {
