@@ -24,25 +24,6 @@ protocol SynchronizedTableProtocol {
 
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
-enum CloudSynchronizerError: Error {
-    
-    case recordIssue(_ error: CloudRecordError)
-    //case synchronizerIssue(_ error: CloudSyncError)
-    case sqlLite(_ error:Error)
-    case cloudKitError(_ error:Error)
-    case archivalError(_ error:Error)
-    
-}
-
-protocol CloudSynchronizerDelegate : AnyObject {
-    
-    func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
-    
-    func cloudSynchronizerNetworkBecameUnavailable(_ synchronizer:CloudSynchronizer)
-    
-    func cloudSynchronizerNetworkBecameAvailable(_ synchronizer:CloudSynchronizer)
-}
-
 struct TableNames{
     static let Migration = "SyncMigration"
     static let CloudRecords = "SyncCloudRecords"
@@ -127,7 +108,7 @@ struct TableNames{
     }
 }
 
-class CloudSynchronizer {
+public class CloudSynchronizer {
 
     public enum Status {
         case unstarted
@@ -155,12 +136,17 @@ class CloudSynchronizer {
 
     private let _tableObserverFactory:TableObserverProducing
 
-    public private(set) var status: Status
+    public private(set) var status: Status {
+        didSet {
+            
+        }
+    }
     
     private var operationFactory:CloudOperationProducing? {
         get{
             switch status {
             case .syncing:
+                log.debug("Current syncing status is enabled.")
                 return _operationFactory
             default:
                 log.debug("Current syncing status is disabled.")
@@ -220,7 +206,7 @@ class CloudSynchronizer {
     private var observers:[TableObserving] = []
     
     ///Unused
-    weak var delegate: CloudSynchronizerDelegate?
+    // weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue: DatabaseQueue,
          operationFactory: CloudOperationProducing? = nil,
