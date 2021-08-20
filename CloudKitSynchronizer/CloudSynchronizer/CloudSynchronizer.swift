@@ -44,8 +44,9 @@ struct TableNames{
                     self = .noAccount
                 case .restricted:
                     self = .restricted
-                case .temporarilyUnavailable:
-                    self = .temporarilyUnavailable
+//TODO: Re-add when support settles down.
+//                case .temporarilyUnavailable:
+//                    self = .temporarilyUnavailable
                 default:
                     self = .couldNotDetermine
                 }
