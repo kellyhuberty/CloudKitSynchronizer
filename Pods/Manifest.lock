@@ -10,7 +10,7 @@ DEPENDENCIES:
   - GRDB.swift
 
 SPEC REPOS:
-  https://github.com/cocoapods/specs.git:
+  https://github.com/CocoaPods/Specs.git:
     - GRDB.swift
 
 EXTERNAL SOURCES:
@@ -18,9 +18,9 @@ EXTERNAL SOURCES:
     :path: "."
 
 SPEC CHECKSUMS:
-  CloudKitSynchronizer: 42f41619336f35c816149029591b10ff806b7faa
+  CloudKitSynchronizer: 04a910175c43aff9a3b29c72e93d1d0662d30104
   GRDB.swift: 9b9beec114435e1d852ad68c136cff4c71134627
 
 PODFILE CHECKSUM: 0d7871b0d6ea2db201d6ebc5e0673b507d6074a0
 
-COCOAPODS: 1.7.5
+COCOAPODS: 1.10.2
