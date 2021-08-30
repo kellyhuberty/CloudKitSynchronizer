@@ -10,16 +10,52 @@ import Foundation
 import CloudKit
 import GRDB
 
-public class SynchronizedTable : SynchronizedTableProtocol{
-    let tableName:String
+public class SynchronizedTable : SynchronizedTableProtocol {
+    public let tableName: String
+    public var syncedAssets: [SyncedAssetConfiguring]
     
-    public init(table:String){
+    public init(table:String, assets: [SyncedAssetConfiguring] = []){
         tableName = table
+        syncedAssets = assets
     }
 }
 
-protocol SynchronizedTableProtocol {
+public protocol SynchronizedTableProtocol {
     var tableName:String { get }
+    var syncedAssets: [SyncedAssetConfiguring] { get }
+}
+
+public protocol SyncedAssetConfiguring {
+    var column: String { get }
+    func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
+}
+
+public class SyncedAssetConfiguration: SyncedAssetConfiguring {
+    
+    public let column: String
+    private let filePathHandler: (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
+    
+    private static func newDefaultFilePathHandler(directory: URL) -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
+        return {(_ rowIdentifier: String, _ table: String, _ column: String) in
+            return directory.appendingPathComponent("\(table)")
+                            .appendingPathComponent("\(column)")
+                            .appendingPathComponent("\(rowIdentifier)")
+        }
+    }
+
+    public convenience init(column: String, directory: URL) {
+        self.init(column: column,
+                  filePathHandler: SyncedAssetConfiguration.newDefaultFilePathHandler(directory: directory))
+    }
+    
+    public init(column: String, filePathHandler: @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
+        self.column = column
+        self.filePathHandler = filePathHandler
+    }
+    
+    public func localFilePath(rowIdentifier: String, table: String, column: String) -> URL {
+        return filePathHandler(rowIdentifier, table, column)
+    }
 }
 
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
@@ -309,7 +345,7 @@ public class CloudSynchronizer {
         observers.append(tableObserver)
     }
     
-    private func tableObserver(for name:String) -> TableObserving{
+    private func tableObserver(for name:String) -> TableObserving {
         
         for observer in observers {
             if observer.tableName == name {
@@ -1023,7 +1059,6 @@ class CloudRecordMapper {
     
 }
 
-
 extension Array where Element == String {
 
     func sqlPlaceholderString() -> String{
@@ -1038,6 +1073,8 @@ extension Array where Element == String {
     }
 }
 
-
+class SyncedAssetProcessor {
+    
+}
 
 
