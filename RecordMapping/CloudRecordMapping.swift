@@ -9,7 +9,17 @@ import Foundation
 import GRDB
 import CloudKit
 
+
+protocol Transformer {
+    
+    func transformToLocal(_ in: CKRecordValue ) -> DatabaseValueConvertible?
+    func transformToRemote(_ in: DatabaseValueConvertible ) -> CKRecordValue?
+
+}
+
 protocol CloudRecordMapping: AnyObject {
+    
+    var transforms: [String: Transformer] { get }
     var sortedColumns:[String] { get }
     func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord
     func map(record:CKRecord) -> [String:DatabaseValue?]
@@ -135,13 +145,15 @@ class CloudRecordMapper {
     
     let columns:[String]
     let tableName:String
+    let transforms: [String : Transformer]
     
     let sortedColumns:[String]
     
-    init(tableName:String, columnNames:[String]) {
+    init(tableName:String, columnNames:[String], transforms: [String : Transformer]) {
         self.columns = columnNames
         self.tableName = tableName
-        
+        self.transforms = transforms
+
         var newColumns = columns
         newColumns.sort()
         if let index = newColumns.firstIndex(of: "identifier") {
