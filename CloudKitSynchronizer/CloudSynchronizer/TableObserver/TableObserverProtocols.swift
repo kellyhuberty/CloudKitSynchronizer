@@ -21,10 +21,6 @@ protocol TableObserving: AnyObject {
 }
 
 extension TableObserving {
-    var mapper: CloudRecordMapper {
-        return CloudRecordMapper(tableName: tableName, columnNames: columnNames)
-    }
-    
     var tableName:String {
         return tableConfiguration.tableName
     }
