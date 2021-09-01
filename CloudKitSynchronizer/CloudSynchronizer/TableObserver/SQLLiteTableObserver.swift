@@ -10,13 +10,13 @@ import Foundation
 import GRDB
 
 class SQLiteTableObserver {
-    
-    struct RecordIdentifier {
-        
-    }
+//
+//    struct RecordIdentifier {
+//
+//    }
     
     // MARK: - Public Vars
-    let tableName:String
+    let tableConfiguration: SynchronizedTableProtocol
     let columnNames:[String]
     
     private var resultsController: DatabaseRegionObservation!
@@ -34,9 +34,9 @@ class SQLiteTableObserver {
     
     
     // MARK: - inits
-    init(tableName:String, databaseQueue:DatabaseQueue) {
-        self.tableName = tableName
-        self.columnNames = try! SQLiteTableObserver.columnNames(for: tableName, in: databaseQueue)
+    init(tableConfiguration: SynchronizedTableProtocol, databaseQueue:DatabaseQueue) {
+        self.tableConfiguration = tableConfiguration
+        self.columnNames = try! SQLiteTableObserver.columnNames(for: tableConfiguration.tableName, in: databaseQueue)
         self.databaseQueue = databaseQueue
         self.databaseQueue.add(transactionObserver: self)
     }
@@ -151,7 +151,6 @@ class SQLiteTableObserver {
 }
 
 extension SQLiteTableObserver : TableObserving {
-    
 }
 
 

@@ -10,11 +10,11 @@ import Foundation
 
 
 protocol TableObserverProducing : AnyObject {
-    func newTableObserver(_ tableName: String) -> TableObserving
+    func newTableObserver(_ tableConfiguration: SynchronizedTableProtocol) -> TableObserving
 }
 
 protocol TableObserving: AnyObject {
-    var tableName:String { get }
+    var tableConfiguration: SynchronizedTableProtocol { get }
     var columnNames:[String] { get }
     var isObserving: Bool { get set }
     var delegate: TableObserverDelegate? { get set }
@@ -23,6 +23,10 @@ protocol TableObserving: AnyObject {
 extension TableObserving {
     var mapper: CloudRecordMapper {
         return CloudRecordMapper(tableName: tableName, columnNames: columnNames)
+    }
+    
+    var tableName:String {
+        return tableConfiguration.tableName
     }
 }
 
