@@ -231,7 +231,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
         
-        try! repo2.databaseQueue.write { (db) in
+        _ = try! repo2.databaseQueue.write { (db) in
             try! deletedItem.delete(db)
         }
         

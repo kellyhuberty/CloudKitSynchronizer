@@ -290,8 +290,6 @@ public class CloudSynchronizer {
             
         }
         
-        
-        
         //Error: databaseMigration
         try! databaseQueue.write { (db) in
             try runSynchronizerMigrations(db)
@@ -336,7 +334,7 @@ public class CloudSynchronizer {
     
     public func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
         
-        let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)!
+        let _ = CKNotification(fromRemoteNotificationDictionary: userInfo)!
         //TODO: Support for push notification changes
     }
     

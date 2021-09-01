@@ -209,22 +209,38 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         }
     
         let downArrow =
-            UIKeyCommand(input: UIKeyCommand.inputDownArrow,
-                         modifierFlags: [],
+            UIKeyCommand(title: "Down",
+                         image: nil,
                          action: #selector(downArrowAction(_:)),
-                         discoverabilityTitle: "Down")
+                         input: UIKeyCommand.inputDownArrow, modifierFlags: [],
+                         propertyList: nil,
+                         alternates: [],
+                         discoverabilityTitle: "Down",
+                         attributes: [],
+                         state: .on)
         
         let upArrow =
-            UIKeyCommand(input: UIKeyCommand.inputUpArrow,
-                         modifierFlags: [],
+            UIKeyCommand(title: "Up",
+                         image: nil,
                          action: #selector(upArrowAction(_:)),
-                         discoverabilityTitle: "Up")
+                         input: UIKeyCommand.inputUpArrow, modifierFlags: [],
+                         propertyList: nil,
+                         alternates: [],
+                         discoverabilityTitle: "Up",
+                         attributes: [],
+                         state: .on)
         
         let delete =
-            UIKeyCommand(input: "\u{8}",
-                         modifierFlags: [],
+            UIKeyCommand(title: "Delete",
+                         image: nil,
                          action: #selector(deleteAction(_:)),
-                         discoverabilityTitle: "Delete")
+                         input: "\u{8}", modifierFlags: [],
+                         propertyList: nil,
+                         alternates: [],
+                         discoverabilityTitle: "Delete",
+                         attributes: [],
+                         state: .on)
+        
         
         let selectAll =
             UIKeyCommand(title: "Select All",
