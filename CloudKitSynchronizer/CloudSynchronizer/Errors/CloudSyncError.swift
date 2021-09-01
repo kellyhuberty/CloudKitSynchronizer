@@ -104,6 +104,10 @@ internal struct CloudKitError : Error {
             code = .unhandled
         case .assetNotAvailable:
             code = .unhandled
+        #if swift(>=5.5)
+        case .accountTemporarilyUnavailable:
+            code = .retryLater
+        #endif
         @unknown default:
             code = .haltSync
         }
