@@ -26,52 +26,6 @@
 		C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
 		C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
 		C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
-		C7EE587826D30F1700E0A8B7 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585C26D30F1700E0A8B7 /* Log.swift */; };
-		C7EE587926D30F1700E0A8B7 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585C26D30F1700E0A8B7 /* Log.swift */; };
-		C7EE587A26D30F1700E0A8B7 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585D26D30F1700E0A8B7 /* Directories.swift */; };
-		C7EE587B26D30F1700E0A8B7 /* Directories.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585D26D30F1700E0A8B7 /* Directories.swift */; };
-		C7EE587C26D30F1700E0A8B7 /* CloudSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585E26D30F1700E0A8B7 /* CloudSynchronizer.swift */; };
-		C7EE587D26D30F1700E0A8B7 /* CloudSynchronizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE585E26D30F1700E0A8B7 /* CloudSynchronizer.swift */; };
-		C7EE587E26D30F1700E0A8B7 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586026D30F1700E0A8B7 /* Model.swift */; };
-		C7EE587F26D30F1700E0A8B7 /* Model.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586026D30F1700E0A8B7 /* Model.swift */; };
-		C7EE588026D30F1700E0A8B7 /* TableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586126D30F1700E0A8B7 /* TableRow.swift */; };
-		C7EE588126D30F1700E0A8B7 /* TableRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586126D30F1700E0A8B7 /* TableRow.swift */; };
-		C7EE588226D30F1700E0A8B7 /* CloudRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586226D30F1700E0A8B7 /* CloudRecord.swift */; };
-		C7EE588326D30F1700E0A8B7 /* CloudRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586226D30F1700E0A8B7 /* CloudRecord.swift */; };
-		C7EE588426D30F1700E0A8B7 /* CloudChangeTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586326D30F1700E0A8B7 /* CloudChangeTag.swift */; };
-		C7EE588526D30F1700E0A8B7 /* CloudChangeTag.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586326D30F1700E0A8B7 /* CloudChangeTag.swift */; };
-		C7EE588626D30F1700E0A8B7 /* Repo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586426D30F1700E0A8B7 /* Repo.swift */; };
-		C7EE588726D30F1700E0A8B7 /* Repo.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586426D30F1700E0A8B7 /* Repo.swift */; };
-		C7EE588826D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586626D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift */; };
-		C7EE588926D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586626D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift */; };
-		C7EE588A26D30F1700E0A8B7 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586726D30F1700E0A8B7 /* CloudOperationProtocols.swift */; };
-		C7EE588B26D30F1700E0A8B7 /* CloudOperationProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586726D30F1700E0A8B7 /* CloudOperationProtocols.swift */; };
-		C7EE588C26D30F1700E0A8B7 /* AsynchronousOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586826D30F1700E0A8B7 /* AsynchronousOperation.swift */; };
-		C7EE588D26D30F1700E0A8B7 /* AsynchronousOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586826D30F1700E0A8B7 /* AsynchronousOperation.swift */; };
-		C7EE588E26D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586926D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift */; };
-		C7EE588F26D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586926D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift */; };
-		C7EE589026D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586A26D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift */; };
-		C7EE589126D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586A26D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift */; };
-		C7EE589226D30F1700E0A8B7 /* CloudOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586B26D30F1700E0A8B7 /* CloudOperation.swift */; };
-		C7EE589326D30F1700E0A8B7 /* CloudOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586B26D30F1700E0A8B7 /* CloudOperation.swift */; };
-		C7EE589426D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586D26D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift */; };
-		C7EE589526D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586D26D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift */; };
-		C7EE589626D30F1700E0A8B7 /* CloudModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586E26D30F1700E0A8B7 /* CloudModel.swift */; };
-		C7EE589726D30F1700E0A8B7 /* CloudModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586E26D30F1700E0A8B7 /* CloudModel.swift */; };
-		C7EE589826D30F1700E0A8B7 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586F26D30F1700E0A8B7 /* CloudRecordStore.swift */; };
-		C7EE589926D30F1700E0A8B7 /* CloudRecordStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE586F26D30F1700E0A8B7 /* CloudRecordStore.swift */; };
-		C7EE589A26D30F1700E0A8B7 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587126D30F1700E0A8B7 /* TableObserving.swift */; };
-		C7EE589B26D30F1700E0A8B7 /* TableObserving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587126D30F1700E0A8B7 /* TableObserving.swift */; };
-		C7EE589C26D30F1700E0A8B7 /* TableObserverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587226D30F1700E0A8B7 /* TableObserverProtocols.swift */; };
-		C7EE589D26D30F1700E0A8B7 /* TableObserverProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587226D30F1700E0A8B7 /* TableObserverProtocols.swift */; };
-		C7EE589E26D30F1700E0A8B7 /* SQLLiteTableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587326D30F1700E0A8B7 /* SQLLiteTableObserver.swift */; };
-		C7EE589F26D30F1700E0A8B7 /* SQLLiteTableObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587326D30F1700E0A8B7 /* SQLLiteTableObserver.swift */; };
-		C7EE58A026D30F1700E0A8B7 /* ObserverDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587526D30F1700E0A8B7 /* ObserverDispatcher.swift */; };
-		C7EE58A126D30F1700E0A8B7 /* ObserverDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587526D30F1700E0A8B7 /* ObserverDispatcher.swift */; };
-		C7EE58A226D30F1700E0A8B7 /* CloudSyncError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587626D30F1700E0A8B7 /* CloudSyncError.swift */; };
-		C7EE58A326D30F1700E0A8B7 /* CloudSyncError.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587626D30F1700E0A8B7 /* CloudSyncError.swift */; };
-		C7EE58A426D30F1700E0A8B7 /* ErrorReceiving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587726D30F1700E0A8B7 /* ErrorReceiving.swift */; };
-		C7EE58A526D30F1700E0A8B7 /* ErrorReceiving.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE587726D30F1700E0A8B7 /* ErrorReceiving.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,29 +59,6 @@
 		C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudKitSynchronizerApp.entitlements; sourceTree = "<group>"; };
 		C7875923267D1BD70030C77C /* CloudKitSynchronizerAppPkg.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizerAppPkg.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
-		C7EE585C26D30F1700E0A8B7 /* Log.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
-		C7EE585D26D30F1700E0A8B7 /* Directories.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Directories.swift; sourceTree = "<group>"; };
-		C7EE585E26D30F1700E0A8B7 /* CloudSynchronizer.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSynchronizer.swift; sourceTree = "<group>"; };
-		C7EE586026D30F1700E0A8B7 /* Model.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Model.swift; sourceTree = "<group>"; };
-		C7EE586126D30F1700E0A8B7 /* TableRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableRow.swift; sourceTree = "<group>"; };
-		C7EE586226D30F1700E0A8B7 /* CloudRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudRecord.swift; sourceTree = "<group>"; };
-		C7EE586326D30F1700E0A8B7 /* CloudChangeTag.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudChangeTag.swift; sourceTree = "<group>"; };
-		C7EE586426D30F1700E0A8B7 /* Repo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Repo.swift; sourceTree = "<group>"; };
-		C7EE586626D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudKitRecordPullOperation.swift; sourceTree = "<group>"; };
-		C7EE586726D30F1700E0A8B7 /* CloudOperationProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudOperationProtocols.swift; sourceTree = "<group>"; };
-		C7EE586826D30F1700E0A8B7 /* AsynchronousOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AsynchronousOperation.swift; sourceTree = "<group>"; };
-		C7EE586926D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudKitZoneAvailablityOperation.swift; sourceTree = "<group>"; };
-		C7EE586A26D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudKitRecordPushOperation.swift; sourceTree = "<group>"; };
-		C7EE586B26D30F1700E0A8B7 /* CloudOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudOperation.swift; sourceTree = "<group>"; };
-		C7EE586D26D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudRecordStoringProtocols.swift; sourceTree = "<group>"; };
-		C7EE586E26D30F1700E0A8B7 /* CloudModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudModel.swift; sourceTree = "<group>"; };
-		C7EE586F26D30F1700E0A8B7 /* CloudRecordStore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudRecordStore.swift; sourceTree = "<group>"; };
-		C7EE587126D30F1700E0A8B7 /* TableObserving.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableObserving.swift; sourceTree = "<group>"; };
-		C7EE587226D30F1700E0A8B7 /* TableObserverProtocols.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableObserverProtocols.swift; sourceTree = "<group>"; };
-		C7EE587326D30F1700E0A8B7 /* SQLLiteTableObserver.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLLiteTableObserver.swift; sourceTree = "<group>"; };
-		C7EE587526D30F1700E0A8B7 /* ObserverDispatcher.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ObserverDispatcher.swift; sourceTree = "<group>"; };
-		C7EE587626D30F1700E0A8B7 /* CloudSyncError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSyncError.swift; sourceTree = "<group>"; };
-		C7EE587726D30F1700E0A8B7 /* ErrorReceiving.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorReceiving.swift; sourceTree = "<group>"; };
 		D9948AAA057E4EBF6937F742 /* Pods-CloudKitSynchronizerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.release.xcconfig"; sourceTree = "<group>"; };
 		F6F6FB29893F191171EC8330 /* Pods-CloudKitSynchronizerAppPod.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerAppPod.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerAppPod/Pods-CloudKitSynchronizerAppPod.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -191,7 +122,6 @@
 			isa = PBXGroup;
 			children = (
 				C78758FB267D1B370030C77C /* CloudKitSynchronizerApp */,
-				C7EE585926D30F1700E0A8B7 /* CloudKitSynchronizer */,
 				C7653B752243390D000CDABB /* CloudKitSynchronizerTests */,
 				C7653B5F2243390B000CDABB /* Products */,
 				97CE8C9751FEAB0225A15550 /* Pods */,
@@ -234,92 +164,6 @@
 				C7653B6D2243390D000CDABB /* Info.plist */,
 			);
 			path = CloudKitSynchronizerApp;
-			sourceTree = "<group>";
-		};
-		C7EE585926D30F1700E0A8B7 /* CloudKitSynchronizer */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE585A26D30F1700E0A8B7 /* CloudSynchronizer */,
-			);
-			path = CloudKitSynchronizer;
-			sourceTree = "<group>";
-		};
-		C7EE585A26D30F1700E0A8B7 /* CloudSynchronizer */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE585B26D30F1700E0A8B7 /* Util */,
-				C7EE585E26D30F1700E0A8B7 /* CloudSynchronizer.swift */,
-				C7EE585F26D30F1700E0A8B7 /* Models */,
-				C7EE586526D30F1700E0A8B7 /* Operations */,
-				C7EE586C26D30F1700E0A8B7 /* CloudRecordStore */,
-				C7EE587026D30F1700E0A8B7 /* TableObserver */,
-				C7EE587426D30F1700E0A8B7 /* Errors */,
-			);
-			path = CloudSynchronizer;
-			sourceTree = "<group>";
-		};
-		C7EE585B26D30F1700E0A8B7 /* Util */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE585C26D30F1700E0A8B7 /* Log.swift */,
-				C7EE585D26D30F1700E0A8B7 /* Directories.swift */,
-			);
-			path = Util;
-			sourceTree = "<group>";
-		};
-		C7EE585F26D30F1700E0A8B7 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE586026D30F1700E0A8B7 /* Model.swift */,
-				C7EE586126D30F1700E0A8B7 /* TableRow.swift */,
-				C7EE586226D30F1700E0A8B7 /* CloudRecord.swift */,
-				C7EE586326D30F1700E0A8B7 /* CloudChangeTag.swift */,
-				C7EE586426D30F1700E0A8B7 /* Repo.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		C7EE586526D30F1700E0A8B7 /* Operations */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE586626D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift */,
-				C7EE586726D30F1700E0A8B7 /* CloudOperationProtocols.swift */,
-				C7EE586826D30F1700E0A8B7 /* AsynchronousOperation.swift */,
-				C7EE586926D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift */,
-				C7EE586A26D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift */,
-				C7EE586B26D30F1700E0A8B7 /* CloudOperation.swift */,
-			);
-			path = Operations;
-			sourceTree = "<group>";
-		};
-		C7EE586C26D30F1700E0A8B7 /* CloudRecordStore */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE586D26D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift */,
-				C7EE586E26D30F1700E0A8B7 /* CloudModel.swift */,
-				C7EE586F26D30F1700E0A8B7 /* CloudRecordStore.swift */,
-			);
-			path = CloudRecordStore;
-			sourceTree = "<group>";
-		};
-		C7EE587026D30F1700E0A8B7 /* TableObserver */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE587126D30F1700E0A8B7 /* TableObserving.swift */,
-				C7EE587226D30F1700E0A8B7 /* TableObserverProtocols.swift */,
-				C7EE587326D30F1700E0A8B7 /* SQLLiteTableObserver.swift */,
-			);
-			path = TableObserver;
-			sourceTree = "<group>";
-		};
-		C7EE587426D30F1700E0A8B7 /* Errors */ = {
-			isa = PBXGroup;
-			children = (
-				C7EE587526D30F1700E0A8B7 /* ObserverDispatcher.swift */,
-				C7EE587626D30F1700E0A8B7 /* CloudSyncError.swift */,
-				C7EE587726D30F1700E0A8B7 /* ErrorReceiving.swift */,
-			);
-			path = Errors;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -565,34 +409,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				C7653B642243390B000CDABB /* ViewController.swift in Sources */,
-				C7EE587B26D30F1700E0A8B7 /* Directories.swift in Sources */,
-				C7EE588326D30F1700E0A8B7 /* CloudRecord.swift in Sources */,
-				C7EE588926D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift in Sources */,
-				C7EE587D26D30F1700E0A8B7 /* CloudSynchronizer.swift in Sources */,
-				C7EE589126D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift in Sources */,
-				C7EE588B26D30F1700E0A8B7 /* CloudOperationProtocols.swift in Sources */,
-				C7EE587926D30F1700E0A8B7 /* Log.swift in Sources */,
 				C7653B9B2243F72C000CDABB /* Item.swift in Sources */,
-				C7EE58A326D30F1700E0A8B7 /* CloudSyncError.swift in Sources */,
-				C7EE589F26D30F1700E0A8B7 /* SQLLiteTableObserver.swift in Sources */,
-				C7EE589526D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift in Sources */,
-				C7EE58A126D30F1700E0A8B7 /* ObserverDispatcher.swift in Sources */,
-				C7EE587F26D30F1700E0A8B7 /* Model.swift in Sources */,
-				C7EE58A526D30F1700E0A8B7 /* ErrorReceiving.swift in Sources */,
-				C7EE589726D30F1700E0A8B7 /* CloudModel.swift in Sources */,
-				C7EE588726D30F1700E0A8B7 /* Repo.swift in Sources */,
 				C7653B622243390B000CDABB /* AppDelegate.swift in Sources */,
-				C7EE589B26D30F1700E0A8B7 /* TableObserving.swift in Sources */,
-				C7EE589926D30F1700E0A8B7 /* CloudRecordStore.swift in Sources */,
-				C7EE588526D30F1700E0A8B7 /* CloudChangeTag.swift in Sources */,
 				C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */,
-				C7EE588126D30F1700E0A8B7 /* TableRow.swift in Sources */,
-				C7EE588D26D30F1700E0A8B7 /* AsynchronousOperation.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,
-				C7EE589D26D30F1700E0A8B7 /* TableObserverProtocols.swift in Sources */,
-				C7EE588F26D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift in Sources */,
-				C7EE589326D30F1700E0A8B7 /* CloudOperation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -609,34 +430,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				C797B28B268B9337009194F1 /* Item.swift in Sources */,
-				C7EE587A26D30F1700E0A8B7 /* Directories.swift in Sources */,
-				C7EE588226D30F1700E0A8B7 /* CloudRecord.swift in Sources */,
-				C7EE588826D30F1700E0A8B7 /* CloudKitRecordPullOperation.swift in Sources */,
-				C7EE587C26D30F1700E0A8B7 /* CloudSynchronizer.swift in Sources */,
-				C7EE589026D30F1700E0A8B7 /* CloudKitRecordPushOperation.swift in Sources */,
-				C7EE588A26D30F1700E0A8B7 /* CloudOperationProtocols.swift in Sources */,
-				C7EE587826D30F1700E0A8B7 /* Log.swift in Sources */,
 				C797B28C268B933A009194F1 /* AppDelegate.swift in Sources */,
-				C7EE58A226D30F1700E0A8B7 /* CloudSyncError.swift in Sources */,
-				C7EE589E26D30F1700E0A8B7 /* SQLLiteTableObserver.swift in Sources */,
-				C7EE589426D30F1700E0A8B7 /* CloudRecordStoringProtocols.swift in Sources */,
-				C7EE58A026D30F1700E0A8B7 /* ObserverDispatcher.swift in Sources */,
-				C7EE587E26D30F1700E0A8B7 /* Model.swift in Sources */,
-				C7EE58A426D30F1700E0A8B7 /* ErrorReceiving.swift in Sources */,
-				C7EE589626D30F1700E0A8B7 /* CloudModel.swift in Sources */,
-				C7EE588626D30F1700E0A8B7 /* Repo.swift in Sources */,
 				C797B28D268B933D009194F1 /* LSTDatabaseMigrator.swift in Sources */,
-				C7EE589A26D30F1700E0A8B7 /* TableObserving.swift in Sources */,
-				C7EE589826D30F1700E0A8B7 /* CloudRecordStore.swift in Sources */,
-				C7EE588426D30F1700E0A8B7 /* CloudChangeTag.swift in Sources */,
 				C797B28E268B9340009194F1 /* ViewController.swift in Sources */,
-				C7EE588026D30F1700E0A8B7 /* TableRow.swift in Sources */,
-				C7EE588C26D30F1700E0A8B7 /* AsynchronousOperation.swift in Sources */,
 				C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */,
 				C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */,
-				C7EE589C26D30F1700E0A8B7 /* TableObserverProtocols.swift in Sources */,
-				C7EE588E26D30F1700E0A8B7 /* CloudKitZoneAvailablityOperation.swift in Sources */,
-				C7EE589226D30F1700E0A8B7 /* CloudOperation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
