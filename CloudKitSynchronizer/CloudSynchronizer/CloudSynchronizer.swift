@@ -370,7 +370,9 @@ public class CloudSynchronizer {
         
         let tableObserver = tableObserver(for: name)
         
-        return CloudRecordMapper(tableName: tableObserver.tableName, columnNames: tableObserver.columnNames)
+        return CloudRecordMapper(tableName: tableObserver.tableName,
+                                 columnNames: tableObserver.columnNames,
+                                 transforms: [:])
     }
     
     private func startObservingTable(_ syncedTable:TableConfigurable) throws {
