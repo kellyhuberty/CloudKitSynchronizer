@@ -10,19 +10,19 @@ import GRDB
 import UIKit
 protocol AssetProcessing {
     
-    var configurations: [SyncedAssetConfiguring] { get set }
-    
-    func processReceivedCKAssets(_ ckRecord: CKRecord) throws -> [String: DatabaseValue]
-    
-    func processOutgoingCKAssets(_ values: [String: DatabaseValue]) throws -> [String: CKAsset]
-    
-    func removeAllAssets(for identifier:String) throws
+//    var configurations: [SyncedAssetConfiguring] { get set }
+//
+//    func processReceivedCKAssets(_ ckRecord: CKRecord) throws -> [String: DatabaseValue]
+//
+//    func processOutgoingCKAssets(_ values: [String: DatabaseValue]) throws -> [String: CKAsset]
+//
+//    func removeAllAssets(for identifier:String) throws
 }
 
 
-/*
+
 class AssetProcessor: AssetProcessing {
-    
+/*
     struct AssetKey: Hashable {
         var table: String
         var column: String
@@ -72,6 +72,6 @@ class AssetProcessor: AssetProcessing {
     func removeAllAssets(for identifier:String) {
         
     }
-    
-}
 */
+}
+

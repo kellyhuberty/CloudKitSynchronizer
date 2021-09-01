@@ -63,7 +63,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer.test",
                         path: directory.path,
                         migrator: LSTDatabaseMigrator.setupMigrator(),
-                        synchronizedTables: [SynchronizedTable(table:"Item")] )
+                        synchronizedTables: [TableConfiguration(table:"Item")] )
         
         return repo
     }

@@ -16,7 +16,7 @@ class SQLiteTableObserver {
 //    }
     
     // MARK: - Public Vars
-    let tableConfiguration: SynchronizedTableProtocol
+    let tableConfiguration: TableConfigurable
     let columnNames:[String]
     
     private var resultsController: DatabaseRegionObservation!
@@ -34,7 +34,7 @@ class SQLiteTableObserver {
     
     
     // MARK: - inits
-    init(tableConfiguration: SynchronizedTableProtocol, databaseQueue:DatabaseQueue) {
+    init(tableConfiguration: TableConfigurable, databaseQueue:DatabaseQueue) {
         self.tableConfiguration = tableConfiguration
         self.columnNames = try! SQLiteTableObserver.columnNames(for: tableConfiguration.tableName, in: databaseQueue)
         self.databaseQueue = databaseQueue

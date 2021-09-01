@@ -10,11 +10,11 @@ import Foundation
 
 
 protocol TableObserverProducing : AnyObject {
-    func newTableObserver(_ tableConfiguration: SynchronizedTableProtocol) -> TableObserving
+    func newTableObserver(_ tableConfiguration: TableConfigurable) -> TableObserving
 }
 
 protocol TableObserving: AnyObject {
-    var tableConfiguration: SynchronizedTableProtocol { get }
+    var tableConfiguration: TableConfigurable { get }
     var columnNames:[String] { get }
     var isObserving: Bool { get set }
     var delegate: TableObserverDelegate? { get set }

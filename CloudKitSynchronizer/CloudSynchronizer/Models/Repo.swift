@@ -22,7 +22,7 @@ public class Repo {
     public init(domain: String,
          path: String,
          migrator: DatabaseMigrator,
-         synchronizedTables: [SynchronizedTable]? ) {
+         synchronizedTables: [TableConfiguration]? ) {
         
         let dbPool = try! DatabaseQueue(path: path)
         

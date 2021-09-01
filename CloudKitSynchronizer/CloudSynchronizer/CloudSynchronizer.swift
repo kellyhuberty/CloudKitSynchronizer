@@ -10,27 +10,29 @@ import Foundation
 import CloudKit
 import GRDB
 
-public class SynchronizedTable : SynchronizedTableProtocol {
+public class TableConfiguration : TableConfigurable {
     public let tableName: String
-    public var syncedAssets: [SyncedAssetConfiguring]
+    public var syncedAssets: [AssetConfigurable]
     
-    public init(table:String, assets: [SyncedAssetConfiguring] = []){
+    public init(table:String, assets: [AssetConfigurable] = []){
         tableName = table
         syncedAssets = assets
     }
 }
 
-public protocol SynchronizedTableProtocol {
+typealias TableConfig = TableConfiguration
+
+public protocol TableConfigurable {
     var tableName:String { get }
-    var syncedAssets: [SyncedAssetConfiguring] { get }
+    var syncedAssets: [AssetConfigurable] { get }
 }
 
-public protocol SyncedAssetConfiguring {
+public protocol AssetConfigurable {
     var column: String { get }
     func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
 }
 
-public class SyncedAssetConfiguration: SyncedAssetConfiguring {
+public class AssetConfiguration: AssetConfigurable {
     
     public let column: String
     private let filePathHandler: (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
@@ -45,7 +47,7 @@ public class SyncedAssetConfiguration: SyncedAssetConfiguring {
 
     public convenience init(column: String, directory: URL) {
         self.init(column: column,
-                  filePathHandler: SyncedAssetConfiguration.newDefaultFilePathHandler(directory: directory))
+                  filePathHandler: AssetConfiguration.newDefaultFilePathHandler(directory: directory))
     }
     
     public init(column: String, filePathHandler: @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
@@ -57,6 +59,8 @@ public class SyncedAssetConfiguration: SyncedAssetConfiguring {
         return filePathHandler(rowIdentifier, table, column)
     }
 }
+
+typealias AssetConfig = AssetConfiguration
 
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
@@ -251,8 +255,8 @@ public class CloudSynchronizer {
          operationFactory: CloudOperationProducing? = nil,
          tableObserverFactory: TableObserverProducing? = nil,
          cloudRecordStore: CloudRecordStoring? = nil,
-         defaultZoneName: String = ZoneName.defaultZoneName
-//         ,assetProcessor: AssetProcessing = AssetProcessor()
+         defaultZoneName: String = ZoneName.defaultZoneName,
+         assetProcessor: AssetProcessing = AssetProcessor()
     ) throws {
         
         self.localDatabasePool = databaseQueue
@@ -324,7 +328,7 @@ public class CloudSynchronizer {
         status = .stopped
     }
     
-    var synchronizedTables:[SynchronizedTableProtocol] = [] {
+    var synchronizedTables:[TableConfigurable] = [] {
         didSet{
             setSyncRequest()
         }
@@ -365,13 +369,11 @@ public class CloudSynchronizer {
     private func mapper(for name:String) -> CloudRecordMapping {
         
         let tableObserver = tableObserver(for: name)
-        return tableObserver.mapper
         
+        return CloudRecordMapper(tableName: tableObserver.tableName, columnNames: tableObserver.columnNames)
     }
     
-    private func startObservingTable(_ syncedTable:SynchronizedTableProtocol) throws {
-        
-//        let table = syncedTable.tableName
+    private func startObservingTable(_ syncedTable:TableConfigurable) throws {
         let tableObserver = _tableObserverFactory.newTableObserver(syncedTable)
         tableObserver.delegate = self
         addTableObserver(tableObserver)

@@ -17,7 +17,7 @@ class SQLiteTableObserverFactory: TableObserverProducing {
         self.databaseQueue = databaseQueue
     }
     
-    func newTableObserver(_ tableConfiguration: SynchronizedTableProtocol) -> TableObserving {
+    func newTableObserver(_ tableConfiguration: TableConfigurable) -> TableObserving {
         return SQLiteTableObserver(tableConfiguration: tableConfiguration, databaseQueue: databaseQueue)
     }
     

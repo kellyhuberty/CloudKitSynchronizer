@@ -76,7 +76,7 @@ extension AppDelegate: RepoManufacturing {
         let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
                         path: directory.path,
                         migrator: migrator,
-                        synchronizedTables: [SynchronizedTable(table:"Item")] )
+                        synchronizedTables: [TableConfiguration(table:"Item")] )
         
         return repo
         
