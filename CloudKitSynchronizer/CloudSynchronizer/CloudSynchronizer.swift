@@ -248,6 +248,8 @@ public class CloudSynchronizer {
     
     private var observers:[TableObserving] = []
     
+    private let assetProcessor: AssetProcessing
+
     ///Unused
     // weak var delegate: CloudSynchronizerDelegate?
     
@@ -285,6 +287,8 @@ public class CloudSynchronizer {
         self.zoneId = CKRecordZone.ID(zoneName: defaultZoneName, ownerName: CKCurrentUserDefaultName)
 
         self.status = .unstarted
+        
+        self.assetProcessor = assetProcessor
         
         _availability = CloudKitAvailablity(CKContainer.default()) { status in
             
@@ -368,9 +372,20 @@ public class CloudSynchronizer {
         
         let tableObserver = tableObserver(for: name)
         
+        let tableConfig = tableObserver.tableConfiguration
+        
+        var transforms = [String: AssetTransformer]()
+        
+        for assetConfig in tableConfig.syncedAssets {
+            transforms[assetConfig.column] =
+                AssetTransformer(table: name,
+                                 assetConfig: assetConfig,
+                                 processor: self.assetProcessor)
+        }
+        
         return CloudRecordMapper(tableName: tableObserver.tableName,
                                  columnNames: tableObserver.columnNames,
-                                 transforms: [:])
+                                 transforms: transforms)
     }
     
     private func startObservingTable(_ syncedTable:TableConfigurable) throws {

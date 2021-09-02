@@ -165,23 +165,6 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         return true
     }
     
-//    override var keyCommands: [UIKeyCommand]? {
-//        return [
-//            UIKeyCommand(input: UIKeyCommand.inputDownArrow,
-//                         modifierFlags: [],
-//                         action: #selector(downArrowAction(_:)),
-//                         discoverabilityTitle: "Down"),
-//            UIKeyCommand(input: UIKeyCommand.inputUpArrow,
-//                         modifierFlags: [],
-//                         action: #selector(upArrowAction(_:)),
-//                         discoverabilityTitle: "Up"),
-//            UIKeyCommand(input: "\u{8}",
-//                         modifierFlags: [],
-//                         action: #selector(deleteAction(_:)),
-//                         discoverabilityTitle: "Delete")
-//        ]
-//    }
-    
     class KeyController {
                 
         weak var responder: UIViewController?
@@ -241,7 +224,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
                          attributes: [],
                          state: .on)
         
-        
+
         let selectAll =
             UIKeyCommand(title: "Select All",
                          image: nil,

@@ -19,7 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         loadRepo(for: "")!
     }()
     
-    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         

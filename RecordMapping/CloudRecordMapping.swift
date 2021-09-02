@@ -9,14 +9,6 @@ import Foundation
 import GRDB
 import CloudKit
 
-
-protocol Transformer {
-    
-    func transformToLocal(_ in: CKRecordValue ) -> DatabaseValueConvertible?
-    func transformToRemote(_ in: DatabaseValueConvertible ) -> CKRecordValue?
-
-}
-
 protocol CloudRecordMapping: AnyObject {
     
     var transforms: [String: Transformer] { get }
@@ -93,6 +85,16 @@ extension CloudRecordMapper: CloudRecordMapping {
                 continue
             }
             
+            if let transform = transforms[key] {
+                if let transformedValue = transform.transformToRemote(value, to: record) {
+                    record.setValue(transformedValue, forKey: key)
+                }
+                else {
+                    record.setValue(nil, forKey: key)
+                }
+                continue
+            }
+            
             switch value.storage {
             case .blob(let data):
                 record.setValue(data, forKey: key)
@@ -119,6 +121,16 @@ extension CloudRecordMapper: CloudRecordMapping {
 
             guard let value = record[key] else{
                 allValues[key] = nil
+                continue
+            }
+            
+            if let transform = transforms[key] {
+                if let transformedValue = transform.transformToLocal(value, from: record) {
+                    allValues[key] = DatabaseValue(value: transformedValue)
+                }
+                else {
+                    allValues[key] = nil
+                }
                 continue
             }
             

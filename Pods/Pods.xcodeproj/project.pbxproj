@@ -139,6 +139,7 @@
 		C0362E8622986DEAB8CE79C1D2F24372 /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 154162F488ADF43066070353873E68D2 /* DatabasePromise.swift */; };
 		C3AA14D5E85BC7F4F21F47358B732D39 /* FTS5Tokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E95E5D6AAA34C7D20F8152C9A7D35ACC /* FTS5Tokenizer.swift */; };
 		C7EDC5C826DFCC0200EE75D4 /* CloudRecordMapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EDC5C726DFCC0200EE75D4 /* CloudRecordMapping.swift */; };
+		C7EDC5CA26E06B2700EE75D4 /* Transformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EDC5C926E06B2700EE75D4 /* Transformer.swift */; };
 		C7EE58A726D44BF100E0A8B7 /* SyncedAsset.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE58A626D44BF100E0A8B7 /* SyncedAsset.swift */; };
 		C7EE58A926D7B75B00E0A8B7 /* AssetProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7EE58A826D7B75B00E0A8B7 /* AssetProcessor.swift */; };
 		CB2ADA2B403FAAD4506D0E2F4CA7DE4A /* RowAdapter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7BA215DA7FDA3EB3D217CE88D910090 /* RowAdapter.swift */; };
@@ -356,6 +357,7 @@
 		C5E45F8BDEDAEA22D0202BCB49CF4FF0 /* ValueObservationScheduler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ValueObservationScheduler.swift; path = GRDB/ValueObservation/ValueObservationScheduler.swift; sourceTree = "<group>"; };
 		C6009520A0BB38730A04F7846E63D5F1 /* Inflections+English.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Inflections+English.swift"; path = "GRDB/Utils/Inflections+English.swift"; sourceTree = "<group>"; };
 		C7EDC5C726DFCC0200EE75D4 /* CloudRecordMapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudRecordMapping.swift; sourceTree = "<group>"; };
+		C7EDC5C926E06B2700EE75D4 /* Transformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transformer.swift; sourceTree = "<group>"; };
 		C7EE58A626D44BF100E0A8B7 /* SyncedAsset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncedAsset.swift; sourceTree = "<group>"; };
 		C7EE58A826D7B75B00E0A8B7 /* AssetProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetProcessor.swift; sourceTree = "<group>"; };
 		C812C74DA5AEA4A14861D7B1CCD42F46 /* CloudModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudModel.swift; sourceTree = "<group>"; };
@@ -735,6 +737,7 @@
 			isa = PBXGroup;
 			children = (
 				C7EDC5C726DFCC0200EE75D4 /* CloudRecordMapping.swift */,
+				C7EDC5C926E06B2700EE75D4 /* Transformer.swift */,
 			);
 			path = RecordMapping;
 			sourceTree = "<group>";
@@ -1145,6 +1148,7 @@
 				67F13E1AE42241019EF286F3B1250F07 /* AsynchronousOperation.swift in Sources */,
 				F7FB09206AE4FE0992B09F3F541BC9F2 /* CloudChangeTag.swift in Sources */,
 				9578FF4B3C6514B8BD72690AAADC16E2 /* CloudKitRecordPullOperation.swift in Sources */,
+				C7EDC5CA26E06B2700EE75D4 /* Transformer.swift in Sources */,
 				089386C0C290F05DC6034F5EA04A13BF /* CloudKitRecordPushOperation.swift in Sources */,
 				7C42D7E01768F507E9F38FE9E8854B08 /* CloudKitSynchronizer-dummy.m in Sources */,
 				35C6586827ABECA1E39403230B6249E2 /* CloudKitZoneAvailablityOperation.swift in Sources */,
