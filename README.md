@@ -17,9 +17,9 @@ Create a `Repo` to start making SQLite queries and syncing your tables.
 
 ```swift
 	let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer.test", 
-					path: directory.path, 
-					migrator: LSTDatabaseMigrator.setupMigrator(),
-					synchronizedTables: [SynchronizedTable(table:"Item")] )
+			path: directory.path, 
+			migrator: LSTDatabaseMigrator.setupMigrator(),
+			synchronizedTables: [SynchronizedTable(table:"Item")] )
 ```
 
 In this example `Item` is the name of the table getting synced.
