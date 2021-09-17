@@ -18,6 +18,28 @@ struct Item : Model, Hashable, Codable {
     var identifier:String
     var text:String?
     var nextIdentifier:String?
+    var imagePath:String?
+
+    var image: UIImage? {
+        get {
+            guard let imagePath = imagePath else { return nil }
+            
+            let image = UIImage(contentsOfFile: imagePath)
+            
+            return image
+        }
+        set {
+            let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+            let data = newValue?.jpegData(compressionQuality: 2)
+            do {
+                try data?.write(to: tempUrl)
+            }
+            catch {
+                print(error)
+            }
+            imagePath = tempUrl.path
+        }
+    }
     
 }
 

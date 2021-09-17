@@ -62,21 +62,27 @@ extension AppDelegate: RepoManufacturing {
    
     func loadRepo(for domain: String) -> Repo? {
         
-        let directory = URL(string:Directories.documents)!.appendingPathComponent("data.db")
+        
+        let directory = URL(string:Directories.documents)!
+        let dataURLPath = directory.appendingPathComponent("data.db")
+        let assetURL = directory.appendingPathComponent("assets")
+        
         
         print("Database Path: ")
-        print(directory.path + "\n")
+        print(dataURLPath.path + "\n")
         
         //let dbPool = try! DatabaseQueue(path: directory.path)
         
          
         let migrator = setupMigrator()
-            
-        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
-                        path: directory.path,
-                        migrator: migrator,
-                        synchronizedTables: [TableConfiguration(table:"Item")] )
         
+        
+        
+        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
+                        path: dataURLPath.path,
+                        migrator: migrator,
+                        synchronizedTables: [ TableConfiguration(table: "Item", assets: [AssetConfiguration(column: "imagePath", directory: assetURL)])] )
+                
         return repo
         
     }

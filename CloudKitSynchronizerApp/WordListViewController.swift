@@ -9,6 +9,7 @@
 import UIKit
 import GRDB
 import CloudKitSynchronizer
+import UniformTypeIdentifiers
 
 class WordListViewController: UIViewController, WordListTableCellDelegate {
     
@@ -41,6 +42,8 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
             self.diffableDataSource.apply(snapshot, animatingDifferences: true, completion: nil)
         }
     }
+    
+    var selectedAvatarItem: Item?
     
     func refetchResults() {
         let data = try! repo.databaseQueue.read { [weak self] (db) -> [Item] in
@@ -79,38 +82,6 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         return dataSource
     }()
     
-//    lazy var dataSource: FetchedRecordsDataSource<Item> = {
-//
-//        let request = SQLRequest<Item>("select * from Item order by `text`")
-//
-//        let dataSource = FetchedRecordsDataSource<Item>(database: repo.databaseQueue,
-//                                                    request: request,
-//                                                    tableView: tableView) { (tableView, indexPath, item) -> UITableViewCell? in
-//
-//
-//        }
-//
-//
-//
-//
-//
-//
-//
-////        let dataSource = FetchedRecordsDataSource<Item>(
-////
-////        resultsController.trackChanges(willChange: { (item) in
-////
-////        }, onChange: { (controller, item, change) in
-////
-////        }, didChange: { [weak self] (controller) in
-////            self?.tableView.reloadData()
-////        })
-//
-////        try! resultsController.performFetch()
-////        return resultsController
-//        return dataSource
-//    }()
-    
     lazy var editingToolbar:UIToolbar? = {
         
         let toolbar = UIToolbar()
@@ -139,12 +110,6 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         keyController.addFirstResponderCommands()
     }
     
-//    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
-//        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
-//        keyController = KeyController(self)
-//        keyController.addFirstResponderCommands()
-//    }
-//
     required init?(coder: NSCoder) {
         fatalError()
     }
@@ -411,6 +376,43 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         addEditItem(item)
         
     }
+    
+    func itemCellTappedAvatar(_ itemCell: WordListTableCell) {
+        let imgPickerVC = UIImagePickerController()
+        imgPickerVC.delegate = self
+        
+        let utType: String
+        
+
+
+        if #available(iOS 14, tvOS 14, macOS 11, *) {
+            utType = UTType.jpeg.identifier
+        }
+        else {
+            utType = "UTType.jpeg.identifier"
+        }
+
+        print(utType)
+
+        
+        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) &&
+            UIImagePickerController.availableMediaTypes(for: .photoLibrary)?.contains(utType as String) ?? false {
+            imgPickerVC.sourceType = .photoLibrary
+            imgPickerVC.mediaTypes.append(utType as String)
+        }
+        
+        guard imgPickerVC.mediaTypes.count > 0 else { return }
+        
+        imgPickerVC.modalPresentationStyle = .popover
+        imgPickerVC.popoverPresentationController?.sourceView = itemCell.avatarView
+        
+        selectedAvatarItem = itemCell.item
+        
+        self.present(imgPickerVC, animated: true) {
+            
+        }
+        
+    }
 }
 
 extension WordListViewController: CustomTableViewDiffableDataSourceDelegate {
@@ -483,6 +485,24 @@ extension UITableView {
     }
 }
 
+extension WordListViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        let image = info[.originalImage] as? UIImage
+        guard var item = selectedAvatarItem else {
+            return
+        }
+        selectedAvatarItem = nil
+        item.image = image
+        addEditItem(item)
+        picker.dismiss(animated: true) {
+        }
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        selectedAvatarItem = nil
+    }
+}
 
 extension UITableView {
     

@@ -84,11 +84,11 @@ struct TableNames{
                     self = .noAccount
                 case .restricted:
                     self = .restricted
-                #if swift(>=5.5)
-                //TODO: Re-add when support settles down.
-                case .temporarilyUnavailable:
-                    self = .temporarilyUnavailable
-                #endif
+//                #if swift(>=5.5)
+//                //TODO: Re-add when support settles down.
+//                case .temporarilyUnavailable:
+//                    self = .temporarilyUnavailable
+//                #endif
                 default:
                     self = .couldNotDetermine
                 }

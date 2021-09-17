@@ -7,19 +7,23 @@
 
 import Foundation
 
-@propertyWrapper struct SyncedAsset<T> {
-    
-    var wrappedValue:T
-    
-    
-    
-}
-
-
-struct File {
-    
-    
-    
-    
-    
-}
+//@propertyWrapper struct SyncedAsset<T> {
+//    
+//    var wrappedValue: File
+//
+//    var value: String?
+//    
+//    
+//    
+//    
+//}
+//
+//struct File: Codable {
+//
+//    let url: URL
+//
+//    init(path: String) {
+//
+//    }
+//
+//}

@@ -10,11 +10,31 @@ import UIKit
 
 class WordListTableCell: UITableViewCell {
 
-    let textView:UITextField = {
+    static let defaultAvatar: UIImage = {
+        UIImage(systemName:"person.crop.circle.fill")!
+    }()
+    
+    let textView: UITextField = {
         let view = UITextField()
         view.adjustsFontForContentSizeCategory = true
         view.translatesAutoresizingMaskIntoConstraints = false
         
+        return view
+    }()
+    
+    private lazy var avatarViewGestureRecognizer: UIGestureRecognizer? = {
+        let recognizer = UITapGestureRecognizer(target: self, action: #selector(avatarTapAction(_:)))
+        recognizer.numberOfTapsRequired = 1
+        return recognizer
+    }()
+    
+    let avatarView: UIImageView = {
+        let view = UIImageView()
+        view.image = WordListTableCell.defaultAvatar
+        view.contentMode = .scaleAspectFill
+        view.isUserInteractionEnabled = true
+        view.layer.masksToBounds = true
+        view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
     
@@ -25,8 +45,14 @@ class WordListTableCell: UITableViewCell {
         configureLayout()
     }
 
-    var item:Item?{
+    var item:Item? {
         didSet{
+            if let newItem = item {
+                avatarView.image = newItem.image ?? WordListTableCell.defaultAvatar
+            }
+            else {
+                avatarView.image = nil
+            }
             
         }
     }
@@ -39,9 +65,22 @@ class WordListTableCell: UITableViewCell {
     func configureLayout(){
         
         contentView.addSubview(textView)
-        
+        contentView.addSubview(avatarView)
+
         NSLayoutConstraint.activate([
-            textView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            
+            avatarView.widthAnchor.constraint(equalTo: avatarView.heightAnchor),
+            avatarView.widthAnchor.constraint(equalToConstant: 44).withPriority(.required),
+
+            avatarView.leadingAnchor.constraint(equalTo: contentView.layoutMarginsGuide.leadingAnchor),
+            
+            avatarView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
+            avatarView.bottomAnchor.constraint(equalTo: contentView.layoutMarginsGuide.bottomAnchor),
+            
+            
+            
+            
+            textView.leadingAnchor.constraint(equalTo: avatarView.trailingAnchor, constant: 10),
             textView.trailingAnchor.constraint(lessThanOrEqualTo: contentView.layoutMarginsGuide.trailingAnchor),
             textView.topAnchor.constraint(equalTo: contentView.layoutMarginsGuide.topAnchor),
             textView.widthAnchor.constraint(greaterThanOrEqualToConstant: 55),
@@ -52,6 +91,7 @@ class WordListTableCell: UITableViewCell {
         textView.addTarget(self, action: #selector(textDidEndEditing), for: .editingDidEnd)
         textView.addTarget(self, action: #selector(textDidBeginEditing), for: .editingDidBegin)
 
+        avatarView.addGestureRecognizer(avatarViewGestureRecognizer!)
     }
     
     @objc func textDidBeginEditing(){
@@ -97,6 +137,16 @@ class WordListTableCell: UITableViewCell {
         return true
     }
 
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let radius = avatarView.frame.height / 2
+        avatarView.layer.cornerRadius = radius
+    }
+    
+    @objc func avatarTapAction(_ sender: Any) {
+        delegate?.itemCellTappedAvatar(self)
+    }
+    
 }
 
 @objc protocol WordListTableCellDelegate{
@@ -105,4 +155,12 @@ class WordListTableCell: UITableViewCell {
     func itemCellDidBeginEditing(_ itemCell:WordListTableCell)
     func itemCellDidEndEditing(_ itemCell:WordListTableCell)
     
+    func itemCellTappedAvatar(_ itemCell:WordListTableCell)
+}
+
+extension NSLayoutConstraint{
+    func withPriority(_ priority: UILayoutPriority) -> NSLayoutConstraint {
+        self.priority = priority
+        return self
+    }
 }
