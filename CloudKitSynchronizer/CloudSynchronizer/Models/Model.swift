@@ -10,7 +10,7 @@ import Foundation
 import GRDB
 
 public protocol Model : Codable, FetchableRecord, PersistableRecord {
-
+    
 }
 
 public enum ModelSaveStatus {
@@ -64,13 +64,14 @@ public extension Model {
 
 }
 
+//public protocol RecordModel: Model {
+//
+//    var identifier: String { get }
+//
+//}
+
 protocol CloudModel {
     
-    
-    
-    
-    
-//    var cloudStatus:
     
 }
 

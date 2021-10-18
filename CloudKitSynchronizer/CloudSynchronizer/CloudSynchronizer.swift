@@ -30,6 +30,14 @@ public protocol TableConfigurable {
 public protocol AssetConfigurable {
     var column: String { get }
     func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
+    //func stagingFilePath(rowIdentifier: String, table: String, column: String) -> URL
+}
+
+public extension AssetConfigurable {
+
+    func stagingFilePath(rowIdentifier: String, table: String, column: String) -> URL {
+        localFilePath(rowIdentifier: rowIdentifier, table: table, column: column).appendingPathExtension("staging")
+    }
 }
 
 public class AssetConfiguration: AssetConfigurable {
@@ -658,7 +666,7 @@ public class CloudSynchronizer {
                 RecoverySuggestion: %@
                 RecoveryType: %@
                 """,
-                     error.underlyingError.errorCode,
+                     error.ckError?.errorCode ?? 0,
                      error.localizedDescription,
                      error.failureReason ?? "",
                      error.recoverySuggestion ?? "",

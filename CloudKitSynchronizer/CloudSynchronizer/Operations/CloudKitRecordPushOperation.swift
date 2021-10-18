@@ -136,6 +136,6 @@ class CloudRecordError : Error{
         
         self.description = cloudKitError.localizedDescription
         self.status = status
-        self.serverRecord = cloudKitError.underlyingError.serverRecord
+        self.serverRecord = cloudKitError.ckError?.serverRecord
     }
 }

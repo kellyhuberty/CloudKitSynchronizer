@@ -10,6 +10,8 @@
 		B280E8BDABCC06D519920117 /* Pods_CloudKitSynchronizerAppPod.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 803731224376C15A79FE7566 /* Pods_CloudKitSynchronizerAppPod.framework */; };
 		C4CB4255FC76F4330F0878D2 /* Pods_CloudKitSynchronizerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */; };
 		C723C79D25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */; };
+		C73C03DD26F0E0E60024DD0D /* AssociatedObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73C03DC26F0E0E60024DD0D /* AssociatedObjects.swift */; };
+		C73C03DE26F0E0E60024DD0D /* AssociatedObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73C03DC26F0E0E60024DD0D /* AssociatedObjects.swift */; };
 		C7653B622243390B000CDABB /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B612243390B000CDABB /* AppDelegate.swift */; };
 		C7653B642243390B000CDABB /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C7653B692243390D000CDABB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
@@ -44,6 +46,7 @@
 		941E07D8A90264EFC81D257E /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSyncIntegrationTests.swift; sourceTree = "<group>"; };
+		C73C03DC26F0E0E60024DD0D /* AssociatedObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssociatedObjects.swift; sourceTree = "<group>"; };
 		C7653B5E2243390B000CDABB /* CloudKitSynchronizerAppPod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizerAppPod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7653B612243390B000CDABB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		C7653B632243390B000CDABB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -121,6 +124,7 @@
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
+				C73C03DC26F0E0E60024DD0D /* AssociatedObjects.swift */,
 				C78758FB267D1B370030C77C /* CloudKitSynchronizerApp */,
 				C7653B752243390D000CDABB /* CloudKitSynchronizerTests */,
 				C7653B5F2243390B000CDABB /* Products */,
@@ -411,6 +415,7 @@
 				C7653B642243390B000CDABB /* ViewController.swift in Sources */,
 				C7653B9B2243F72C000CDABB /* Item.swift in Sources */,
 				C7653B622243390B000CDABB /* AppDelegate.swift in Sources */,
+				C73C03DE26F0E0E60024DD0D /* AssociatedObjects.swift in Sources */,
 				C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,
@@ -432,6 +437,7 @@
 				C797B28B268B9337009194F1 /* Item.swift in Sources */,
 				C797B28C268B933A009194F1 /* AppDelegate.swift in Sources */,
 				C797B28D268B933D009194F1 /* LSTDatabaseMigrator.swift in Sources */,
+				C73C03DD26F0E0E60024DD0D /* AssociatedObjects.swift in Sources */,
 				C797B28E268B9340009194F1 /* ViewController.swift in Sources */,
 				C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */,
 				C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */,

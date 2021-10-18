@@ -79,6 +79,10 @@ extension CloudRecordMapping {
 extension CloudRecordMapper: CloudRecordMapping {
     func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord {
 
+        if isRecordEmpty(data) {
+            fatalError("CKRecord data \(data) is empty at map.")
+        }
+        
         for (key, value) in data{
             guard let value = value else{
                 record.setValue(nil, forKey: key)
@@ -149,9 +153,23 @@ extension CloudRecordMapper: CloudRecordMapping {
             
         }
         
+        if isRecordEmpty(allValues) {
+            fatalError("CKRecord \(record.recordID) is empty at map.")
+        }
+        
         return allValues
     }
+    
+    func isRecordEmpty(_ data: [String:DatabaseValue?]) -> Bool {
+        let valuesCopy = data.reduce(into: [String:DatabaseValue?]()) { partialResult, keyValue in
+            if keyValue.value != nil {
+                partialResult[keyValue.key] = keyValue.value
+            }
+        }
+        return valuesCopy.count == 0
+    }
 }
+
 
 class CloudRecordMapper {
     

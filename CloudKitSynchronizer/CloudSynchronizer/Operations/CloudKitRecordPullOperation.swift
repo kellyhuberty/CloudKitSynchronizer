@@ -62,6 +62,31 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
                                               status: .success)
         }
         
+        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *){
+            _pullOperation.recordWasChangedBlock = { [weak self] (recordId, recordResult) in
+                
+                guard let self = self else {
+                    return
+                }
+            
+                switch recordResult{
+                case .failure(let error):
+                    self.delegate?.cloudPullOperation(self,
+                                                      processedUpdatedRecords: [],
+                                                      status: .error(CloudKitError(error: error)))
+                case .success(let record):
+                    
+                    if record.recordID == nil  {
+                        print("wtf")
+                    }
+                    
+                    self.delegate?.cloudPullOperation(self,
+                                                      processedUpdatedRecords: [record],
+                                                      status: .success)
+                }
+            }
+            _pullOperation.recordChangedBlock = nil
+        }
         _pullOperation.recordWithIDWasDeletedBlock = { (recordId, recordType) in
             
             

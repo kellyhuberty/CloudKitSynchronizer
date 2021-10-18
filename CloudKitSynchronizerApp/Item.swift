@@ -11,35 +11,46 @@ import CloudKitSynchronizer
 
 struct Item : Model, Hashable, Codable {
     
+    
     init() {
         identifier = UUID().uuidString
+        _imagePath = SyncedAsset()
     }
     
-    var identifier:String
+    var identifier: String
     var text:String?
     var nextIdentifier:String?
-    var imagePath:String?
+    @SyncedAsset var imagePath: URL?
 
-    var image: UIImage? {
+    var image: UIImage?{
         get {
-            guard let imagePath = imagePath else { return nil }
-            
-            let image = UIImage(contentsOfFile: imagePath)
-            
-            return image
+            return nil
         }
         set {
-            let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
-            let data = newValue?.jpegData(compressionQuality: 2)
-            do {
-                try data?.write(to: tempUrl)
-            }
-            catch {
-                print(error)
-            }
-            imagePath = tempUrl.path
+            
         }
     }
+    //{
+        
+//        get {
+//            guard let imagePath = imagePath else { return nil }
+//
+//            let image = UIImage(contentsOfFile: imagePath)
+//
+//            return image
+//        }
+//        set {
+//            let tempUrl = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(UUID().uuidString)
+//            let data = newValue?.jpegData(compressionQuality: 2)
+//            do {
+//                try data?.write(to: tempUrl)
+//            }
+//            catch {
+//                print(error)
+//            }
+//            imagePath = tempUrl.path
+//        }
+ //   }
     
 }
 

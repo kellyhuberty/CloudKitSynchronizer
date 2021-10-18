@@ -28,10 +28,17 @@ public enum RecoveryType: String {
 
 internal struct CloudKitError : Error {
     
-    let underlyingError: CKError
+    let underlyingError: Error
+
+    var ckError: CKError? {
+        return underlyingError as? CKError
+    }
+
     let code: RecoveryType
 
-    init(error:CKError) {
+    static func recoveryType (error:CKError) -> RecoveryType {
+        
+        let code: RecoveryType
         
         switch error.code {
         case .alreadyShared:
@@ -111,7 +118,20 @@ internal struct CloudKitError : Error {
         @unknown default:
             code = .haltSync
         }
-     
+        
+        return code
+    }
+    
+    init(error: Error) {
+        
+        if let ckError = error as? CKError {
+            code = CloudKitError.recoveryType(error: ckError)
+        }
+        else {
+            print("Unknown Cloud Kit error found: \(error.localizedDescription)")
+            code = .unhandled
+        }
+        
         underlyingError = error
     }
         

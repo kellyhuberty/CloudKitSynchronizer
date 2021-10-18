@@ -24,32 +24,96 @@
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "18E5926F-5EA5-4EFF-9D60-EEC38EC0A55E"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "108"
-            endingLineNumber = "108"
-            landmarkName = "currentChangeTag"
-            landmarkType = "24">
+            startingLineNumber = "158"
+            endingLineNumber = "158"
+            landmarkName = "checkAvailablity(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "18E5926F-5EA5-4EFF-9D60-EEC38EC0A55E - b5cd8659bc693cc7"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (__C.CKAccountStatus, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in CloudKitSynchronizer.CloudKitAvailablity.checkAvailablity(Swift.Optional&lt;(CloudKitSynchronizer.CloudKitAvailablity.Status) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "150"
+                  endingLineNumber = "150"
+                  offsetFromSymbolStart = "806">
+               </Location>
+               <Location
+                  uuid = "18E5926F-5EA5-4EFF-9D60-EEC38EC0A55E - b5cd8659bc693cc7"
+                  shouldBeEnabled = "Yes"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (__C.CKAccountStatus, Swift.Optional&lt;Swift.Error&gt;) -&gt; () in CloudKitSynchronizer.CloudKitAvailablity.checkAvailablity(Swift.Optional&lt;(CloudKitSynchronizer.CloudKitAvailablity.Status) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "150"
+                  endingLineNumber = "150"
+                  offsetFromSymbolStart = "672">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "38BF9E0A-D6D4-4DCE-831E-A78621096D74"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "109"
-            endingLineNumber = "109"
-            landmarkName = "currentChangeTag"
-            landmarkType = "24">
+            startingLineNumber = "159"
+            endingLineNumber = "159"
+            landmarkName = "checkAvailablity(_:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "38BF9E0A-D6D4-4DCE-831E-A78621096D74 - fa0f6d10fcfaa2d0"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CloudKitSynchronizer.CloudKitAvailablity.checkAvailablity(Swift.Optional&lt;(CloudKitSynchronizer.CloudKitAvailablity.Status) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "151"
+                  endingLineNumber = "151"
+                  offsetFromSymbolStart = "366">
+               </Location>
+               <Location
+                  uuid = "38BF9E0A-D6D4-4DCE-831E-A78621096D74 - fa0f6d10fcfaa2d0"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CloudKitSynchronizer.CloudKitAvailablity.checkAvailablity(Swift.Optional&lt;(CloudKitSynchronizer.CloudKitAvailablity.Status) -&gt; ()&gt;) -&gt; ()"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "151"
+                  endingLineNumber = "151"
+                  offsetFromSymbolStart = "392">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -62,57 +126,665 @@
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "114"
-            endingLineNumber = "114"
-            landmarkName = "currentChangeTag"
-            landmarkType = "24">
+            startingLineNumber = "164"
+            endingLineNumber = "164"
+            landmarkName = "Status"
+            landmarkType = "13">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "AB5E623E-6E44-42AB-84DC-09C3BEF94D1D"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "122"
-            endingLineNumber = "122"
-            landmarkName = "currentChangeTag"
-            landmarkType = "24">
+            startingLineNumber = "172"
+            endingLineNumber = "172"
+            landmarkName = "ZoneName"
+            landmarkType = "13">
+            <Locations>
+               <Location
+                  uuid = "AB5E623E-6E44-42AB-84DC-09C3BEF94D1D - 7da53aecad939ff5"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "one-time initialization function for defaultZoneName"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "164"
+                  endingLineNumber = "164"
+                  offsetFromSymbolStart = "8">
+               </Location>
+               <Location
+                  uuid = "AB5E623E-6E44-42AB-84DC-09C3BEF94D1D - 7da53aecad939ff5"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "one-time initialization function for defaultZoneName"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "164"
+                  endingLineNumber = "164"
+                  offsetFromSymbolStart = "36">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "6C6D6284-4340-46AB-9265-01FD0510416A"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "128"
-            endingLineNumber = "128"
-            landmarkName = "currentChangeTag"
-            landmarkType = "24">
+            startingLineNumber = "178"
+            endingLineNumber = "178"
+            landmarkName = "CloudSynchronizer"
+            landmarkType = "3">
+            <Locations>
+               <Location
+                  uuid = "6C6D6284-4340-46AB-9265-01FD0510416A - 2de1bc232036485b"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CloudKitSynchronizer.CloudSynchronizer.init(databaseQueue: GRDB.DatabaseQueue, operationFactory: Swift.Optional&lt;CloudKitSynchronizer.CloudOperationProducing&gt;, tableObserverFactory: Swift.Optional&lt;CloudKitSynchronizer.TableObserverProducing&gt;, cloudRecordStore: Swift.Optional&lt;CloudKitSynchronizer.CloudRecordStoring&gt;, defaultZoneName: Swift.String, assetProcessor: CloudKitSynchronizer.AssetProcessing) throws -&gt; CloudKitSynchronizer.CloudSynchronizer"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "170"
+                  endingLineNumber = "170"
+                  offsetFromSymbolStart = "357">
+               </Location>
+               <Location
+                  uuid = "6C6D6284-4340-46AB-9265-01FD0510416A - 2de1bc232036485b"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "CloudKitSynchronizer.CloudSynchronizer.init(databaseQueue: GRDB.DatabaseQueue, operationFactory: Swift.Optional&lt;CloudKitSynchronizer.CloudOperationProducing&gt;, tableObserverFactory: Swift.Optional&lt;CloudKitSynchronizer.TableObserverProducing&gt;, cloudRecordStore: Swift.Optional&lt;CloudKitSynchronizer.CloudRecordStoring&gt;, defaultZoneName: Swift.String, assetProcessor: CloudKitSynchronizer.AssetProcessing) throws -&gt; CloudKitSynchronizer.CloudSynchronizer"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "170"
+                  endingLineNumber = "170"
+                  offsetFromSymbolStart = "220">
+               </Location>
+            </Locations>
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
             uuid = "DADA111E-648A-4CF0-BA4D-341AA820BEAA"
-            shouldBeEnabled = "Yes"
+            shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "793"
-            endingLineNumber = "793"
-            landmarkName = "tableObserver(_:created:updated:deleted:)"
+            startingLineNumber = "865"
+            endingLineNumber = "865"
+            landmarkName = "recordsMarkedRetry(with:)"
+            landmarkType = "7">
+            <Locations>
+               <Location
+                  uuid = "DADA111E-648A-4CF0-BA4D-341AA820BEAA - f8bb41b433006204"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (GRDB.Database) throws -&gt; () in CloudKitSynchronizer.CloudSynchronizer.recordsMarkedRetry(with: CloudKitSynchronizer.CloudRecordMutationType) -&gt; Swift.Array&lt;__C.CKRecord&gt;"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "857"
+                  endingLineNumber = "857"
+                  offsetFromSymbolStart = "558">
+               </Location>
+               <Location
+                  uuid = "DADA111E-648A-4CF0-BA4D-341AA820BEAA - f8bb41b433006204"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "closure #1 (GRDB.Database) throws -&gt; () in CloudKitSynchronizer.CloudSynchronizer.recordsMarkedRetry(with: CloudKitSynchronizer.CloudRecordMutationType) -&gt; Swift.Array&lt;__C.CKRecord&gt;"
+                  moduleName = "CloudKitSynchronizer"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/kellyhuberty/Projects/CloudKitSynchronizer/CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "857"
+                  endingLineNumber = "857"
+                  offsetFromSymbolStart = "376">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "9B21D243-2D4A-4D87-BCF9-E7E5EF4AF63B"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "382"
+            endingLineNumber = "382"
+            landmarkName = "itemCellTappedAvatar(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AEBC57DC-CE3D-40E7-B3FE-9CB287962E75"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListTableCell.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "147"
+            endingLineNumber = "147"
+            landmarkName = "avatarTapAction(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0BDD3529-4706-4B19-896C-4EFDD2E4554F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "491"
+            endingLineNumber = "491"
+            landmarkName = "imagePickerController(_:didFinishPickingMediaWithInfo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "AFBC63D7-9743-4DF9-8108-EBFF3BC541C7"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "44"
+            endingLineNumber = "44"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "24B4C9FA-6147-42E8-8730-D03CADC10F77"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "497"
+            endingLineNumber = "497"
+            landmarkName = "imagePickerController(_:didFinishPickingMediaWithInfo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E8B5BF71-962C-4820-B603-24A7172798C6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "493"
+            endingLineNumber = "493"
+            landmarkName = "imagePickerController(_:didFinishPickingMediaWithInfo:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "803EE3F2-3E6D-4EA3-BA2C-04FCC92471F0"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "04B29F3A-5B09-4767-AF1D-85DB11BAE071"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/WordListViewController.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "334"
+            endingLineNumber = "334"
+            landmarkName = "addEditItem(_:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "07F56C5F-F083-4986-9E07-F3EEE4EE280F"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "37"
+            endingLineNumber = "37"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "317DD6AD-1576-4B43-9659-D45434D785B1"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "49"
+            endingLineNumber = "49"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "487ED790-127D-477E-B0FE-971FDE410585"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "46"
+            endingLineNumber = "46"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B012EE27-D646-40F8-9439-F16291C6DE80"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "86"
+            endingLineNumber = "86"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E4A76590-0A11-4688-BB8E-DA66DDD26C2A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "79"
+            endingLineNumber = "79"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "48A1D03B-1787-4A9D-9C79-54570C34E472"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizer/CloudSynchronizer/CloudSynchronizer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "393"
+            endingLineNumber = "393"
+            landmarkName = "mapper(for:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8BA82633-CE28-4A87-9F6C-42F6C373FC5C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/CloudRecordMapping.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "136"
+            endingLineNumber = "136"
+            landmarkName = "map(record:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0BA29572-158E-4B4E-82C7-DF2A81F1DC8C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/CloudRecordMapping.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "126"
+            endingLineNumber = "126"
+            landmarkName = "map(record:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F406A7CE-5B4F-479B-A029-8149DADF416E"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/CloudRecordMapping.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
+            landmarkName = "map(data:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8275888D-C0F6-4C26-9BE4-006D921ACA38"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/CloudRecordMapping.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "90"
+            endingLineNumber = "90"
+            landmarkName = "map(data:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "48202000-54B9-4E1B-ADCC-13B55E22AFBB"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/CloudRecordMapping.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "93"
+            endingLineNumber = "93"
+            landmarkName = "map(data:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "76FEBF4B-A414-4D2B-9827-48C13CC895B9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "76"
+            endingLineNumber = "76"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A43AFC01-1AAA-4DA4-B075-0A54F0CE1A65"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "55"
+            endingLineNumber = "55"
+            landmarkName = "transformToLocal(_:from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E23EDF34-63C5-40D6-A6F4-16B4553DA7C3"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "101"
+            endingLineNumber = "101"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "3D122217-1C42-43C0-8B20-2D33742575C0"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "92"
+            endingLineNumber = "92"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "417EAB77-66F8-4B01-B716-21AE7A52A584"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "69"
+            endingLineNumber = "69"
+            landmarkName = "transformToLocal(_:from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "97062FA2-9107-4145-8A2E-4DB18B020E40"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "95"
+            endingLineNumber = "95"
+            landmarkName = "transformToRemote(_:to:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "601374C8-0215-412B-9097-B126F3D6DB5C"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "47"
+            endingLineNumber = "47"
+            landmarkName = "moveOrReplace(fileAt:with:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FCA98956-BC25-4CC5-9815-ED02B173A4D9"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "50"
+            endingLineNumber = "50"
+            landmarkName = "moveOrReplace(fileAt:with:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "ADA9153D-FA0C-4A39-8854-0E341529B813"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "57"
+            endingLineNumber = "57"
+            landmarkName = "transformToLocal(_:from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F99E39B4-90D0-44F1-AE52-88E0BBACD88A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "64"
+            endingLineNumber = "64"
+            landmarkName = "transformToLocal(_:from:)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "790910FC-ED86-4C1E-BF67-8D30405F2C87"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "43"
+            endingLineNumber = "43"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B03A9310-CC59-4527-9FBB-0DD530E5C490"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "CloudKitSynchronizerApp/Item.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "51"
+            endingLineNumber = "51"
+            landmarkName = "Item"
+            landmarkType = "14">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "843C34C7-D203-4F17-A345-05AC45E59A6A"
+            shouldBeEnabled = "Yes"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "RecordMapping/Transformer.swift"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "89"
+            endingLineNumber = "89"
+            landmarkName = "transformToRemote(_:to:)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
