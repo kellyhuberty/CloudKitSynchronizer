@@ -62,7 +62,8 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
                                               status: .success)
         }
         
-        if #available(iOS 15, macOS 12, tvOS 15, watchOS 8, *){
+        #if os(iOS)
+        if #available(iOS 15, tvOS 15, watchOS 8, *){
             _pullOperation.recordWasChangedBlock = { [weak self] (recordId, recordResult) in
                 
                 guard let self = self else {
@@ -87,6 +88,7 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
             }
             _pullOperation.recordChangedBlock = nil
         }
+        #endif
         _pullOperation.recordWithIDWasDeletedBlock = { (recordId, recordType) in
             
             

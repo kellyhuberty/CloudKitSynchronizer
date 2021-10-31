@@ -118,7 +118,6 @@ class SQLiteTableObserver {
     
     let queue: DispatchQueue = {
         DispatchQueue(label: "TableObserver", qos: .default, attributes: [], autoreleaseFrequency: .inherit, target: nil)
-        
     }()
     
     private func sendTableRowsAndReset() {

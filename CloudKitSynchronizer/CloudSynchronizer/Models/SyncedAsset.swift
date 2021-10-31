@@ -6,20 +6,40 @@
 //
 
 import Foundation
-import UIKit
 
-@propertyWrapper public class SyncedAsset: Codable {
+public class SyncedAsset: Codable {
+    
+    private let processor: AssetProcessing
+    
+    private let queue: DispatchQueue = {
+        return DispatchQueue(label: "com.kellyhuberty.CloudKitSynchronizer.SyncedAssetWriteQueue")
+    }()
     
     private var tempURL: URL?
     
     private var permURL: URL?
     
-    public init() {
-        tempURL = nil
-        permURL = nil
+    private var currentTempURL: URL {
+        get{
+            let url: URL
+            if let tempURL = tempURL {
+                url = tempURL
+            } else {
+                url = loadFileURL()
+                tempURL = url
+            }
+            return url
+        }
+    }
+    
+    public init(processor: AssetProcessing? = nil) {
+        self.tempURL = nil
+        self.permURL = nil
+        self.processor = processor ?? AssetProcessor.shared
     }
     
     required public init(from decoder: Decoder) {
+        self.processor = AssetProcessor.shared
         do {
             let container = try decoder.singleValueContainer()
 
@@ -28,18 +48,15 @@ import UIKit
             if let path = path {
                 permURL = URL(fileURLWithPath: path)
             }
-            
         }
         catch let error {
+            self.permURL = nil
+            self.tempURL = nil
             print("Can't decode SyncedAsset \(self): \(error)")
-            permURL = nil
-            tempURL = nil
         }
-        
     }
     
     public func encode(to encoder: Encoder) throws {
-        
         if let currentPath = tempURL?.path ?? permURL?.path {
             var container = encoder.singleValueContainer()
             do {
@@ -49,39 +66,49 @@ import UIKit
                 print("Can't encode SyncedAsset \(self): \(error)")
             }
         }
-        
     }
     
-    public var wrappedValue: URL? {
-        get {
-            if let tempURL = tempURL {
-                return tempURL
-            }
-            tempURL = loadFileURL()
-            return tempURL
+    public func write(_ block: @escaping (_ url: URL) -> Void ) {
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            block(self.currentTempURL)
         }
     }
     
-    func loadFileURL() -> URL {
+    public func read(_ block: @escaping (_ url: URL) -> Void ) {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            block(self.currentTempURL)
+        }
+    }
+    
+    public func syncedWrite(_ block: (_ url: URL) -> Void ) {
+        queue.sync(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            block(self.currentTempURL)
+        }
+    }
+    
+    public func syncedRead(_ block: (_ url: URL) -> Void ) {
+        queue.sync { [weak self] in
+            guard let self = self else { return }
+            block(self.currentTempURL)
+        }
+    }
+    
+    private func loadFileURL() -> URL {
         let newTempURL = generateTempPath()
-        
         if let originalURL = permURL, FileManager.default.fileExists(atPath: originalURL.path) {
-            
             try? FileManager.default.copyItem(at: originalURL, to: newTempURL)
-            
         }
-        
         return newTempURL
     }
     
-    func generateTempPath() -> URL {
+    private func generateTempPath() -> URL {
         let directory = NSTemporaryDirectory()
         let fileName = UUID().uuidString
-        
         let directoryURL = URL(fileURLWithPath: directory)
-        
         let fullURL = directoryURL.appendingPathComponent(fileName)
-        
         return fullURL
     }
 }
@@ -102,3 +129,5 @@ extension SyncedAsset: Hashable {
 public struct File {
     
 }
+
+

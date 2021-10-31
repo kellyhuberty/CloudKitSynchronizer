@@ -7,71 +7,51 @@
 
 import CloudKit
 import GRDB
-import UIKit
-protocol AssetProcessing {
-    
-//    var configurations: [SyncedAssetConfiguring] { get set }
-//
-//    func processReceivedCKAssets(_ ckRecord: CKRecord) throws -> [String: DatabaseValue]
-//
-//    func processOutgoingCKAssets(_ values: [String: DatabaseValue]) throws -> [String: CKAsset]
-//
-//    func removeAllAssets(for identifier:String) throws
+
+public protocol AssetProcessing {
+    func register(_ object: AnyClass, for assetId: String, changeBlock: @escaping () -> Void)
+    func unregister(_ object: AnyClass, for assetId: String)
+    func unregisterAll(for object: AnyClass)
+    func notifyChange(for assetId: String)
 }
-
-
 
 class AssetProcessor: AssetProcessing {
-/*
-    struct AssetKey: Hashable {
-        var table: String
-        var column: String
-        
-        var hashValue: Int { return table.hashValue }
-    }
     
-    var configurations: [SyncedAssetConfiguring] {
-        get {
-            Array(configs.values)
-        }
-        set {
-            configs = newValue.reduce(into: [AssetKey: SyncedAssetConfiguring]()) { partialResult, config in
-                partialResult[AssetKey(table: config.table, column: config.column)] = config
-            }
+    static private(set) var shared: AssetProcessor = {
+        AssetProcessor()
+    }()
+    
+    let center = NotificationCenter.default
+    
+    func register(_ object: AnyClass, for assetId: String, changeBlock: @escaping () -> Void) {
+        let name = name(for: assetId)
+        center.addObserver(forName: name, object: object, queue: OperationQueue.main) { notification in
+            changeBlock()
         }
     }
     
-    private var configs: [AssetKey: SyncedAssetConfiguring] = [:]
-
-    init(){
-        
+    func unregister(_ object: AnyClass, for assetId: String) {
+        let name = name(for: assetId)
+        center.removeObserver(object, name: name, object: nil)
     }
     
-    private func configurationsFor(table: String, column: String?) -> [SyncedAssetConfiguring] {
-        
-        
-        var filtered = configurations.filter { $0.table == table }
-        
-        if let column = column {
-            filtered = filtered.filter { $0.column == column }
-        }
-        
-        return filtered
+    func unregisterAll(for object: AnyClass) {
+        center.removeObserver(object)
     }
     
-    func processReceivedCKAssets(_ ckRecord: CKRecord) throws -> [String : DatabaseValue] {
-        
-        
-        
+    func notifyChange(for assetId: String) {
+        let name = name(for: assetId)
+        center.post(name: name, object: nil, userInfo: nil)
     }
     
-    func processOutgoingCKAssets(_ values: [String : DatabaseValue]) throws -> [String : CKAsset] {
-        
+    private func name(for assetId: String) -> Notification.Name {
+        let name = "SyncedAssetChange_" + assetId
+        return Notification.Name(rawValue: name)
     }
-    
-    func removeAllAssets(for identifier:String) {
-        
-    }
-*/
 }
 
+extension URL {
+    var assetId: String? {
+        self.pathComponents.last
+    }
+}
