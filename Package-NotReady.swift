@@ -41,3 +41,4 @@ let package = Package(
     ]
     //path: "CloudKitSynchronizer"
 )
+*/
