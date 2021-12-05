@@ -92,20 +92,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -130,20 +130,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -161,8 +161,8 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
         XCTAssertEqual(Set(items1), Set(items2))
         
-        var editedItem = (items2.first { $0.text == "Stella" })!
-        editedItem.text = "Stella Jean"
+        var editedItem = (items2.first { $0.text == "Daphne" })!
+        editedItem.text = "Daphne Blake"
         
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
@@ -186,7 +186,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         let names = items1Edited.map { $0.text }
         
-        XCTAssertTrue(names.contains("Stella Jean"))
+        XCTAssertTrue(names.contains("Daphne Blake"))
         
     }
     
@@ -195,20 +195,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -226,7 +226,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
         XCTAssertEqual(Set(items1), Set(items2))
         
-        let deletedItem = (items2.first { $0.text == "Stella" })!
+        let deletedItem = (items2.first { $0.text == "Daphne" })!
         
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
@@ -250,8 +250,8 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         let names = items1Edited.map { $0.text }
         
-        XCTAssertTrue(names.contains("Theo"))
-        XCTAssertTrue(names.contains("Gemma"))
+        XCTAssertTrue(names.contains("Shaggy"))
+        XCTAssertTrue(names.contains("Scooby"))
 
     }
     
