@@ -14,7 +14,7 @@ protocol CloudRecordMapping: AnyObject {
     var transforms: [String: Transformer] { get }
     var sortedColumns:[String] { get }
     func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord
-    func map(record:CKRecord) -> [String:DatabaseValue?]
+    func map(record:CKRecord) -> [String:DatabaseValue?]?
 }
 
 extension CloudRecordMapping {
@@ -32,7 +32,7 @@ extension CloudRecordMapping {
     
     func sqlValues(forRecords records:[CKRecord]) -> [DatabaseValueConvertible?] {
         
-        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
+        let rows = records.compactMap { (record) -> [String:DatabaseValueConvertible?]? in
             return map(record: record)
         }
         
@@ -54,7 +54,7 @@ extension CloudRecordMapping {
     
     func sqlValuesString(forRecords records:[CKRecord]) -> String {
         
-        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
+        let rows = records.compactMap { (record) -> [String:DatabaseValueConvertible?]? in
             return map(record: record)
         }
         
@@ -83,11 +83,17 @@ extension CloudRecordMapper: CloudRecordMapping {
             fatalError("CKRecord data \(data) is empty at map.")
         }
         
-        for (key, value) in data{
-            guard let value = value else{
-                record.setValue(nil, forKey: key)
-                continue
-            }
+        var allKeys = Set(data.keys)
+        allKeys.formUnion(transforms.keys)
+        
+        for (key) in allKeys {
+            
+            let value: DatabaseValue? = data[key] ?? nil
+            
+//            guard let value = data[key] else{
+//                record.setValue(nil, forKey: key)
+//                continue
+//            }
             
             if let transform = transforms[key] {
                 if let transformedValue = transform.transformToRemote(value, to: record) {
@@ -96,6 +102,11 @@ extension CloudRecordMapper: CloudRecordMapping {
                 else {
                     record.setValue(nil, forKey: key)
                 }
+                continue
+            }
+            
+            guard let value = value else {
+                record.setValue(nil, forKey: key)
                 continue
             }
             
@@ -117,7 +128,7 @@ extension CloudRecordMapper: CloudRecordMapping {
         return record
     }
     
-    func map(record:CKRecord) -> [String:DatabaseValue?]{
+    func map(record:CKRecord) -> [String:DatabaseValue?]?{
         
         var allValues = [String:DatabaseValue?]()
         
@@ -154,7 +165,9 @@ extension CloudRecordMapper: CloudRecordMapping {
         }
         
         if isRecordEmpty(allValues) {
-            fatalError("CKRecord \(record.recordID) is empty at map.")
+            /// We need FlightRecorder here.
+            print("CKRecord \(record.recordID) is empty at map.")
+            return nil
         }
         
         return allValues

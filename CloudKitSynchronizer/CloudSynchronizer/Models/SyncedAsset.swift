@@ -7,101 +7,113 @@
 
 import Foundation
 
-public class SyncedAsset: Codable {
+public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
+    
+    private let enclosingObject: EnclosingType
     
     private let processor: AssetProcessing
-    
+
+    private let configuration: AssetConfigurable
+
     private let queue: DispatchQueue = {
         return DispatchQueue(label: "com.kellyhuberty.CloudKitSynchronizer.SyncedAssetWriteQueue")
     }()
     
-    private var tempURL: URL?
-    
-    private var permURL: URL?
-    
-    private var currentTempURL: URL {
-        get{
-            let url: URL
-            if let tempURL = tempURL {
-                url = tempURL
-            } else {
-                url = loadFileURL()
-                tempURL = url
+    public var changed: (()->Void)? = nil {
+        didSet {
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                self.changed?()
             }
+        }
+    }
+        
+    private var url: URL {
+        return configuration.localFilePath(rowIdentifier: enclosingObject.identifier,
+                                           table: EnclosingType.databaseTableName,
+                                           column: configuration.column)
+    }
+    
+    private var currentURL: URL {
+        get{
             return url
         }
     }
     
-    public init(processor: AssetProcessing? = nil) {
-        self.tempURL = nil
-        self.permURL = nil
+    public init(_ object: EnclosingType, processor: AssetProcessing? = nil, configuration: AssetConfigurable) {
+
         self.processor = processor ?? AssetProcessor.shared
+        self.configuration = configuration
+        self.enclosingObject = object
+        
+        self.setup()
     }
     
     required public init(from decoder: Decoder) {
-        self.processor = AssetProcessor.shared
-        do {
-            let container = try decoder.singleValueContainer()
-
-            let path = try? container.decode(String.self)
-            
-            if let path = path {
-                permURL = URL(fileURLWithPath: path)
-            }
-        }
-        catch let error {
-            self.permURL = nil
-            self.tempURL = nil
-            print("Can't decode SyncedAsset \(self): \(error)")
-        }
+        fatalError("Must be lazy loaded")
     }
     
     public func encode(to encoder: Encoder) throws {
-        if let currentPath = tempURL?.path ?? permURL?.path {
-            var container = encoder.singleValueContainer()
+        print("actually used codeable")
+    }
+    
+    var fsObject: DispatchSourceFileSystemObject?
+    
+    private func setup() {
+        
+        let directory = currentURL.deletingLastPathComponent()
+                
+        if !FileManager.default.fileExists(atPath: directory.path, isDirectory: nil) {
             do {
-                try container.encode(currentPath)
+                try FileManager.default.createDirectory(at: directory,
+                                                    withIntermediateDirectories: true,
+                                                    attributes: nil)
             }
-            catch let error {
-                print("Can't encode SyncedAsset \(self): \(error)")
+            catch {
+                print(error)
             }
         }
+        
+        let descriptor = open(directory.path, O_EVTONLY)
+        let fileObserver = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor,
+                                                                     eventMask: .write,
+                                                                     queue: .main)
+        
+        fileObserver.setEventHandler { [weak self] in
+            self?.assetDidChange()
+        }
+        
+        fileObserver.resume()
+        
+        fsObject = fileObserver
     }
     
     public func write(_ block: @escaping (_ url: URL) -> Void ) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            block(self.currentTempURL)
+            block(self.currentURL)
         }
     }
     
     public func read(_ block: @escaping (_ url: URL) -> Void ) {
         queue.async { [weak self] in
             guard let self = self else { return }
-            block(self.currentTempURL)
+            block(self.currentURL)
         }
     }
     
     public func syncedWrite(_ block: (_ url: URL) -> Void ) {
         queue.sync(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            block(self.currentTempURL)
+            block(self.currentURL)
         }
     }
     
     public func syncedRead(_ block: (_ url: URL) -> Void ) {
         queue.sync { [weak self] in
             guard let self = self else { return }
-            block(self.currentTempURL)
+            block(self.currentURL)
         }
-    }
-    
-    private func loadFileURL() -> URL {
-        let newTempURL = generateTempPath()
-        if let originalURL = permURL, FileManager.default.fileExists(atPath: originalURL.path) {
-            try? FileManager.default.copyItem(at: originalURL, to: newTempURL)
-        }
-        return newTempURL
     }
     
     private func generateTempPath() -> URL {
@@ -113,21 +125,82 @@ public class SyncedAsset: Codable {
     }
 }
 
+extension SyncedAsset: AssetSyncing {
+    
+    public var assetId: String? {
+        return url.assetId
+    }
+    
+    public func assetDidChange() {
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            self.changed?()
+        }
+    }
+}
+
 extension SyncedAsset: Equatable {
     public static func == (lhs: SyncedAsset, rhs: SyncedAsset) -> Bool {
-        return lhs.permURL == rhs.permURL
+        return lhs.url == rhs.url
     }
 }
 
 extension SyncedAsset: Hashable {
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(tempURL)
-        hasher.combine(permURL)
+        hasher.combine(assetId)
     }
 }
 
-public struct File {
+public extension SyncedAsset {
     
+    var image: UIImage? {
+        get {
+            var image: UIImage?
+            syncedRead { imagePath in
+                print(imagePath)
+                image = UIImage(contentsOfFile: imagePath.path)
+            }
+            return image
+        }
+        set {
+            syncedWrite { imageUrl in
+
+                let data = newValue?.jpegData(compressionQuality: 2)
+                guard let data = data else { return }
+
+                do {
+                    print(imageUrl)
+                    try data.write(to: imageUrl)
+                }
+                catch {
+                    print(error)
+                }
+            }
+        }
+    }
+    
+    var data: Data? {
+        get {
+            var data: Data? = nil
+            syncedRead { imagePath in
+                do {
+                    data = try Data(contentsOf: currentURL, options: [])
+                }
+                catch {
+                    print(error)
+                }
+            }
+            return data
+        }
+        set {
+            syncedWrite { imageUrl in
+                do {
+                    try newValue?.write(to: currentURL, options: [])
+                }
+                catch {
+                    print(error)
+                }
+            }
+        }
+    }
 }
-
-

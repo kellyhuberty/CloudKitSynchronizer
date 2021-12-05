@@ -45,13 +45,21 @@ class WordListTableCell: UITableViewCell {
         configureLayout()
     }
 
-    var item:Item? {
+    var item: Item? {
+        willSet {
+            item?.imageAsset.changed = nil
+        }
         didSet{
-            if let newItem = item {
-                avatarView.image = newItem.image ?? WordListTableCell.defaultAvatar
+            if var newItem = item {
+                newItem.imageAsset.changed = { [weak self] in
+                    DispatchQueue.main.async { [weak self] in
+                        guard let self = self, self.item == newItem else { return }
+                        self.avatarView.image = newItem.imageAsset.image ?? WordListTableCell.defaultAvatar
+                    }
+                }
             }
             else {
-                avatarView.image = nil
+                avatarView.image = WordListTableCell.defaultAvatar
             }
             
         }

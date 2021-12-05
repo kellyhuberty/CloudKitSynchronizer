@@ -12,7 +12,7 @@ import CloudKit
 protocol Transformer {
     
     func transformToLocal(_ inValue: CKRecordValue, from record: CKRecord) -> DatabaseValueConvertible?
-    func transformToRemote(_ inValue: DatabaseValueConvertible, to record: CKRecord) -> CKRecordValue?
+    func transformToRemote(_ inValue: DatabaseValueConvertible?, to record: CKRecord) -> CKRecordValue?
 }
 
 class AssetTransformer {
@@ -28,74 +28,88 @@ class AssetTransformer {
         self.assetConfig = assetConfig
         self.processor = processor
     }
-}
-
-extension AssetTransformer: Transformer {
-
-    fileprivate func moveOrReplace(fileAt permUrl: URL, with tempUrl: URL) throws {
-        let permDirectory = permUrl.deletingLastPathComponent()
+    
+    fileprivate func moveOrReplace(fileAt newUrl: URL, with currentUrl: URL) throws {
+        let newDirectory = newUrl.deletingLastPathComponent()
         
         var isDirectory: ObjCBool = ObjCBool(false)
-        let exists = fileManager.fileExists(atPath: permDirectory.path, isDirectory: &isDirectory)
+        let exists = fileManager.fileExists(atPath: newDirectory.path, isDirectory: &isDirectory)
         
         
         if !exists {
-            try fileManager.createDirectory(atPath: permDirectory.path, withIntermediateDirectories: true, attributes: nil)
+            try fileManager.createDirectory(atPath: newDirectory.path,
+                                            withIntermediateDirectories: true,
+                                            attributes: nil)
         }
         
-        if !fileManager.fileExists(atPath: permUrl.path) {
-            try fileManager.moveItem(atPath: tempUrl.path, toPath: permUrl.path)
+        if !fileManager.fileExists(atPath: newUrl.path) {
+            try fileManager.moveItem(atPath: currentUrl.path, toPath: newUrl.path)
         }
         else {
-            _ = try fileManager.replaceItemAt(permUrl, withItemAt: tempUrl, backupItemName: "BAK", options: FileManager.ItemReplacementOptions.usingNewMetadataOnly)
+            _ = try fileManager.replaceItemAt(newUrl, withItemAt: currentUrl, backupItemName: "BAK", options: FileManager.ItemReplacementOptions.usingNewMetadataOnly)
         }
+        
+        processor.notifyChange(for: currentUrl.assetId)
+        processor.notifyChange(for: newUrl.assetId)
     }
+    
+    fileprivate func copyOrReplace(fileAt newUrl: URL, with currentUrl: URL) throws {
+        let newDirectory = newUrl.deletingLastPathComponent()
+        
+        var isDirectory: ObjCBool = ObjCBool(false)
+        let exists = fileManager.fileExists(atPath: newDirectory.path, isDirectory: &isDirectory)
+        
+        
+        if !exists {
+            try fileManager.createDirectory(atPath: newDirectory.path,
+                                            withIntermediateDirectories: true,
+                                            attributes: nil)
+        }
+        
+        if !fileManager.fileExists(atPath: newUrl.path) {
+            try fileManager.copyItem(atPath: currentUrl.path, toPath: newUrl.path)
+        }
+        else {
+            _ = try fileManager.replaceItemAt(newUrl, withItemAt: currentUrl, backupItemName: "BAK", options: FileManager.ItemReplacementOptions.usingNewMetadataOnly)
+        }
+
+    }
+    
+}
+
+extension AssetTransformer: Transformer {
     
     func transformToLocal(_ inValue: CKRecordValue, from record: CKRecord) -> DatabaseValueConvertible? {
         guard let asset = inValue as? CKAsset else { return nil }
         guard let tempUrl = asset.fileURL else { return nil }
         guard fileManager.fileExists(atPath: tempUrl.path) else { return nil }
     
-        let permUrl = assetConfig.localFilePath(
+        let localUrl = assetConfig.localFilePath(
             rowIdentifier: record.recordID.identifier,
                     table: tableName,
                    column: assetConfig.column
         )
         
         do {
-            try moveOrReplace(fileAt: permUrl, with: tempUrl)
+            try moveOrReplace(fileAt: localUrl, with: tempUrl)
         }
         catch {
             print(error)
         }
         
-        return permUrl.path
+        return localUrl.path
     }
     
-    func transformToRemote(_ inValue: DatabaseValueConvertible, to record: CKRecord) -> CKRecordValue? {
+    func transformToRemote(_ inValue: DatabaseValueConvertible?, to record: CKRecord) -> CKRecordValue? {
         
-        guard case let .string(tempFilePath) = inValue.databaseValue.storage else { return nil }
-        let tempFileUrl = URL(fileURLWithPath: tempFilePath)
-        
-        
-        let permUrl = assetConfig.localFilePath(
+        let localUrl = assetConfig.localFilePath(
             rowIdentifier: record.recordID.identifier,
                     table: tableName,
                    column: assetConfig.column
         )
         
-        if tempFileUrl.absoluteString.lowercased() != permUrl.absoluteString.lowercased() {
-            do {
-                try moveOrReplace(fileAt: permUrl, with: tempFileUrl)
-            }
-            catch {
-                print(error)
-            }
-        }
-        
-        if fileManager.fileExists(atPath: permUrl.path) {
-            let path = URL(fileURLWithPath: permUrl.path)
-            return CKAsset(fileURL: path)
+        if fileManager.fileExists(atPath: localUrl.path) {
+            return CKAsset(fileURL: localUrl)
         }
         
         return nil

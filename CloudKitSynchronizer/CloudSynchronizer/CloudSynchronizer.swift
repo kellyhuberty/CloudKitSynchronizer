@@ -30,13 +30,13 @@ public protocol TableConfigurable {
 public protocol AssetConfigurable {
     var column: String { get }
     func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
-    //func stagingFilePath(rowIdentifier: String, table: String, column: String) -> URL
+    func stagedFilePath(rowIdentifier: String, table: String, column: String) -> URL
 }
 
 public extension AssetConfigurable {
-
-    func stagingFilePath(rowIdentifier: String, table: String, column: String) -> URL {
-        localFilePath(rowIdentifier: rowIdentifier, table: table, column: column).appendingPathExtension("staging")
+    func stagedFilePath(rowIdentifier: String, table: String, column: String) -> URL {
+        return localFilePath(rowIdentifier: rowIdentifier, table: table, column: column)
+            //.appendingPathExtension("staging")
     }
 }
 
@@ -536,6 +536,10 @@ public class CloudSynchronizer {
         let sortedSqlColumnString = mapper.sortedSqlColumnString()
         
         let sqlValues = mapper.sqlValues(forRecords: ckRecords)
+         
+        guard sqlValues.count > 0 else {
+            return
+        }
         
         let sqlValuesString = mapper.sqlValuesString(forRecords: ckRecords)
 
