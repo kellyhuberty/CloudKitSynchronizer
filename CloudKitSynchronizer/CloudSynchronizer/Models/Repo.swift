@@ -24,6 +24,9 @@ public class Repo {
          migrator: DatabaseMigrator,
          synchronizedTables: [TableConfiguration]? ) {
         
+        let dirPath = URL(fileURLWithPath: path).deletingLastPathComponent()
+        File.makeDirectoryIfUnavailable(dirPath)
+                
         let dbPool = try! DatabaseQueue(path: path)
         
         self.databaseQueue = dbPool

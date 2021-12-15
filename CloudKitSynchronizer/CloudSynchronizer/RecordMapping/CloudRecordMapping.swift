@@ -131,13 +131,13 @@ extension CloudRecordMapper: CloudRecordMapping {
     func map(record:CKRecord) -> [String:DatabaseValue?]?{
         
         var allValues = [String:DatabaseValue?]()
-        
-        for key in record.allKeys() {
+         
+        var allKeys = Set(record.allKeys())
+        allKeys.formUnion(transforms.keys)
+    
+        for key in allKeys {
 
-            guard let value = record[key] else{
-                allValues[key] = nil
-                continue
-            }
+            let value = record[key]
             
             if let transform = transforms[key] {
                 if let transformedValue = transform.transformToLocal(value, from: record) {
@@ -146,6 +146,11 @@ extension CloudRecordMapper: CloudRecordMapping {
                 else {
                     allValues[key] = nil
                 }
+                continue
+            }
+            
+            guard let value = value else{
+                allValues[key] = nil
                 continue
             }
             

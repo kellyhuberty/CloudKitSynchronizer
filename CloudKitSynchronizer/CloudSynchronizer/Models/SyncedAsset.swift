@@ -63,16 +63,7 @@ public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
         
         let directory = currentURL.deletingLastPathComponent()
                 
-        if !FileManager.default.fileExists(atPath: directory.path, isDirectory: nil) {
-            do {
-                try FileManager.default.createDirectory(at: directory,
-                                                    withIntermediateDirectories: true,
-                                                    attributes: nil)
-            }
-            catch {
-                print(error)
-            }
-        }
+        File.makeDirectoryIfUnavailable(directory)
         
         let descriptor = open(directory.path, O_EVTONLY)
         let fileObserver = DispatchSource.makeFileSystemObjectSource(fileDescriptor: descriptor,
@@ -123,6 +114,10 @@ public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
         let fullURL = directoryURL.appendingPathComponent(fileName)
         return fullURL
     }
+    
+    private func exists() -> Bool {
+        return FileManager.default.fileExists(atPath: currentURL.path)
+    }
 }
 
 extension SyncedAsset: AssetSyncing {
@@ -158,24 +153,17 @@ public extension SyncedAsset {
             var image: UIImage?
             syncedRead { imagePath in
                 print(imagePath)
-                image = UIImage(contentsOfFile: imagePath.path)
+                if !exists() {
+                    image = nil
+                }
+                else {
+                    image = UIImage(contentsOfFile: imagePath.path)
+                }
             }
             return image
         }
         set {
-            syncedWrite { imageUrl in
-
-                let data = newValue?.jpegData(compressionQuality: 2)
-                guard let data = data else { return }
-
-                do {
-                    print(imageUrl)
-                    try data.write(to: imageUrl)
-                }
-                catch {
-                    print(error)
-                }
-            }
+            data = newValue?.jpegData(compressionQuality: 2)
         }
     }
     
@@ -184,7 +172,12 @@ public extension SyncedAsset {
             var data: Data? = nil
             syncedRead { imagePath in
                 do {
-                    data = try Data(contentsOf: currentURL, options: [])
+                    if !exists() {
+                        data = nil
+                    }
+                    else {
+                        data = try Data(contentsOf: currentURL, options: [])
+                    }
                 }
                 catch {
                     print(error)
@@ -195,7 +188,15 @@ public extension SyncedAsset {
         set {
             syncedWrite { imageUrl in
                 do {
-                    try newValue?.write(to: currentURL, options: [])
+                    if exists() {
+                        try FileManager.default.removeItem(at: currentURL)
+                    }
+                    
+                    guard let data = newValue, data.count > 0 else {
+                        return
+                    }
+                                        
+                    try data.write(to: currentURL, options: [])
                 }
                 catch {
                     print(error)
@@ -203,4 +204,32 @@ public extension SyncedAsset {
             }
         }
     }
+}
+
+class File {
+    static func makeDirectoryIfUnavailable(_ directory: URL, recursive: Bool = true) {
+        if !FileManager.default.fileExists(atPath: directory.path, isDirectory: nil) {
+            do {
+                try FileManager.default.createDirectory(at: directory,
+                                                        withIntermediateDirectories: recursive,
+                                                        attributes: nil)
+            }
+            catch {
+                print(error)
+            }
+        }
+    }
+}
+
+public extension SyncedAsset {
+    
+    func testing(_ assetURL: URL) -> SyncedAsset<EnclosingType> {
+        
+        let testingConfiguration = AssetConfiguration(column: configuration.column,
+                                                      directory: assetURL)
+        
+        return SyncedAsset<EnclosingType>(enclosingObject, configuration: testingConfiguration)
+    }
+    
+    
 }
