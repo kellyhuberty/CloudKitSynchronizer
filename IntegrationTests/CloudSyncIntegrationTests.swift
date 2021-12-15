@@ -303,7 +303,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         var daphne = Item()
         daphne.text = "Daphne"
-        daphne.imageAsset.testing(repo1AssetURL).image = image
+        daphne.imageAsset.testing(repo1AssetURL).uiimage = image
                 
         XCTAssertNotNil(image)
 
@@ -328,7 +328,7 @@ class CloudSyncIntegrationTests: XCTestCase {
 
         XCTAssertEqual(items1.first, items2.first)
         
-        XCTAssertNotNil(first1?.imageAsset.testing(repo1AssetURL).image)
+        XCTAssertNotNil(first1?.imageAsset.testing(repo1AssetURL).uiimage)
         
         XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
                        first2?.imageAsset.testing(repo1AssetURL).data)
@@ -343,10 +343,10 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         var daphne = Item()
         daphne.text = "Daphne"
-        daphne.imageAsset.testing(repo1AssetURL).image = image
+        daphne.imageAsset.testing(repo1AssetURL).uiimage = image
                 
         XCTAssertNotNil(image)
-        XCTAssertNotNil(daphne.imageAsset.testing(repo1AssetURL).image)
+        XCTAssertNotNil(daphne.imageAsset.testing(repo1AssetURL).uiimage)
 
         try! repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
@@ -384,21 +384,19 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertNotNil(first1)
         XCTAssertNotNil(first2)
         XCTAssertEqual(items1.first, items2.first)
-        XCTAssertNotNil(first2?.imageAsset.testing(repo2AssetURL).image)
+        XCTAssertNotNil(first2?.imageAsset.testing(repo2AssetURL).uiimage)
 
         XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
                        first2?.imageAsset.testing(repo2AssetURL).data)
         
-        first2?.imageAsset.testing(repo2AssetURL).image = nil
+        first2?.imageAsset.testing(repo2AssetURL).uiimage = nil
 
         try! repo2.databaseQueue.write { (db) in
             try! first2?.save(db)
         }
 
         var first3: Item? = nil
-        
-        cleanCloudKitCache()
-        
+                
         waitReload(repo1) { (db) -> Bool in
             items3 = try! Item.fetchAll(db)
             first3 = items3.first
@@ -416,7 +414,7 @@ class CloudSyncIntegrationTests: XCTestCase {
 
         XCTAssertEqual(first3, first2)
 
-        XCTAssertNil(first3?.imageAsset.testing(repo1AssetURL).image)
+        XCTAssertNil(first3?.imageAsset.testing(repo1AssetURL).uiimage)
 
         XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
                        first2?.imageAsset.testing(repo1AssetURL).data)

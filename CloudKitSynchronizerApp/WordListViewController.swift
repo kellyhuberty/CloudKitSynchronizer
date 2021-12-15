@@ -493,7 +493,7 @@ extension WordListViewController: UIImagePickerControllerDelegate, UINavigationC
             return
         }
         selectedAvatarItem = nil
-        item.imageAsset.image = image
+        item.imageAsset.uiimage = image
         addEditItem(item)
         picker.dismiss(animated: true) { [weak self] in
             self?.tableView.reloadData()

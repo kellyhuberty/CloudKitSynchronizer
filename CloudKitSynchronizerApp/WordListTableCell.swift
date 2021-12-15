@@ -54,7 +54,7 @@ class WordListTableCell: UITableViewCell {
                 newItem.imageAsset.changed = { [weak self] in
                     DispatchQueue.main.async { [weak self] in
                         guard let self = self, self.item == newItem else { return }
-                        self.avatarView.image = newItem.imageAsset.image ?? WordListTableCell.defaultAvatar
+                        self.avatarView.image = newItem.imageAsset.uiimage ?? WordListTableCell.defaultAvatar
                     }
                 }
             }

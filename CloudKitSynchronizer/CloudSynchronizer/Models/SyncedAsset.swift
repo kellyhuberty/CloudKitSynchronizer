@@ -148,25 +148,6 @@ extension SyncedAsset: Hashable {
 
 public extension SyncedAsset {
     
-    var image: UIImage? {
-        get {
-            var image: UIImage?
-            syncedRead { imagePath in
-                print(imagePath)
-                if !exists() {
-                    image = nil
-                }
-                else {
-                    image = UIImage(contentsOfFile: imagePath.path)
-                }
-            }
-            return image
-        }
-        set {
-            data = newValue?.jpegData(compressionQuality: 2)
-        }
-    }
-    
     var data: Data? {
         get {
             var data: Data? = nil
@@ -233,3 +214,56 @@ public extension SyncedAsset {
     
     
 }
+
+#if canImport(UIKit)
+public extension SyncedAsset {
+    var uiimage: UIImage? {
+        get {
+            var image: UIImage?
+            syncedRead { imagePath in
+                print(imagePath)
+                if !exists() {
+                    image = nil
+                }
+                else {
+                    image = UIImage(contentsOfFile: imagePath.path)
+                }
+            }
+            return image
+        }
+        set {
+            data = newValue?.jpegData(compressionQuality: 2)
+        }
+    }
+}
+#endif
+
+#if canImport(AppKit) && os(macOS)
+public extension SyncedAsset {
+    var nsimage: NSImage? {
+        get {
+            var image: NSImage?
+            syncedRead { imagePath in
+                print(imagePath)
+                if !exists() {
+                    image = nil
+                }
+                else {
+                    image = NSImage(contentsOfFile: imagePath.path)
+                }
+            }
+            return image
+        }
+        set {
+            guard let image = image else {
+                data = nil
+                return
+            }
+            let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+            let bitmapRep = NSBitmapImageRep(cgImage: cgImage)
+            let jpegData = bitmapRep.representation(using: NSBitmapImageRep.FileType.jpeg, properties: [:])!
+            data = jpegData
+        }
+    }
+}
+#endif
