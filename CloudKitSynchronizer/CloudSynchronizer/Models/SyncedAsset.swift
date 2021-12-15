@@ -238,7 +238,7 @@ public extension SyncedAsset {
 }
 #endif
 
-#if canImport(AppKit) && os(macOS)
+#if os(macOS) && canImport(AppKit)
 public extension SyncedAsset {
     var nsimage: NSImage? {
         get {
@@ -255,7 +255,7 @@ public extension SyncedAsset {
             return image
         }
         set {
-            guard let image = image else {
+            guard let image = newValue else {
                 data = nil
                 return
             }
