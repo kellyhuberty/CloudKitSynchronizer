@@ -328,10 +328,10 @@ class CloudSyncIntegrationTests: XCTestCase {
 
         XCTAssertEqual(items1.first, items2.first)
         
-        XCTAssertNotNil(first1?.imageAsset.testing(repo1AssetURL).uiimage)
+        XCTAssertNotNil(first2?.imageAsset.testing(repo2AssetURL).uiimage)
         
         XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
-                       first2?.imageAsset.testing(repo1AssetURL).data)
+                       first2?.imageAsset.testing(repo2AssetURL).data)
 
     }
     
@@ -417,7 +417,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertNil(first3?.imageAsset.testing(repo1AssetURL).uiimage)
 
         XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
-                       first2?.imageAsset.testing(repo1AssetURL).data)
+                       first2?.imageAsset.testing(repo2AssetURL).data)
         
     }
      
@@ -436,7 +436,7 @@ class CloudSyncIntegrationTests: XCTestCase {
     func waitReload(_ repo:Repo,  _ until: @escaping (_ db:Database) -> Bool ){
         
         var fulfilled = false
-        var tryCount = 100
+        var tryCount = 10
         
         while !fulfilled && tryCount > 0 {
             let expectation = self.expectation(description: "waitReload")

@@ -47,8 +47,9 @@ public class AssetConfiguration: AssetConfigurable {
     
     private static func newDefaultFilePathHandler(directory: URL) -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
         return {(_ rowIdentifier: String, _ table: String, _ column: String) in
-            return directory.appendingPathComponent("\(table)")
-                            .appendingPathComponent("\(column)")
+            /// Due to some narly cases with case sensitive files systems on iOS, going to enforce some items here to be lowercased.
+            return directory.appendingPathComponent("\(table.lowercased())")
+                            .appendingPathComponent("\(column.lowercased())")
                             .appendingPathComponent("\(rowIdentifier)")
         }
     }

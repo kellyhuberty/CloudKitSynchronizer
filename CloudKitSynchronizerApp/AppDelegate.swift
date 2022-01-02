@@ -62,7 +62,7 @@ extension AppDelegate: RepoManufacturing {
     
     func loadRepo(for domain: String) -> Repo? {
         
-        let directory = URL(string:Directories.documents)!
+        let directory = URL(fileURLWithPath: Directories.documents)
         let dataURLPath = directory.appendingPathComponent("data.db")
         let assetURL = directory.appendingPathComponent("assets")
         
