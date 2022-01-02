@@ -49,9 +49,9 @@ public class AssetConfiguration: AssetConfigurable {
     -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
         return {(_ rowIdentifier: String, _ table: String, _ column: String) in
             /// Due to some narly cases with case sensitive files systems on iOS, going to enforce some items here to be lowercased.
-            return directory.appendingPathComponent("\(table.lowercased())")
-                            .appendingPathComponent("\(column.lowercased())")
-                            .appendingPathComponent("\(rowIdentifier)")
+            var url = directory.appendingPathComponent("\(table.lowercased())")
+                               .appendingPathComponent("\(column.lowercased())")
+                               .appendingPathComponent("\(rowIdentifier)")
             if let fileExtension = fileExtension {
                 url.appendPathExtension(fileExtension)
             }
