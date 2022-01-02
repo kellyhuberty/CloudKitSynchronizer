@@ -267,3 +267,21 @@ public extension SyncedAsset {
     }
 }
 #endif
+
+public extension SyncedAsset {
+    var fileURL: URL? {
+        get {
+            var url: URL?
+            syncedRead { aURL in
+                print(aURL)
+                if !exists() {
+                    url = nil
+                }
+                else {
+                    url = aURL
+                }
+            }
+            return url
+        }
+    }
+}

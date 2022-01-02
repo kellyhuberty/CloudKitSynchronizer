@@ -45,18 +45,23 @@ public class AssetConfiguration: AssetConfigurable {
     public let column: String
     private let filePathHandler: (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
     
-    private static func newDefaultFilePathHandler(directory: URL) -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
+    private static func newDefaultFilePathHandler(directory: URL, fileExtension: String? = nil)
+    -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
         return {(_ rowIdentifier: String, _ table: String, _ column: String) in
             /// Due to some narly cases with case sensitive files systems on iOS, going to enforce some items here to be lowercased.
             return directory.appendingPathComponent("\(table.lowercased())")
                             .appendingPathComponent("\(column.lowercased())")
                             .appendingPathComponent("\(rowIdentifier)")
+            if let fileExtension = fileExtension {
+                url.appendPathExtension(fileExtension)
+            }
+            return url
         }
     }
 
-    public convenience init(column: String, directory: URL) {
+    public convenience init(column: String, directory: URL, fileExtension: String? = nil) {
         self.init(column: column,
-                  filePathHandler: AssetConfiguration.newDefaultFilePathHandler(directory: directory))
+                  filePathHandler: AssetConfiguration.newDefaultFilePathHandler(directory: directory, fileExtension: fileExtension))
     }
     
     public init(column: String, filePathHandler: @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
