@@ -14,13 +14,23 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
     
     weak var delegate: CloudRecordPushOperationDelegate?
     
-    var updates:[CKRecord] = []
+    var updates:[CKRecord] = [] {
+        didSet {
+            updates.forEach { record in
+                if record.allKeys().count == 0 {
+                    fatalError()
+                }
+            }
+        }
+    }
     
     var deleteIds:[CKRecord.ID] = []
 
     private var _pushOperation:CKModifyRecordsOperation!
 
     init(delegate: CloudRecordPushOperationDelegate) {
+        
+        
         self.delegate = delegate
         super.init()
     }

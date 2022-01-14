@@ -8,6 +8,7 @@
 
 import Foundation
 import GRDB
+import CloudKit
 
 public protocol RepoManufacturing {
     func loadRepo(for domain:String) -> Repo?
@@ -34,7 +35,9 @@ public class Repo {
         
         
         if let synchronizedTables = synchronizedTables {
-            let synchronizer = try! CloudSynchronizer(databaseQueue: databaseQueue)
+            let synchronizer = try! CloudSynchronizer(databaseQueue: databaseQueue,
+                                                      container: CKContainer(identifier: domain)
+            )
             synchronizer.synchronizedTables = synchronizedTables
             synchronizer.startSync()
             self.cloudSynchronizer = synchronizer
@@ -45,4 +48,9 @@ public class Repo {
         cloudSynchronizer?.refreshFromCloud(completion)
     }
 
+    @available(iOS 13, macOS 11, *)
+    public func refreshFromCloud() async {
+        await cloudSynchronizer?.refreshFromCloud()
+    }
+    
 }

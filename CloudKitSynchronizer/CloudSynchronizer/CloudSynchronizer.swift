@@ -155,7 +155,7 @@ struct TableNames{
     }
     
     public func checkAvailablity(_ completion: ((Status) -> Void)? ){
-        CKContainer.default().accountStatus { [weak self] accountStatus, error in
+        container.accountStatus { [weak self] accountStatus, error in
             self?.deliveryQueue.async {
                 let status = Status(Status.Availablity(accountStatus), error: error)
                 self?.currentStatus = status
@@ -196,6 +196,17 @@ public class CloudSynchronizer {
     public private(set) var status: Status {
         didSet {
             
+        }
+    }
+    
+    public var isSyncing: Bool {
+        get{
+            switch status {
+            case .syncing:
+                return true
+            default:
+                return false
+            }
         }
     }
     
@@ -268,12 +279,15 @@ public class CloudSynchronizer {
     // weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue: DatabaseQueue,
+         container: CKContainer = CKContainer.default(),
          operationFactory: CloudOperationProducing? = nil,
          tableObserverFactory: TableObserverProducing? = nil,
          cloudRecordStore: CloudRecordStoring? = nil,
          defaultZoneName: String = ZoneName.defaultZoneName,
          assetProcessor: AssetProcessing = AssetProcessor()
     ) throws {
+        
+        
         
         self.localDatabasePool = databaseQueue
         
@@ -304,7 +318,7 @@ public class CloudSynchronizer {
         
         self.assetProcessor = assetProcessor
         
-        _availability = CloudKitAvailablity(CKContainer.default()) { status in
+        _availability = CloudKitAvailablity(container) { status in
             
         }
         
@@ -573,6 +587,11 @@ public class CloudSynchronizer {
     
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
 
+        guard isSyncing else {
+            return
+        }
+        
+        
         DispatchQueue.global().async { [weak self] in
             guard let self = self else { return }
             
@@ -591,6 +610,15 @@ public class CloudSynchronizer {
             pushSemaphore.wait()
 
             completion()
+        }
+    }
+    
+    @available(macOS 10.15, iOS 13.0, *)
+    public func refreshFromCloud() async {
+        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
+            self?.refreshFromCloud {
+                continuation.resume()
+            }
         }
     }
     
@@ -882,13 +910,13 @@ extension CloudSynchronizer {
 
 extension CloudSynchronizer: TableObserverDelegate {
     
-    func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordMutationType, using db: Database) throws -> [CKRecord] {
+    private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, using db: Database) throws -> [CKRecord] {
 
         let mapper = mapper(for: table)
 
         let rowIdentifers = tableRows.map { $0.identifier }
 
-        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: status, sorted: true, using: db)
+        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: .processing, sorted: true, using: db)
 
         let ckRecordsDictionary:[String:CKRecord] = ckRecords.reduce(into: [String:CKRecord]()) { return $0[$1.recordID.recordName] = $1 }
 
@@ -905,6 +933,8 @@ extension CloudSynchronizer: TableObserverDelegate {
             mappedCkRecords.append(mappedCKRecord)
 
         }
+        
+        try? cloudRecordStore.checkinCloudRecords(mappedCkRecords, with: .pushingUpdate, having: nil, error: nil, using: db)
         
         return mappedCkRecords
     }
@@ -923,8 +953,8 @@ extension CloudSynchronizer: TableObserverDelegate {
             try write { (db) in
                 
                 recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, zoneID:zoneId, from: table, for: .pushingDelete, sorted: true, using: db)
-                recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
-                recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
+                recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, using: db)
+                recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table, using: db)
             }
         } catch let error {
             handleDatabaseError(error)
