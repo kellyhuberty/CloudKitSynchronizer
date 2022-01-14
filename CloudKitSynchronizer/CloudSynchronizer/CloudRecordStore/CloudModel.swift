@@ -11,6 +11,8 @@ import CloudKit
 import GRDB
 
 enum CloudRecordMutationType : String, Codable {
+    case processing = "processing"
+    
     case pushingUpdate = "pushing.update"
     case pushingDelete = "pushing.delete"
     
