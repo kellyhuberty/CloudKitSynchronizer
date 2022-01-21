@@ -85,7 +85,7 @@ class CloudSyncIntegrationTests: XCTestCase {
             column: Item.AssetConfigs.imagePath.column,
             directory: assetsDirectoryFile)
         
-        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer.test",
+        let repo = Repo(domain: "iCloud.com.kellyhuberty.CloudKitSynchronizer",
                         path: dbFile.path,
                         migrator: LSTDatabaseMigrator.setupMigrator(),
                         synchronizedTables: [TableConfiguration(table:"Item",

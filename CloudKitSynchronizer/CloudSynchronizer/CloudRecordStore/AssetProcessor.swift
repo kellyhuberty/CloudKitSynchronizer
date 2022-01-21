@@ -24,13 +24,6 @@ public protocol AssetSyncing: AnyObject {
     func assetDidChange()
 }
 
-//extension AssetProcessing {
-//    func notifyChange(forOptional assetId: String?) {
-//        guard let uwAssetId = assetId else { return }
-//        notifyChange(for: uwAssetId)
-//    }
-//}
-
 class AssetProcessor {
     
     static private(set) var shared: AssetProcessor = {
@@ -54,11 +47,6 @@ class AssetProcessor {
     private func unregisterAll(for object: AnyObject) {
         center.removeObserver(object)
     }
-    
-//    func notifyChange(for assetId: String?) {
-//        guard let uwAssetId = assetId else { return }
-//        notifyChange(for: uwAssetId)
-//    }
     
     func notifyChange(for assetId: String?) {
         guard let assetId = assetId else { return }

@@ -9,9 +9,9 @@
 import Foundation
 import CloudKit
 
-class CloudOperation : AsynchronousOperation {
+class CloudOperation : AsyncCloudKitOperation {
     
-    private var _operation:CKOperation!
+    private var _operation:CKDatabaseOperation!
 
     override func start(completionToken:Token){
         
@@ -23,10 +23,9 @@ class CloudOperation : AsynchronousOperation {
         _operation.start()
     }
 
-    func createOperation() -> CKOperation {
+    func createOperation() -> CKDatabaseOperation {
 
         fatalError("Operation not configured")
 
     }
-
 }

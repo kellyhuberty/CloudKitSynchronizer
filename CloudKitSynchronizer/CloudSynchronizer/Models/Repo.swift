@@ -33,7 +33,6 @@ public class Repo {
         self.databaseQueue = dbPool
         try! migrator.migrate(dbPool)
         
-        
         if let synchronizedTables = synchronizedTables {
             let synchronizer = try! CloudSynchronizer(databaseQueue: databaseQueue,
                                                       container: CKContainer(identifier: domain)
@@ -48,9 +47,25 @@ public class Repo {
         cloudSynchronizer?.refreshFromCloud(completion)
     }
 
-    @available(iOS 13, macOS 11, *)
+    @available(iOS 13, macOS 10.15, watchOS 6, *)
     public func refreshFromCloud() async {
         await cloudSynchronizer?.refreshFromCloud()
     }
     
+}
+
+extension Repo {
+    
+    public func registeredForRemoteNotifications(deviceTokens: Data) {
+        cloudSynchronizer?.setupSubscriptions {
+            
+        }
+    }
+    
+    @available(iOS 13, macOS 10.15, watchOS 6, *)
+    public func processRemoteNotification(_ userInfo: [AnyHashable : Any]) async -> Bool {
+        await refreshFromCloud()
+        return true
+    }
+
 }

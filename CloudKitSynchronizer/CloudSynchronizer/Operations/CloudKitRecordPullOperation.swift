@@ -22,12 +22,12 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
 
     private var _pullOperation: CKFetchRecordZoneChangesOperation!
     
-    init(delegate: CloudRecordPullOperationDelegate){
+    init(database: CKDatabase, delegate: CloudRecordPullOperationDelegate){
         self.delegate = delegate
-        super.init()
+        super.init(database: database)
     }
     
-    override func createOperation() -> CKOperation {
+    override func createOperation() -> CKDatabaseOperation {
         
         var zoneIds = [CKRecordZone.ID]()
         var zoneIdsConfigurations =
@@ -50,6 +50,8 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
             recordZoneIDs: zoneIds,
             configurationsByRecordZoneID: zoneIdsConfigurations
         )
+        _pullOperation.qualityOfService = .userInteractive
+        _pullOperation.database = database
         
         _pullOperation.recordChangedBlock = { [weak self] (record) in
             

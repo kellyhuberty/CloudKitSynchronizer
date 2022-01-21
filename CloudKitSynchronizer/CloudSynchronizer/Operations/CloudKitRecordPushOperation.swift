@@ -28,17 +28,20 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
 
     private var _pushOperation:CKModifyRecordsOperation!
 
-    init(delegate: CloudRecordPushOperationDelegate) {
+    init(database: CKDatabase, delegate: CloudRecordPushOperationDelegate) {
         
         
         self.delegate = delegate
-        super.init()
+        super.init(database: database)
     }
     
-    override func createOperation() -> CKOperation {
+    override func createOperation() -> CKDatabaseOperation {
         
         _pushOperation = CKModifyRecordsOperation(recordsToSave: updates, recordIDsToDelete: deleteIds)
 
+        _pushOperation.qualityOfService = .userInteractive
+        _pushOperation.database = database
+        
         _pushOperation.perRecordCompletionBlock = { (record, error) in
 
             //guard let self = self else { return }

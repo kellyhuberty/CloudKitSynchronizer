@@ -16,7 +16,7 @@ Tested for reliability.
 Create a `Repo` to start making SQLite queries and syncing your tables.
 
 ```swift
-	let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer.test", 
+	let repo = Repo(domain: "iCloud.com.kellyhuberty.CloudKitSynchronizer", 
 					path: directory.path, 
 					migrator: LSTDatabaseMigrator.setupMigrator(),
 					synchronizedTables: [SynchronizedTable(table:"Item")] )
@@ -42,3 +42,16 @@ To perform a resync of the latest changes, call `repo.cloudSyncrhonizer.refreshF
             }
         }
 ```
+
+##Using CloudKit Assets
+_More Info Coming Soon_
+
+##Subscribing to Data Changes
+_More Info Coming Soon_
+
+##Error Handling
+_In Dev_
+
+##Resolving Conflicts
+_In Dev_
+

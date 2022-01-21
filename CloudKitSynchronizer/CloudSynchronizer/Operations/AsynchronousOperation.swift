@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CloudKit
 
 class AsynchronousOperation : Operation {    
     
@@ -71,4 +72,15 @@ class AsynchronousOperation : Operation {
         _isExecuting = false
         _isFinished = true
     }
+}
+
+
+class AsyncCloudKitOperation : AsynchronousOperation {
+
+    let database: CKDatabase
+
+    init(database: CKDatabase) {
+        self.database = database
+    }
+    
 }

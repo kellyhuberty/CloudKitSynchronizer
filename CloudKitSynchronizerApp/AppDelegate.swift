@@ -73,7 +73,7 @@ extension AppDelegate: RepoManufacturing {
         
         let migrator = setupMigrator()
         
-        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
+        let repo = Repo(domain: "iCloud.com.kellyhuberty.CloudKitSynchronizer",
                         path: dataURLPath.path,
                         migrator: migrator,
                         synchronizedTables: [ TableConfiguration(table: "Item", assets: [Item.AssetConfigs.imagePath])] )

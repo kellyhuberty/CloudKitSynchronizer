@@ -10,72 +10,6 @@ import Foundation
 import CloudKit
 import GRDB
 
-public class TableConfiguration : TableConfigurable {
-    public let tableName: String
-    public var syncedAssets: [AssetConfigurable]
-    
-    public init(table:String, assets: [AssetConfigurable] = []){
-        tableName = table
-        syncedAssets = assets
-    }
-}
-
-typealias TableConfig = TableConfiguration
-
-public protocol TableConfigurable {
-    var tableName:String { get }
-    var syncedAssets: [AssetConfigurable] { get }
-}
-
-public protocol AssetConfigurable {
-    var column: String { get }
-    func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
-    func stagedFilePath(rowIdentifier: String, table: String, column: String) -> URL
-}
-
-public extension AssetConfigurable {
-    func stagedFilePath(rowIdentifier: String, table: String, column: String) -> URL {
-        return localFilePath(rowIdentifier: rowIdentifier, table: table, column: column)
-            //.appendingPathExtension("staging")
-    }
-}
-
-public class AssetConfiguration: AssetConfigurable {
-    
-    public let column: String
-    private let filePathHandler: (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
-    
-    private static func newDefaultFilePathHandler(directory: URL, fileExtension: String? = nil)
-    -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
-        return {(_ rowIdentifier: String, _ table: String, _ column: String) in
-            /// Due to some narly cases with case sensitive files systems on iOS, going to enforce some items here to be lowercased.
-            var url = directory.appendingPathComponent("\(table.lowercased())")
-                               .appendingPathComponent("\(column.lowercased())")
-                               .appendingPathComponent("\(rowIdentifier)")
-            if let fileExtension = fileExtension {
-                url.appendPathExtension(fileExtension)
-            }
-            return url
-        }
-    }
-
-    public convenience init(column: String, directory: URL, fileExtension: String? = nil) {
-        self.init(column: column,
-                  filePathHandler: AssetConfiguration.newDefaultFilePathHandler(directory: directory, fileExtension: fileExtension))
-    }
-    
-    public init(column: String, filePathHandler: @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
-        self.column = column
-        self.filePathHandler = filePathHandler
-    }
-    
-    public func localFilePath(rowIdentifier: String, table: String, column: String) -> URL {
-        return filePathHandler(rowIdentifier, table, column)
-    }
-}
-
-typealias AssetConfig = AssetConfiguration
-
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
 
 struct TableNames{
@@ -295,7 +229,7 @@ public class CloudSynchronizer {
             self._operationFactory = operationFactory
         }
         else {
-            self._operationFactory = CloudKitOperationProducer()
+            self._operationFactory = CloudKitOperationProducer(database: container.privateCloudDatabase)
         }
         
         if let tableObserverFactory = tableObserverFactory {
@@ -348,9 +282,11 @@ public class CloudSynchronizer {
         }
         
         _availability.checkAvailablity { [weak self] status in
-            self?.initilizeZones{
-                self?.status = .syncing
-            }
+//            self?.setupSubscriptions {
+                self?.initilizeZones {
+                    self?.status = .syncing
+                }
+//            }
         }
     }
     
@@ -430,6 +366,19 @@ public class CloudSynchronizer {
             completion()
         }
         createZoneOperation.start()
+    }
+    
+    func setupSubscriptions(completion:@escaping ()->Void) {
+        guard let createSubscriptionsOperation = _operationFactory.newSubscriptionSyncOperation() else{
+            log.debug("Subscription Sync Unavailable")
+            completion()
+            return
+        }
+        createSubscriptionsOperation.configurations = self.synchronizedTables
+        createSubscriptionsOperation.completionBlock = {
+            completion()
+        }
+        createSubscriptionsOperation.start()
     }
     
     func runSynchronizerMigrations(_ db:Database) throws {
@@ -588,12 +537,15 @@ public class CloudSynchronizer {
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
 
         guard isSyncing else {
+            completion()
             return
         }
         
-        
         DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion()
+                return
+            }
             
             let pullSemaphore = DispatchSemaphore(value: 0)
             let pushSemaphore = DispatchSemaphore(value: 0)
@@ -616,7 +568,11 @@ public class CloudSynchronizer {
     @available(macOS 10.15, iOS 13.0, *)
     public func refreshFromCloud() async {
         return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
-            self?.refreshFromCloud {
+            guard let self = self else {
+                continuation.resume()
+                return
+            }
+            self.refreshFromCloud {
                 continuation.resume()
             }
         }
@@ -998,6 +954,7 @@ protocol CloudOperationProducing : AnyObject {
     func newPullOperation(delegate: CloudRecordPullOperationDelegate) -> CloudRecordPullOperation
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation
+    func newSubscriptionSyncOperation() -> CloudSubscriptionSyncOperation?
 }
 
 extension Array where Element == String {
