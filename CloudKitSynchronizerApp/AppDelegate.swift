@@ -19,7 +19,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         loadRepo(for: "")!
     }()
     
-    
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
         
@@ -60,30 +59,38 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 
 extension AppDelegate: RepoManufacturing {
-   
+    
     func loadRepo(for domain: String) -> Repo? {
         
-        let directory = URL(string:Directories.documents)!.appendingPathComponent("data.db")
+        let directory = URL(fileURLWithPath: Directories.documents)
+        let dataURLPath = directory.appendingPathComponent("data.db")
+        let assetURL = directory.appendingPathComponent("assets")
         
         print("Database Path: ")
-        print(directory.path + "\n")
+        print(dataURLPath.path + "\n")
         
         //let dbPool = try! DatabaseQueue(path: directory.path)
         
-         
         let migrator = setupMigrator()
-            
-        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer",
-                        path: directory.path,
+        
+        let repo = Repo(domain: "iCloud.com.kellyhuberty.CloudKitSynchronizer",
+                        path: dataURLPath.path,
                         migrator: migrator,
-                        synchronizedTables: [SynchronizedTable(table:"Item")] )
-        
+                        synchronizedTables: [ TableConfiguration(table: "Item", assets: [Item.AssetConfigs.imagePath])] )
+                
         return repo
-        
     }
     
     func setupMigrator() -> DatabaseMigrator {
         return LSTDatabaseMigrator.setupMigrator()
     }
     
+}
+
+extension Repo {
+    static let assetURL: URL = {
+        let directory = URL(fileURLWithPath:Directories.documents)
+        let assetURL = directory.appendingPathComponent("assets")
+        return assetURL
+    }()
 }

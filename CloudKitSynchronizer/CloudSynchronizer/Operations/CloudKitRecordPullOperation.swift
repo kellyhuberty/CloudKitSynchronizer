@@ -22,12 +22,12 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
 
     private var _pullOperation: CKFetchRecordZoneChangesOperation!
     
-    init(delegate: CloudRecordPullOperationDelegate){
+    init(database: CKDatabase, delegate: CloudRecordPullOperationDelegate){
         self.delegate = delegate
-        super.init()
+        super.init(database: database)
     }
     
-    override func createOperation() -> CKOperation {
+    override func createOperation() -> CKDatabaseOperation {
         
         var zoneIds = [CKRecordZone.ID]()
         var zoneIdsConfigurations =
@@ -50,6 +50,8 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
             recordZoneIDs: zoneIds,
             configurationsByRecordZoneID: zoneIdsConfigurations
         )
+        _pullOperation.qualityOfService = .userInteractive
+        _pullOperation.database = database
         
         _pullOperation.recordChangedBlock = { [weak self] (record) in
             
@@ -62,6 +64,33 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
                                               status: .success)
         }
         
+        #if os(iOS)
+        if #available(iOS 15, tvOS 15, watchOS 8, *){
+            _pullOperation.recordWasChangedBlock = { [weak self] (recordId, recordResult) in
+                
+                guard let self = self else {
+                    return
+                }
+            
+                switch recordResult{
+                case .failure(let error):
+                    self.delegate?.cloudPullOperation(self,
+                                                      processedUpdatedRecords: [],
+                                                      status: .error(CloudKitError(error: error)))
+                case .success(let record):
+                    
+                    if record.recordID == nil  {
+                        print("wtf")
+                    }
+                    
+                    self.delegate?.cloudPullOperation(self,
+                                                      processedUpdatedRecords: [record],
+                                                      status: .success)
+                }
+            }
+            _pullOperation.recordChangedBlock = nil
+        }
+        #endif
         _pullOperation.recordWithIDWasDeletedBlock = { (recordId, recordType) in
             
             

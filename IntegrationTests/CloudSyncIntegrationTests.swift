@@ -15,7 +15,10 @@ class CloudSyncIntegrationTests: XCTestCase {
     
     var repo1: Repo!
     var repo2: Repo!
-
+    
+    var repo1AssetURL: URL!
+    var repo2AssetURL: URL!
+    
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
     }
@@ -24,61 +27,104 @@ class CloudSyncIntegrationTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
     
-    override func setUp() {
-        repo1 = repo(identifier: "1")
-        repo2 = repo(identifier: "2")
+    override class func setUp() {
+        removeItemAtPath(URL(fileURLWithPath: Directories.testing))
     }
     
-    override func tearDown() {
+    override func setUp() {
+        //Init repo 1
+        (repo1, repo1AssetURL) = repo(identifier: "1")
+        
+        // Perform cleanup, since data from a previous test might be laying around.
         let expectation = self.expectation(description: "resetZones")
         repo1.cloudSynchronizer?.resetZones {
             expectation.fulfill()
         }
         self.wait(for: [expectation], timeout: 60)
+        
+        //Init repo 2
+        (repo2, repo2AssetURL)  = repo(identifier: "2")
     }
     
-    func repo(identifier: String) -> Repo {
-        
-        let directory = URL(string:Directories.documents)!.appendingPathComponent("\(cleanedClassName()).\(cleanedTestName())--\(identifier).db")
-        
+    override func tearDown() {
+
+    }
+    
+    fileprivate func removeItemAtPath(_ directory: URL){
+        CloudSyncIntegrationTests.removeItemAtPath(directory)
+    }
+    
+    static fileprivate func removeItemAtPath(_ directory: URL) {
         let fileManager = FileManager.default
-       
-       // Check if file exists
+        
+        // Check if file exists
         if fileManager.fileExists(atPath: directory.path) {
-           // Delete file
-           try! fileManager.removeItem(atPath: directory.path)
-       } else {
-           print("File does not exist")
-       }
+            // Delete file
+            try! fileManager.removeItem(atPath: directory.path)
+        } else {
+            print("File does not exist")
+        }
+    }
+    
+    func repo(identifier: String) -> (Repo, URL) {
+        
+        let directory = URL(fileURLWithPath: Directories.testing).appendingPathComponent("\(cleanedClassName()).\(cleanedTestName())--\(identifier)")
+        
+        let dbFile = directory.appendingPathComponent("data.db")
+        let assetsDirectoryFile = directory.appendingPathComponent("assets")
+        
+        removeItemAtPath(directory)
         
         print("Database Path: ")
-        print(directory.path + "\n")
+        print(dbFile.path + "\n")
+       
+        print("Assets Path: ")
+        print(assetsDirectoryFile.path + "\n")
+
+        let assetConfig = AssetConfiguration(
+            column: Item.AssetConfigs.imagePath.column,
+            directory: assetsDirectoryFile)
         
-        let repo = Repo(domain: "com.kellyhuberty.cloudkitsynchronizer.test",
-                        path: directory.path,
+        let repo = Repo(domain: "iCloud.com.kellyhuberty.CloudKitSynchronizer",
+                        path: dbFile.path,
                         migrator: LSTDatabaseMigrator.setupMigrator(),
-                        synchronizedTables: [SynchronizedTable(table:"Item")] )
-        
-        return repo
+                        synchronizedTables: [TableConfiguration(table:"Item",
+                                                                assets: [assetConfig])] )
+                
+        return (repo, assetsDirectoryFile)
     }
     
     func cleanedTestName() -> String {
-                
-        // get the name and remove the class name and what comes before the class name
-        var currentTestName = self.name.replacingOccurrences(of: "-[\(cleanedClassName()) ", with: "")
+        
+        var components = cleanedClassNameComponents()
+        
+        components.append(".")
+        components.append("-")
+        components.append("[")
+        components.append("]")
+        components.append(" ")
 
-        // And then you'll need to remove the closing square bracket at the end of the test name
-
-        currentTestName = currentTestName.replacingOccurrences(of: "]", with: "")
+        var currentTestName = self.name
+        
+        for component in components {
+            currentTestName = currentTestName.replacingOccurrences(of: component, with: "")
+        }
         
         return currentTestName
     }
     
     func cleanedClassName() -> String {
         
+        return cleanedClassNameComponents().last ?? ""
+    }
+    
+    func cleanedClassNameComponents() -> [String] {
+        
         let classStr = NSStringFromClass(type(of:self))
 
-        return classStr
+        let components = classStr.components(separatedBy: ".")
+        
+        return components
     }
 
     func testCloudKitAdd() {
@@ -86,20 +132,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -124,20 +170,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -155,8 +201,8 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
         XCTAssertEqual(Set(items1), Set(items2))
         
-        var editedItem = (items2.first { $0.text == "Stella" })!
-        editedItem.text = "Stella Jean"
+        var editedItem = (items2.first { $0.text == "Daphne" })!
+        editedItem.text = "Daphne Blake"
         
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
@@ -180,7 +226,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         let names = items1Edited.map { $0.text }
         
-        XCTAssertTrue(names.contains("Stella Jean"))
+        XCTAssertTrue(names.contains("Daphne Blake"))
         
     }
     
@@ -189,20 +235,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
 
-        var stella = Item()
-        stella.text = "Stella"
+        var daphne = Item()
+        daphne.text = "Daphne"
         
-        var theo = Item()
-        theo.text = "Theo"
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
         
-        var gemma = Item()
-        gemma.text = "Gemma"
+        var scooby = Item()
+        scooby.text = "Scooby"
         
         
         try! repo1.databaseQueue.write { (db) in
-            try! stella.save(db)
-            try! theo.save(db)
-            try! gemma.save(db)
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
         }
         
         var items1:[Item] = []
@@ -220,12 +266,12 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
         XCTAssertEqual(Set(items1), Set(items2))
         
-        let deletedItem = (items2.first { $0.text == "Stella" })!
+        let deletedItem = (items2.first { $0.text == "Daphne" })!
         
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
         
-        try! repo2.databaseQueue.write { (db) in
+        _ = try! repo2.databaseQueue.write { (db) in
             try! deletedItem.delete(db)
         }
         
@@ -244,11 +290,137 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         let names = items1Edited.map { $0.text }
         
-        XCTAssertTrue(names.contains("Theo"))
-        XCTAssertTrue(names.contains("Gemma"))
+        XCTAssertTrue(names.contains("Shaggy"))
+        XCTAssertTrue(names.contains("Scooby"))
 
     }
     
+    func testSyncedAssetAddSync() {
+        
+        waitUntilSyncing(repo1)
+        waitUntilSyncing(repo2)
+        let image = UIImage(named: "daphne.jpg", in: Bundle.init(for: type(of: self)), compatibleWith: nil)
+        
+        var daphne = Item()
+        daphne.text = "Daphne"
+        daphne.imageAsset.testing(repo1AssetURL).uiimage = image
+                
+        XCTAssertNotNil(image)
+
+        try! repo1.databaseQueue.write { (db) in
+            try! daphne.save(db)
+        }
+        
+        var items1:[Item] = []
+        var items2:[Item] = []
+
+        try! repo1.databaseQueue.read { (db) in
+            items1 = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo2) { (db) -> Bool in
+            items2 = try! Item.fetchAll(db)
+            return items1.count == items2.count
+        }
+
+        var first1 = items1.first
+        var first2 = items2.first
+
+        XCTAssertEqual(items1.first, items2.first)
+        
+        XCTAssertNotNil(first2?.imageAsset.testing(repo2AssetURL).uiimage)
+        
+        XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
+                       first2?.imageAsset.testing(repo2AssetURL).data)
+
+    }
+    
+    func testSyncedAssetRemoveSync() {
+        
+        waitUntilSyncing(repo1)
+        waitUntilSyncing(repo2)
+        let image = UIImage(named: "daphne.jpg", in: Bundle.init(for: type(of: self)), compatibleWith: nil)
+        
+        var daphne = Item()
+        daphne.text = "Daphne"
+        daphne.imageAsset.testing(repo1AssetURL).uiimage = image
+                
+        XCTAssertNotNil(image)
+        XCTAssertNotNil(daphne.imageAsset.testing(repo1AssetURL).uiimage)
+
+        try! repo1.databaseQueue.write { (db) in
+            try! daphne.save(db)
+        }
+        
+        var items1:[Item] = []
+        var items2:[Item] = []
+        var items3:[Item] = []
+
+        try! repo1.databaseQueue.read { (db) in
+            items1 = try! Item.fetchAll(db)
+        }
+              
+        var first1:Item?
+        var first2:Item?
+        
+        waitReload(repo2) { (db) -> Bool in
+            items2 = try! Item.fetchAll(db)
+            
+            first1 = items1.first
+            first2 = items2.first
+            
+            let data1 = first1?.imageAsset.testing(self.repo1AssetURL).data
+            let data2 = first2?.imageAsset.testing(self.repo2AssetURL).data
+            
+//            print("\(items1) == \(items2)")
+//            print("\(first1) == \(first2)")
+//            print("\(data1) == \(data2)")
+            
+            return items1.count == items2.count &&
+                    first1 == first2 &&
+                    data1 == data2
+        }
+
+        XCTAssertNotNil(first1)
+        XCTAssertNotNil(first2)
+        XCTAssertEqual(items1.first, items2.first)
+        XCTAssertNotNil(first2?.imageAsset.testing(repo2AssetURL).uiimage)
+
+        XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
+                       first2?.imageAsset.testing(repo2AssetURL).data)
+        
+        first2?.imageAsset.testing(repo2AssetURL).uiimage = nil
+
+        try! repo2.databaseQueue.write { (db) in
+            try! first2?.save(db)
+        }
+
+        var first3: Item? = nil
+                
+        waitReload(repo1) { (db) -> Bool in
+            items3 = try! Item.fetchAll(db)
+            first3 = items3.first
+            let data3 = first3?.imageAsset.testing(self.repo1AssetURL).data
+            let data2 = first2?.imageAsset.testing(self.repo2AssetURL).data
+
+            print(data3)
+            print(data2)
+
+            return data3 == data2
+        }
+
+        XCTAssertNotNil(first3)
+
+
+        XCTAssertEqual(first3, first2)
+
+        XCTAssertNil(first3?.imageAsset.testing(repo1AssetURL).uiimage)
+
+        XCTAssertEqual(first1?.imageAsset.testing(repo1AssetURL).data,
+                       first2?.imageAsset.testing(repo2AssetURL).data)
+        
+    }
+     
     func testExample() throws {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct results.
@@ -264,7 +436,7 @@ class CloudSyncIntegrationTests: XCTestCase {
     func waitReload(_ repo:Repo,  _ until: @escaping (_ db:Database) -> Bool ){
         
         var fulfilled = false
-        var tryCount = 100
+        var tryCount = 10
         
         while !fulfilled && tryCount > 0 {
             let expectation = self.expectation(description: "waitReload")

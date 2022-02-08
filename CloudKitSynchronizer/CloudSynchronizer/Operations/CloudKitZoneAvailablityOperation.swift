@@ -9,7 +9,7 @@
 import Foundation
 import CloudKit
 
-class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailablityOperation {
+class CloudKitZoneAvailablityOperation: AsyncCloudKitOperation, CloudZoneAvailablityOperation {
     
     var zoneIdsToCreate: [CKRecordZone.ID] = []
     var zoneIdsToDelete: [CKRecordZone.ID] = []
@@ -22,6 +22,8 @@ class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailabl
         self.completionToken = completionToken
         
         let createZoneOperation = CKModifyRecordZonesOperation()
+        createZoneOperation.qualityOfService = .userInteractive
+        createZoneOperation.database = database
         
         var zones = [CKRecordZone]()
         
@@ -51,7 +53,6 @@ class CloudKitZoneAvailablityOperation: AsynchronousOperation, CloudZoneAvailabl
         }
         
         createZoneOperation.start()
-        
     }
     
 }

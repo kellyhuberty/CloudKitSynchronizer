@@ -9,30 +9,33 @@
 import Foundation
 import CloudKitSynchronizer
 
-struct Item : Model, Hashable, Codable {
+struct Item : IdentifiableModel, Codable {
+    
+    enum AssetConfigs {
+        static let imagePath = AssetConfiguration(column: "image",
+                                                  directory: Repo.assetURL)
+    }
     
     init() {
         identifier = UUID().uuidString
     }
     
-    var identifier:String
+    var identifier: String
     var text:String?
     var nextIdentifier:String?
-    
+    var imagePath: String? //SyncedAsset = SyncedAsset()
+
+    lazy var imageAsset: SyncedAsset = {
+        SyncedAsset(self, configuration: AssetConfigs.imagePath)
+    }()
 }
 
-//extension Item: Hashable {
-//    static func == (lhs: Item, rhs: Item) -> Bool {
-//        return lhs.identifier == rhs.identifier
-//    }
-//
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(identifier)
-//    }
-//}
+extension Item: Hashable {
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(identifier)
+    }
+}
 
-//extension Item: Identifiable{
-//    var id: ObjectIdentifier {
-//        return identifier
-//    }
-//}
+extension Item: Equatable {
+    
+}

@@ -79,19 +79,37 @@ protocol CloudZoneAvailablityOperation : Operating {
     
 }
 
+protocol CloudSubscriptionSyncOperation : Operating {
+    var configurations: [TableConfigurable] { get set }
+}
 
 class CloudKitOperationProducer: CloudOperationProducing {
     
+    let database: CKDatabase
+    
+    init(database: CKDatabase) {
+        self.database = database
+    }
+    
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation {
-        return CloudKitZoneAvailablityOperation()
+        return CloudKitZoneAvailablityOperation(database: database)
+    }
+    
+    func newSubscriptionSyncOperation() -> CloudSubscriptionSyncOperation? {
+        if #available (iOS 13, tvOS 13, macOS 10.15, watchOS 6, *) {
+            return CloudKitSubscriptionSyncOperation(database: database)
+        }
+        else {
+            return nil
+        }
     }
     
     func newPullOperation(delegate:CloudRecordPullOperationDelegate) -> CloudRecordPullOperation {
-        return CloudKitRecordPullOperation(delegate: delegate)
+        return CloudKitRecordPullOperation(database: database, delegate: delegate)
     }
     
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation{
-        return CloudKitRecordPushOperation(delegate: delegate)
+        return CloudKitRecordPushOperation(database: database, delegate: delegate)
     }
     
 }

@@ -10,38 +10,7 @@ import Foundation
 import CloudKit
 import GRDB
 
-public class SynchronizedTable : SynchronizedTableProtocol{
-    let tableName:String
-    
-    public init(table:String){
-        tableName = table
-    }
-}
-
-protocol SynchronizedTableProtocol {
-    var tableName:String { get }
-}
-
 typealias DatabaseValueDictionary = [String:DatabaseValueConvertible?]
-
-enum CloudSynchronizerError: Error {
-    
-    case recordIssue(_ error: CloudRecordError)
-    //case synchronizerIssue(_ error: CloudSyncError)
-    case sqlLite(_ error:Error)
-    case cloudKitError(_ error:Error)
-    case archivalError(_ error:Error)
-    
-}
-
-protocol CloudSynchronizerDelegate : AnyObject {
-    
-    func cloudSynchronizer(_ synchronizer: CloudSynchronizer, errorOccured: CloudSynchronizerError)
-    
-    func cloudSynchronizerNetworkBecameUnavailable(_ synchronizer:CloudSynchronizer)
-    
-    func cloudSynchronizerNetworkBecameAvailable(_ synchronizer:CloudSynchronizer)
-}
 
 struct TableNames{
     static let Migration = "SyncMigration"
@@ -49,7 +18,88 @@ struct TableNames{
     static let ChangeTags = "SyncChangeTags"
 }
 
-class CloudSynchronizer {
+@propertyWrapper class CloudKitAvailablity {
+    
+    public struct Status {
+        enum Availablity {
+            init(_ accountStatus: CKAccountStatus) {
+                switch accountStatus {
+                case .available:
+                    self = .available
+                case .couldNotDetermine:
+                    self = .couldNotDetermine
+                case .noAccount:
+                    self = .noAccount
+                case .restricted:
+                    self = .restricted
+//                #if swift(>=5.5)
+//                //TODO: Re-add when support settles down.
+//                case .temporarilyUnavailable:
+//                    self = .temporarilyUnavailable
+//                #endif
+                default:
+                    self = .couldNotDetermine
+                }
+            }
+            
+            case available
+            case couldNotDetermine
+            case noAccount
+            case restricted
+            case temporarilyUnavailable
+            case retrieving
+        }
+        
+        public let accountStatus: Availablity
+        fileprivate let error: Error?
+        public var errorMessage: String? {
+            return error?.localizedDescription
+        }
+        
+        fileprivate init(_ accountStatus: Availablity, error: Error? = nil) {
+            self.accountStatus = accountStatus
+            self.error = error
+        }
+    }
+    
+    var wrappedValue: Status {
+        return currentStatus
+    }
+    
+    private(set) var currentStatus: Status = Status(.retrieving) {
+        didSet{
+            delivery?(currentStatus)
+        }
+    }
+
+    private let container: CKContainer
+    private let deliveryQueue: DispatchQueue
+    private let delivery: ((Status) -> Void)?
+    private var observer: NSObjectProtocol! = nil
+            
+    init(_ container: CKContainer, queue: DispatchQueue = .main, delivery: ((Status) -> Void)? ) {
+        
+        self.container = container
+        self.deliveryQueue = queue
+        self.delivery = delivery
+        
+        observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: nil) { _ in
+            self.checkAvailablity(nil)
+        }
+    }
+    
+    public func checkAvailablity(_ completion: ((Status) -> Void)? ){
+        container.accountStatus { [weak self] accountStatus, error in
+            self?.deliveryQueue.async {
+                let status = Status(Status.Availablity(accountStatus), error: error)
+                self?.currentStatus = status
+                completion?(status)
+            }
+        }
+    }
+}
+
+public class CloudSynchronizer {
 
     public enum Status {
         case unstarted
@@ -57,7 +107,7 @@ class CloudSynchronizer {
         case stopped
         case halted(error:Error?)
     }
-    
+
     public enum ZoneName {
         public static let defaultZoneName = Domain.current
         public static let testingZoneName = Domain.current + ".testing"
@@ -77,12 +127,28 @@ class CloudSynchronizer {
 
     private let _tableObserverFactory:TableObserverProducing
 
-    public private(set) var status:Status
+    public private(set) var status: Status {
+        didSet {
+            
+        }
+    }
     
-    var operationFactory:CloudOperationProducing? {
+    public var isSyncing: Bool {
         get{
             switch status {
             case .syncing:
+                return true
+            default:
+                return false
+            }
+        }
+    }
+    
+    private var operationFactory:CloudOperationProducing? {
+        get{
+            switch status {
+            case .syncing:
+                log.debug("Current syncing status is enabled.")
                 return _operationFactory
             default:
                 log.debug("Current syncing status is disabled.")
@@ -91,11 +157,13 @@ class CloudSynchronizer {
         }
     }
     
-    let cloudRecordStore: CloudRecordStoring
+    private let cloudRecordStore: CloudRecordStoring
+    
+    @CloudKitAvailablity var availability: CloudKitAvailablity.Status
     
     private var currentChangeTagCache:CKServerChangeToken?
     
-    var currentChangeTag:CKServerChangeToken? {
+    private var currentChangeTag:CKServerChangeToken? {
         get{
             guard currentChangeTagCache == nil else {
                 return currentChangeTagCache
@@ -137,16 +205,23 @@ class CloudSynchronizer {
         }
     }
     
-    var observers:[TableObserving] = []
+    private var observers:[TableObserving] = []
     
+    private let assetProcessor: AssetProcessing
+
     ///Unused
-    weak var delegate: CloudSynchronizerDelegate?
+    // weak var delegate: CloudSynchronizerDelegate?
     
     init(databaseQueue: DatabaseQueue,
+         container: CKContainer = CKContainer.default(),
          operationFactory: CloudOperationProducing? = nil,
          tableObserverFactory: TableObserverProducing? = nil,
          cloudRecordStore: CloudRecordStoring? = nil,
-         defaultZoneName: String = ZoneName.defaultZoneName) throws {
+         defaultZoneName: String = ZoneName.defaultZoneName,
+         assetProcessor: AssetProcessing = AssetProcessor()
+    ) throws {
+        
+        
         
         self.localDatabasePool = databaseQueue
         
@@ -154,7 +229,7 @@ class CloudSynchronizer {
             self._operationFactory = operationFactory
         }
         else {
-            self._operationFactory = CloudKitOperationProducer()
+            self._operationFactory = CloudKitOperationProducer(database: container.privateCloudDatabase)
         }
         
         if let tableObserverFactory = tableObserverFactory {
@@ -174,6 +249,12 @@ class CloudSynchronizer {
         self.zoneId = CKRecordZone.ID(zoneName: defaultZoneName, ownerName: CKCurrentUserDefaultName)
 
         self.status = .unstarted
+        
+        self.assetProcessor = assetProcessor
+        
+        _availability = CloudKitAvailablity(container) { status in
+            
+        }
         
         //Error: databaseMigration
         try! databaseQueue.write { (db) in
@@ -200,17 +281,20 @@ class CloudSynchronizer {
             return
         }
         
-        initilizeZones{            
-            self.status = .syncing
+        _availability.checkAvailablity { [weak self] status in
+//            self?.setupSubscriptions {
+                self?.initilizeZones {
+                    self?.status = .syncing
+                }
+//            }
         }
-        
     }
     
     public func stopSync() {
         status = .stopped
     }
     
-    var synchronizedTables:[SynchronizedTableProtocol] = [] {
+    var synchronizedTables:[TableConfigurable] = [] {
         didSet{
             setSyncRequest()
         }
@@ -218,7 +302,7 @@ class CloudSynchronizer {
     
     public func processCloudNotificationPayload(_ userInfo:[AnyHashable : Any]){
         
-        let notification = CKNotification(fromRemoteNotificationDictionary: userInfo)!
+        let _ = CKNotification(fromRemoteNotificationDictionary: userInfo)!
         //TODO: Support for push notification changes
     }
     
@@ -235,7 +319,7 @@ class CloudSynchronizer {
         observers.append(tableObserver)
     }
     
-    private func tableObserver(for name:String) -> TableObserving{
+    private func tableObserver(for name:String) -> TableObserving {
         
         for observer in observers {
             if observer.tableName == name {
@@ -248,10 +332,28 @@ class CloudSynchronizer {
         
     }
     
-    private func startObservingTable(_ syncedTable:SynchronizedTableProtocol) throws {
+    private func mapper(for name:String) -> CloudRecordMapping {
         
-        let table = syncedTable.tableName
-        let tableObserver = _tableObserverFactory.newTableObserver(table)
+        let tableObserver = tableObserver(for: name)
+        
+        let tableConfig = tableObserver.tableConfiguration
+        
+        var transforms = [String: AssetTransformer]()
+        
+        for assetConfig in tableConfig.syncedAssets {
+            transforms[assetConfig.column] =
+                AssetTransformer(table: name,
+                                 assetConfig: assetConfig,
+                                 processor: self.assetProcessor)
+        }
+        
+        return CloudRecordMapper(tableName: tableObserver.tableName,
+                                 columnNames: tableObserver.columnNames,
+                                 transforms: transforms)
+    }
+    
+    private func startObservingTable(_ syncedTable:TableConfigurable) throws {
+        let tableObserver = _tableObserverFactory.newTableObserver(syncedTable)
         tableObserver.delegate = self
         addTableObserver(tableObserver)
     }
@@ -264,6 +366,19 @@ class CloudSynchronizer {
             completion()
         }
         createZoneOperation.start()
+    }
+    
+    func setupSubscriptions(completion:@escaping ()->Void) {
+        guard let createSubscriptionsOperation = _operationFactory.newSubscriptionSyncOperation() else{
+            log.debug("Subscription Sync Unavailable")
+            completion()
+            return
+        }
+        createSubscriptionsOperation.configurations = self.synchronizedTables
+        createSubscriptionsOperation.completionBlock = {
+            completion()
+        }
+        createSubscriptionsOperation.start()
     }
     
     func runSynchronizerMigrations(_ db:Database) throws {
@@ -385,11 +500,15 @@ class CloudSynchronizer {
     private func propegatesUpdatesToDatabase(_ ckRecords:[CKRecord], in tableName:String, database:Database) throws {
         
         
-        let mapper = tableObserver(for:tableName).mapper
+        let mapper = mapper(for:tableName)
         
         let sortedSqlColumnString = mapper.sortedSqlColumnString()
         
         let sqlValues = mapper.sqlValues(forRecords: ckRecords)
+         
+        guard sqlValues.count > 0 else {
+            return
+        }
         
         let sqlValuesString = mapper.sqlValuesString(forRecords: ckRecords)
 
@@ -417,8 +536,16 @@ class CloudSynchronizer {
     
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
 
+        guard isSyncing else {
+            completion()
+            return
+        }
+        
         DispatchQueue.global().async { [weak self] in
-            guard let self = self else { return }
+            guard let self = self else {
+                completion()
+                return
+            }
             
             let pullSemaphore = DispatchSemaphore(value: 0)
             let pushSemaphore = DispatchSemaphore(value: 0)
@@ -435,6 +562,19 @@ class CloudSynchronizer {
             pushSemaphore.wait()
 
             completion()
+        }
+    }
+    
+    @available(macOS 10.15, iOS 13.0, *)
+    public func refreshFromCloud() async {
+        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
+            guard let self = self else {
+                continuation.resume()
+                return
+            }
+            self.refreshFromCloud {
+                continuation.resume()
+            }
         }
     }
     
@@ -520,7 +660,7 @@ class CloudSynchronizer {
                 RecoverySuggestion: %@
                 RecoveryType: %@
                 """,
-                     error.underlyingError.errorCode,
+                     error.ckError?.errorCode ?? 0,
                      error.localizedDescription,
                      error.failureReason ?? "",
                      error.recoverySuggestion ?? "",
@@ -726,13 +866,13 @@ extension CloudSynchronizer {
 
 extension CloudSynchronizer: TableObserverDelegate {
     
-    func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, for status:CloudRecordMutationType, using db: Database) throws -> [CKRecord] {
+    private func mapAndCheckoutRecord(from tableRows:[TableRow], from table:String, using db: Database) throws -> [CKRecord] {
 
-        let mapper = tableObserver(for: table).mapper
+        let mapper = mapper(for: table)
 
         let rowIdentifers = tableRows.map { $0.identifier }
 
-        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: status, sorted: true, using: db)
+        let ckRecords = try cloudRecordStore.checkoutRecord(with: rowIdentifers, zoneID:zoneId, from: table, for: .processing, sorted: true, using: db)
 
         let ckRecordsDictionary:[String:CKRecord] = ckRecords.reduce(into: [String:CKRecord]()) { return $0[$1.recordID.recordName] = $1 }
 
@@ -749,6 +889,8 @@ extension CloudSynchronizer: TableObserverDelegate {
             mappedCkRecords.append(mappedCKRecord)
 
         }
+        
+        try? cloudRecordStore.checkinCloudRecords(mappedCkRecords, with: .pushingUpdate, having: nil, error: nil, using: db)
         
         return mappedCkRecords
     }
@@ -767,8 +909,8 @@ extension CloudSynchronizer: TableObserverDelegate {
             try write { (db) in
                 
                 recordsToDelete = try cloudRecordStore.checkoutRecord(with: deletedIdentifiers, zoneID:zoneId, from: table, for: .pushingDelete, sorted: true, using: db)
-                recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, for: .pushingUpdate, using: db)
-                recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table , for: .pushingUpdate, using: db)
+                recordsToUpdate = try self.mapAndCheckoutRecord(from: updated, from: table, using: db)
+                recordsToCreate = try self.mapAndCheckoutRecord(from: created, from: table, using: db)
             }
         } catch let error {
             handleDatabaseError(error)
@@ -812,143 +954,8 @@ protocol CloudOperationProducing : AnyObject {
     func newPullOperation(delegate: CloudRecordPullOperationDelegate) -> CloudRecordPullOperation
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation
+    func newSubscriptionSyncOperation() -> CloudSubscriptionSyncOperation?
 }
-
-class CloudRecordMapper {
-    
-    let columns:[String]
-    let tableName:String
-    
-    let sortedColumns:[String]
-    
-    init(tableName:String, columnNames:[String]) {
-        self.columns = columnNames
-        self.tableName = tableName
-        
-        var newColumns = columns
-        newColumns.sort()
-        if let index = newColumns.firstIndex(of: "identifier") {
-            newColumns.remove(at: index)
-            newColumns.insert("identifier", at: 0)
-        }
-        sortedColumns = newColumns
-    }
-    
-    func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord{
-
-        for (key, value) in data{
-            guard let value = value else{
-                record.setValue(nil, forKey: key)
-                continue
-            }
-            
-            switch value.storage {
-            case .blob(let data):
-                record.setValue(data, forKey: key)
-            case .double(let double):
-                record.setValue(double, forKey: key)
-            case .int64(let integer):
-                record.setValue(integer, forKey: key)
-            case .string(let string):
-                record.setValue(string, forKey: key)
-            case .null:
-                record.setValue(nil, forKey: key)
-            }
-            
-        }
-
-        return record
-    }
-    
-    func map(record:CKRecord) -> [String:DatabaseValue?]{
-        
-        var allValues = [String:DatabaseValue?]()
-        
-        for key in record.allKeys() {
-
-            guard let value = record[key] else{
-                allValues[key] = nil
-                continue
-            }
-            
-            switch value {
-            case let value as Data:
-                allValues[key] = DatabaseValue(value: value)
-            case let value as Double:
-                allValues[key] = DatabaseValue(value: value)
-            case let value as Int:
-                allValues[key] = DatabaseValue(value: value)
-            case let value as String:
-                allValues[key] = DatabaseValue(value: value)
-            default:
-                fatalError("Unsupported CKRecord Type")
-            }
-            
-        }
-        
-        return allValues
-    }
-    
-    func sortedSqlColumnString() -> String {
-        
-        return "(" + sortedColumns.joined(separator: ", ") + ")"
-        
-    }
-    
-    func sortedSqlValues(_ sqlValues:[String:DatabaseValueConvertible?]) -> [DatabaseValueConvertible?] {
-        
-        return sortedColumns.map { (key) -> DatabaseValueConvertible? in
-            return sqlValues[key] ?? nil
-        }
-        
-    }
-    
-    func sqlValues(forRecords records:[CKRecord]) -> [DatabaseValueConvertible?] {
-        
-        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
-            return map(record: record)
-        }
-        
-        return sqlValues(forRows: rows)
-    }
-    
-    func sqlValues(forRows dictionaries:[[String:DatabaseValueConvertible?]]) -> [DatabaseValueConvertible?]{
-        
-        var valuesArray = [DatabaseValueConvertible?]()
-        
-        for dictionary in dictionaries {
-            
-            let sortedValues = sortedSqlValues(dictionary)
-            valuesArray.append(contentsOf: sortedValues)
-            
-        }
-        return valuesArray
-    }
-    
-    func sqlValuesString(forRecords records:[CKRecord]) -> String {
-        
-        let rows = records.map { (record) -> [String:DatabaseValueConvertible?] in
-            return map(record: record)
-        }
-        
-        return sqlValuesString(rows:rows)
-    }
-    
-    func sqlValuesString(rows:[[String:DatabaseValueConvertible?]]) -> String {
-        
-        let placeholderArray = sortedColumns.map { (_) -> String in
-            return "?"
-        }
-        
-        let recordPlaceholderArray = rows.map { (_) -> String in
-            return "(" + placeholderArray.joined(separator: ", ") + ")"
-        }
-        
-        return recordPlaceholderArray.joined(separator: ", ")
-    }
-    
-}
-
 
 extension Array where Element == String {
 
@@ -963,7 +970,3 @@ extension Array where Element == String {
         return quoteArr.joined(separator: ",")
     }
 }
-
-
-
-

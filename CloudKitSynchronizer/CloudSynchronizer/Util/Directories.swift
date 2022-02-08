@@ -12,6 +12,14 @@ public class Directories {
     public static var documents: String {
         return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!
     }
+    
+    public static var library: String {
+        return NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true).first!
+    }
+    
+    public static var testing: String {
+        return URL(fileURLWithPath: NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first!).appendingPathComponent("testing").path
+    }
 }
 
 class Domain {

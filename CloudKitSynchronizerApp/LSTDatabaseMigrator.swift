@@ -27,6 +27,12 @@ class LSTDatabaseMigrator {
             })
         }
         
+        migrator.registerMigration("v1.0.0.3") { (db) in
+            try! db.alter(table: "Item", body: { (table) in
+                table.add(column:"imagePath", Database.ColumnType.text)
+            })
+        }
+        
         return migrator
     }
     
