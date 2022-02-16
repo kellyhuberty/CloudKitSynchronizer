@@ -13,11 +13,12 @@ import CloudKit
 public class TableConfiguration : TableConfigurable {
     public let tableName: String
     public var syncedAssets: [AssetConfigurable]
-    public var subscription: Subscription?
+    public var subscriptions: [Subscription]
     
-    public init(table:String, assets: [AssetConfigurable] = []){
-        tableName = table
-        syncedAssets = assets
+    public init(table:String, assets: [AssetConfigurable] = [], subscriptions: [Subscription] = []){
+        self.tableName = table
+        self.syncedAssets = assets
+        self.subscriptions = subscriptions
     }
 }
 
@@ -26,7 +27,7 @@ typealias TableConfig = TableConfiguration
 public protocol TableConfigurable {
     var tableName:String { get }
     var syncedAssets: [AssetConfigurable] { get }
-    var subscription: Subscription? { get }
+    var subscriptions: [Subscription] { get }
 }
 
 public protocol AssetConfigurable {
@@ -79,12 +80,23 @@ public class AssetConfiguration: AssetConfigurable {
 typealias AssetConfig = AssetConfiguration
 
 public struct Subscription: Hashable {
-    enum Event: String, Hashable {
+    public enum Event: String, Hashable {
         case create
         case update
         case delete
     }
     
-    var sendEvents: [Event] = [.create, .update, .delete]
+    public init(triggers: [Event] = [.create, .update, .delete], notificationInfo: CKSubscription.NotificationInfo) {
+        self.sendEvents = triggers
+        self.notificationInfo = notificationInfo
+    }
+    
+    public init() {
+
+    }
+    
+    public var sendEvents: [Event] = [.create, .update, .delete]
+    
+    public var notificationInfo: CKSubscription.NotificationInfo = CKSubscription.NotificationInfo()
 }
 
