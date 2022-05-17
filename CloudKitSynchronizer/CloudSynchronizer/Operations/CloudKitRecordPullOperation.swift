@@ -64,6 +64,8 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
                                               status: .success)
         }
         
+        _pullOperation.qualityOfService = .userInitiated
+        
         #if os(iOS)
         if #available(iOS 15, tvOS 15, watchOS 8, *){
             _pullOperation.recordWasChangedBlock = { [weak self] (recordId, recordResult) in

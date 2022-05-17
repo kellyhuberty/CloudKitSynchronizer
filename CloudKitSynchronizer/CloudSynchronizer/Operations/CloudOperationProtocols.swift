@@ -115,6 +115,7 @@ class CloudKitOperationProducer: CloudOperationProducing {
 }
 
 protocol Operating : AnyObject {
+    var qualityOfService: QualityOfService { get set }
     func start()
     var completionBlock: (() -> Void)? { get set }
 }
