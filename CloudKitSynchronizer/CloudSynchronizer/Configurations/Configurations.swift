@@ -14,11 +14,13 @@ public class TableConfiguration : TableConfigurable {
     public let tableName: String
     public var syncedAssets: [AssetConfigurable]
     public var subscriptions: [Subscription]
+    public var excludedColumns: [String]?
     
-    public init(table:String, assets: [AssetConfigurable] = [], subscriptions: [Subscription] = []){
+    public init(table:String, assets: [AssetConfigurable] = [], excludedColumns: [String]? = nil, subscriptions: [Subscription] = []){
         self.tableName = table
         self.syncedAssets = assets
         self.subscriptions = subscriptions
+        self.excludedColumns = excludedColumns
     }
 }
 
@@ -27,6 +29,7 @@ typealias TableConfig = TableConfiguration
 public protocol TableConfigurable {
     var tableName:String { get }
     var syncedAssets: [AssetConfigurable] { get }
+    var excludedColumns: [String]? { get }
     var subscriptions: [Subscription] { get }
 }
 
