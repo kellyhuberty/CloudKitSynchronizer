@@ -1,8 +1,8 @@
 {
   "name": "CloudKitSynchronizer",
   "platforms": {
-    "ios": "12.0",
-    "osx": "10.14"
+    "ios": "14.0",
+    "osx": "11.0"
   },
   "version": "0.1.0",
   "license": {
