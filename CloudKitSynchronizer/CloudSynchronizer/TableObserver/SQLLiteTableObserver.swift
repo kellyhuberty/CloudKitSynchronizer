@@ -135,13 +135,16 @@ class SQLiteTableObserver {
         currentRowsCreatingUp = try! currentTable.filter(currentRowsIDsCreatingUp.contains(rowIDColumn)).fetchAll(db)
         currentRowsUpdatingUp = try! currentTable.filter(currentRowsIDsUpdatingUp.contains(rowIDColumn)).fetchAll(db)
         
-//        currentRowsDeletingUp = try! table.filter(currentRowsIDsDeletingUp.contains(rowIDColumn)).fetchAll(db)
-//        db.ch
-        
         let selectQuery = """
-        SELECT \(TableNames.CloudRecords).identifier
-        FROM \(TableNames.CloudRecords) LEFT JOIN \(tableConfiguration.tableName) ON \(tableConfiguration.tableName).identifier = \(TableNames.CloudRecords).identifier
-        WHERE \(TableNames.CloudRecords).tableName == '\(tableConfiguration.tableName)' AND \(tableConfiguration.tableName).identifier IS NULL AND \(TableNames.CloudRecords).status = '\(CloudRecordMutationType.synced.rawValue)'
+        SELECT
+            \(TableNames.CloudRecords).identifier
+        FROM
+            \(TableNames.CloudRecords) LEFT JOIN \(tableConfiguration.tableName)
+            ON \(tableConfiguration.tableName).identifier = \(TableNames.CloudRecords).identifier
+        WHERE
+            \(TableNames.CloudRecords).tableName == '\(tableConfiguration.tableName)'
+            AND \(tableConfiguration.tableName).identifier IS NULL
+            AND \(TableNames.CloudRecords).status = '\(CloudRecordMutationType.synced.rawValue)'
         """
         let request = SQLRequest<CloudRecord>(sql: selectQuery)
         currentRowsIDsDeletingUp = try! TableRow.Identifier.fetchAll(db, request)
