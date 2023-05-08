@@ -3,28 +3,20 @@ import Foundation
 extension String {
     /// "player" -> "Player"
     var uppercasingFirstCharacter: String {
-        guard let first = first else {
+        guard let first else {
             return self
         }
         return String(first).uppercased() + dropFirst()
     }
     
-    // Prevent inlining of functions that use `Inflections.default`, in order to
-    // make sure this global is lazily loaded, even in release builds.
-    // See https://github.com/groue/GRDB.swift/issues/755#issuecomment-612418053
-    // TODO: remove `@inline(never)` when this PR is shipped in the compiler:
-    // https://github.com/apple/swift/pull/30445
-    
     /// "player" -> "players"
     /// "players" -> "players"
-    @inline(never)
     var pluralized: String {
         Inflections.default.pluralize(self)
     }
     
     /// "player" -> "player"
     /// "players" -> "player"
-    @inline(never)
     var singularized: String {
         Inflections.default.singularize(self)
     }
@@ -36,9 +28,9 @@ extension String {
     }
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// A type that controls GRDB string inflections.
+///
+/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
 public struct Inflections {
     private var pluralizeRules: [(NSRegularExpression, String)] = []
     private var singularizeRules: [(NSRegularExpression, String)] = []

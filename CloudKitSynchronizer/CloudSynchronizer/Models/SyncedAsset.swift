@@ -239,6 +239,7 @@ public extension SyncedAsset {
 #endif
 
 #if os(macOS) && canImport(AppKit)
+import AppKit
 public extension SyncedAsset {
     var nsimage: NSImage? {
         get {

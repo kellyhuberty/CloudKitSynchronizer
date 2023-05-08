@@ -27,5 +27,5 @@ extension TableObserving {
 }
 
 protocol TableObserverDelegate : AnyObject {
-    func tableObserver(_ observer:TableObserving, created:[TableRow], updated:[TableRow], deleted:[TableRow])
+    func tableObserver(_ observer:TableObserving, created:[TableRow], updated:[TableRow], deleted:[TableRow.Identifier])
 }

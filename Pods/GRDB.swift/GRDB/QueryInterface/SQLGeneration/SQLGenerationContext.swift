@@ -1,5 +1,3 @@
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// SQLGenerationContext supports SQL generation:
 ///
 /// - It provides a database connection during SQL generation, for any purpose
@@ -88,7 +86,27 @@ final class SQLGenerationContext {
     /// Returns whether arguments could be appended.
     ///
     /// A false result means that the generation context does not support
-    /// SQL arguments.
+    /// SQL arguments, and `?` placeholders are not supported.
+    /// This happens, for example, when we are creating tables:
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   name TEXT DEFAULT 'Anonymous' -- String literal instead of ?
+    ///     // )
+    ///     let defaultName = "Anonymous"
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///     }
+    ///
+    /// A false result is turned into a fatal error when the user uses
+    /// SQL arguments at unsupported locations:
+    ///
+    ///     // Fatal error:
+    ///     // Not implemented: turning an SQL parameter into an SQL literal value
+    ///     let defaultName = "Anonymous"
+    ///     let literal = SQL(sql: "name TEXT DEFAULT ?", arguments: [defaultName])
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: literal)
+    ///     }
     func append(arguments: StatementArguments) -> Bool {
         argumentsSink.append(arguments: arguments)
     }
@@ -184,10 +202,12 @@ class StatementArgumentsSink {
 
 // MARK: - TableAlias
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// A TableAlias identifies a table in a request.
-public class TableAlias: Hashable {
+///
+/// See ``TableRequest/aliased(_:)`` for more information and examples.
+///
+/// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
+public class TableAlias {
     private enum Impl {
         /// A TableAlias is undefined when it is created by the GRDB user:
         ///
@@ -279,32 +299,16 @@ public class TableAlias: Hashable {
         }
     }
     
-    /// Creates a TableAlias, suitable for qualifying requests or associations.
-    ///
-    /// For example:
-    ///
-    ///     // The request for all books published after their author has died
-    ///     //
-    ///     // SELECT book.*
-    ///     // FROM book
-    ///     // JOIN author ON author.id = book.authorId
-    ///     // WHERE book.publishDate >= author.deathDate
-    ///     let authorAlias = TableAlias()
-    ///     let request = Book
-    ///         .joining(required: Book.author.aliased(authorAlias))
-    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    /// Creates a TableAlias.
     ///
     /// When the alias is given a name, this name is guaranteed to be used as
     /// the table alias in the SQL query:
     ///
-    ///     // SELECT book.*
-    ///     // FROM book
-    ///     // JOIN author a ON a.id = book.authorId
-    ///     // WHERE book.publishDate >= a.deathDate
-    ///     let authorAlias = TableAlias(name: "a")
-    ///     let request = Book
-    ///         .joining(required: Book.author.aliased(authorAlias))
-    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    /// ```swift
+    /// // SELECT p.* FROM player p
+    /// let alias = TableAlias(name: "p")
+    /// let request = Player.all().aliased(alias)
+    /// ```
     public init(name: String? = nil) {
         self.impl = .undefined(userName: name)
     }
@@ -320,7 +324,7 @@ public class TableAlias: Hashable {
         
         switch impl {
         case let .undefined(userName):
-            if let userName = userName {
+            if let userName {
                 // rename
                 assert(base.userName == nil || base.userName == userName)
                 base.setUserName(userName)
@@ -328,7 +332,7 @@ public class TableAlias: Hashable {
             self.impl = .proxy(base)
         case let .table(tableName: tableName, userName: userName):
             assert(tableName == base.tableName)
-            if let userName = userName {
+            if let userName {
                 // rename
                 assert(base.userName == nil || base.userName == userName)
                 base.setUserName(userName)
@@ -354,7 +358,7 @@ public class TableAlias: Hashable {
                 // can't merge
                 return nil
             }
-            if let userName = userName, let otherUserName = otherUserName, userName != otherUserName {
+            if let userName, let otherUserName, userName != otherUserName {
                 // can't merge
                 return nil
             }
@@ -397,62 +401,106 @@ public class TableAlias: Hashable {
         }
     }
     
-    /// Returns a qualified value that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ selectable: SQLSelectable) -> SQLSelection {
+    /// Returns a result column that refers to the aliased table.
+    public subscript(_ selectable: some SQLSelectable) -> SQLSelection {
+        // TODO: test
         selectable.sqlSelection.qualified(with: self)
     }
     
-    /// Returns a qualified expression that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ expression: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
+    /// Returns an SQL expression that refers to the aliased table.
+    ///
+    /// For example, let's sort books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias()
+    /// let request = Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order(authorAlias[Column("name")], Column("title"))
+    /// ```
+    public subscript(_ expression: some SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
         expression.sqlExpression.qualified(with: self)
     }
     
-    /// Returns a qualified ordering that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrdering {
+    /// Returns an SQL ordering term that refers to the aliased table.
+    ///
+    /// For example, let's sort books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name ASC, book.title ASC
+    /// let authorAlias = TableAlias()
+    /// let request = Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order(authorAlias[Column("name").asc], Column("title").asc)
+    /// ```
+    public subscript(_ ordering: some SQLOrderingTerm) -> SQLOrdering {
         ordering.sqlOrdering.qualified(with: self)
     }
     
-    /// Returns a qualified columnn that is able to resolve ambiguities in
-    /// joined queries.
+    /// Returns an SQL column that refers to the aliased table.
+    ///
+    /// For example, let's sort books by author name first, and then by title:
+    ///
+    /// ```swift
+    /// // SELECT book.*
+    /// // FROM book
+    /// // JOIN author ON author.id = book.authorId
+    /// // ORDER BY author.name, book.title
+    /// let authorAlias = TableAlias()
+    /// let request = Book
+    ///     .joining(required: Book.author.aliased(authorAlias))
+    ///     .order(authorAlias["name"], Column("title"))
+    /// ```
     public subscript(_ column: String) -> SQLExpression {
         .qualifiedColumn(column, self)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// A boolean SQL expression indicating whether this alias refers to some
+    /// rows, or not.
     ///
-    /// An expression that evaluates to true if the record refered by this
-    /// `TableAlias` exists.
+    /// - note: [**🔥 EXPERIMENTAL**](https://github.com/groue/GRDB.swift/blob/master/README.md#what-are-experimental-features)
     ///
-    /// For example, here is how filter books and only keep those that are not
-    /// associated to any author:
+    /// In the example below, we only fetch books that are not associated to
+    /// any author:
     ///
-    ///     let books: [Book] = try dbQueue.read { db in
-    ///         let authorAlias = TableAlias()
-    ///         let request = Book
-    ///             .joining(optional: Book.author.aliased(authorAlias))
-    ///             .filter(!authorAlias.exists)
-    ///         return try request.fetchAll(db)
-    ///     }
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord { }
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
+    ///
+    /// try dbQueue.read { db in
+    ///     let authorAlias = TableAlias()
+    ///     let request = Book
+    ///         .joining(optional: Book.author.aliased(authorAlias))
+    ///         .filter(!authorAlias.exists)
+    ///     let books = try request.fetchAll(db)
+    /// }
+    /// ```
     public var exists: SQLExpression {
-        // TODO: this fails with SQL views. Can we do something?
-        SQLExpression.qualifiedFastPrimaryKey(self) != nil
+        SQLExpression.qualifiedExists(self)
     }
-    
-    /// :nodoc:
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(ObjectIdentifier(root))
-    }
-    
-    /// :nodoc:
+}
+
+extension TableAlias: Equatable {
     public static func == (lhs: TableAlias, rhs: TableAlias) -> Bool {
         ObjectIdentifier(lhs.root) == ObjectIdentifier(rhs.root)
     }
 }
 
-extension Array where Element == TableAlias {
+extension TableAlias: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(root))
+    }
+}
+
+extension [TableAlias] {
     /// Resolve ambiguities in aliases' names.
     fileprivate var resolvedNames: [TableAlias: String] {
         // It is a programmer error to reuse the same TableAlias for

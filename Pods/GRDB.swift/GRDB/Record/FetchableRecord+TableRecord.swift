@@ -2,75 +2,96 @@ extension FetchableRecord where Self: TableRecord {
     
     // MARK: Fetching All
     
-    /// A cursor over all records fetched from the database.
+    /// Returns a cursor over all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let players = try Player.fetchCursor(db) // Cursor of Player
-    ///     while let player = try players.next() {  // Player
-    ///         ...
+    ///     let players = try Player.fetchCursor(db)
+    ///     while let player = try players.next() {
+    ///         print(player.name)
     ///     }
+    /// }
+    /// ```
     ///
-    /// Records are iterated in the natural ordering of the table.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
     ///
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispatch queue.
-    ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
-    ///
     /// - parameter db: A database connection.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - returns: A ``RecordCursor`` over fetched records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database) throws -> RecordCursor<Self> {
         try all().fetchCursor(db)
     }
     
-    /// An array of all records fetched from the database.
+    /// Returns an array of all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let players = try Player.fetchAll(db) // [Player]
+    ///     let players = try Player.fetchAll(db)
+    /// }
+    /// ```
     ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database) throws -> [Self] {
         try all().fetchAll(db)
     }
     
-    /// The first found record.
+    /// Returns a single record fetched from the database.
     ///
-    ///     // SELECT * FROM player
-    ///     let player = try Player.fetchOne(db) // Player?
+    /// For example:
     ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    /// ```swift
+    /// struct Player: FetchableRecord, TableRecord { }
+    ///
+    /// try dbQueue.read { db in
+    ///     // SELECT * FROM player LIMIT 1
+    ///     let player = try Player.fetchOne(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database) throws -> Self? {
         try all().fetchOne(db)
     }
 }
 
 extension FetchableRecord where Self: TableRecord & Hashable {
-    /// A set of all records fetched from the database.
+    /// Returns a set of all records fetched from the database.
     ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable { }
+    ///
+    /// try dbQueue.read { db in
     ///     // SELECT * FROM player
-    ///     let players = try Player.fetchSet(db) // Set<Player>
-    ///
-    /// The selection defaults to all columns. This default can be changed for
-    /// all requests by the `TableRecord.databaseSelection` property, or
-    /// for individual requests with the `TableRecord.select` method.
+    ///     let players = try Player.fetchSet(db)
+    /// }
+    /// ```
     ///
     /// - parameter db: A database connection.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database) throws -> Set<Self> {
         try all().fetchSet(db)
     }
@@ -80,41 +101,62 @@ extension FetchableRecord where Self: TableRecord {
     
     // MARK: Fetching by Single-Column Primary Key
     
-    /// Returns a cursor over records, given their primary keys.
+    /// Returns a cursor over records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchCursor(db, keys: [1, 2, 3]) // Cursor of Player
-    ///     while let player = try players.next() { // Player
-    ///         ...
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchCursor(db, keys: [1, 2, 3])
+    ///     while let player = try players.next() {
+    ///         print(player.name)
     ///     }
+    /// }
+    /// ```
     ///
-    /// Records are iterated in unspecified order.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence>(_ db: Database, keys: Sequence)
+    /// - returns: A ``RecordCursor`` over fetched records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchCursor<Keys>(_ db: Database, keys: Keys)
     throws -> RecordCursor<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         try filter(keys: keys).fetchCursor(db)
     }
     
-    /// Returns an array of records, given their primary keys.
+    /// Returns an array of records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchAll(db, keys: [1, 2, 3]) // [Player]
+    /// For example:
     ///
-    /// The order of records in the returned array is undefined.
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchAll(db, keys: [1, 2, 3])
+    ///     let countries = try Country.fetchAll(db, keys: ["FR", "US"])
+    /// }
+    /// ```
+    ///
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Sequence>(_ db: Database, keys: Sequence)
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchAll<Keys>(_ db: Database, keys: Keys)
     throws -> [Self]
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -124,67 +166,117 @@ extension FetchableRecord where Self: TableRecord {
         return try filter(keys: keys).fetchAll(db)
     }
     
-    /// Returns a single record given its primary key.
+    /// Returns the record identified by a primary key.
     ///
-    ///     let player = try Player.fetchOne(db, key: 123) // Player?
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.fetchOne(db, key: 123)
+    ///     let country = try Country.fetchOne(db, key: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: An optional record.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
-    throws -> Self?
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
-        guard let key = key else {
-            // Avoid hitting the database
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Self? {
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return nil
         }
         return try filter(key: key).fetchOne(db)
     }
+    
+    /// Returns the record identified by a primary key, or throws an error if
+    /// the record does not exist.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, key: 123)
+    ///     let country = try Country.find(db, key: "FR")
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, key: some DatabaseValueConvertible) throws -> Self {
+        guard let record = try fetchOne(db, key: key) else {
+            throw recordNotFound(db, key: key)
+        }
+        return record
+    }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseValueConvertible {
     
     // MARK: Fetching by Single-Column Primary Key
     
-    /// Returns a cursor over records, given their primary keys.
+    /// Returns a cursor over records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchCursor(db, ids: [1, 2, 3]) // Cursor of Player
-    ///     while let player = try players.next() { // Player
-    ///         ...
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchCursor(db, ids: [1, 2, 3])
+    ///     while let player = try players.next() {
+    ///         print(player.name)
     ///     }
+    /// }
+    /// ```
     ///
-    /// Records are iterated in unspecified order.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Collection>(_ db: Database, ids: Collection)
+    /// - returns: A ``RecordCursor`` over fetched records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchCursor<IDS>(_ db: Database, ids: IDS)
     throws -> RecordCursor<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
+    where IDS: Collection, IDS.Element == ID
     {
         try filter(ids: ids).fetchCursor(db)
     }
     
-    /// Returns an array of records, given their primary keys.
+    /// Returns an array of records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchAll(db, ids: [1, 2, 3]) // [Player]
+    /// For example:
     ///
-    /// The order of records in the returned array is undefined.
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchAll(db, ids: [1, 2, 3])
+    ///     let players = try Country.fetchAll(db, ids: ["FR", "US"])
+    /// }
+    /// ```
+    ///
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
     /// - returns: An array of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Collection>(_ db: Database, ids: Collection)
-    throws -> [Self]
-    where Collection: Swift.Collection, Collection.Element == ID
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchAll<IDS>(_ db: Database, ids: IDS) throws -> [Self]
+    where IDS: Collection, IDS.Element == ID
     {
         if ids.isEmpty {
             // Avoid hitting the database
@@ -193,99 +285,70 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
         return try filter(ids: ids).fetchAll(db)
     }
     
-    /// Returns a single record given its primary key.
+    /// Returns the record identified by a primary key.
     ///
-    ///     let player = try Player.fetchOne(db, id: 123) // Player?
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.fetchOne(db, id: 123)
+    ///     let country = try Country.fetchOne(db, id: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - id: A primary key value.
     /// - returns: An optional record.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, id: ID) throws -> Self? {
         try filter(id: id).fetchOne(db)
     }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension FetchableRecord
-where Self: TableRecord & Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
     
-    // MARK: Fetching by Single-Column Primary Key
-    
-    /// Returns a cursor over records, given their primary keys.
+    /// Returns the record identified by a primary key, or throws an error if
+    /// the record does not exist.
     ///
-    ///     let players = try Player.fetchCursor(db, ids: [1, 2, 3]) // Cursor of Player
-    ///     while let player = try players.next() { // Player
-    ///         ...
-    ///     }
+    /// For example:
     ///
-    /// Records are iterated in unspecified order.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Collection>(_ db: Database, ids: Collection)
-    throws -> RecordCursor<Self>
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        try filter(ids: ids).fetchCursor(db)
-    }
-    
-    /// Returns an array of records, given their primary keys.
-    ///
-    ///     let players = try Player.fetchAll(db, ids: [1, 2, 3]) // [Player]
-    ///
-    /// The order of records in the returned array is undefined.
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: An array of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Collection>(_ db: Database, ids: Collection)
-    throws -> [Self]
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return []
-        }
-        return try filter(ids: ids).fetchAll(db)
-    }
-    
-    /// Returns a single record given its primary key.
-    ///
-    ///     let player = try Player.fetchOne(db, id: 123) // Player?
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, id: 123)
+    ///     let country = try Country.find(db, id: "FR")
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - id: A primary key value.
-    /// - returns: An optional record.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, id: ID.Wrapped) throws -> Self? {
-        try filter(id: id).fetchOne(db)
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, id: ID) throws -> Self {
+        try find(db, key: id)
     }
 }
 
 extension FetchableRecord where Self: TableRecord & Hashable {
-    /// Returns a set of records, given their primary keys.
+    /// Returns a set of records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchSet(db, keys: [1, 2, 3]) // Set<Player>
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchSet(db, keys: [1, 2, 3])
+    ///     let countries = try Country.fetchSet(db, keys: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: A sequence of primary keys.
     /// - returns: A set of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<Sequence>(_ db: Database, keys: Sequence)
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchSet<Keys>(_ db: Database, keys: Keys)
     throws -> Set<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    where Keys: Sequence, Keys.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -296,47 +359,26 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension FetchableRecord where Self: TableRecord & Hashable & Identifiable, ID: DatabaseValueConvertible {
-    /// Returns a set of records, given their primary keys.
+    /// Returns a set of records identified by their primary keys.
     ///
-    ///     let players = try Player.fetchSet(db, ids: [1, 2, 3]) // Set<Player>
+    /// For example:
     ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: A set of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<Collection>(_ db: Database, ids: Collection)
-    throws -> Set<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return []
-        }
-        return try filter(ids: ids).fetchSet(db)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension FetchableRecord
-where Self: TableRecord & Hashable & Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    /// Returns a set of records, given their primary keys.
-    ///
-    ///     let players = try Player.fetchSet(db, ids: [1, 2, 3]) // Set<Player>
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let players = try Player.fetchSet(db, ids: [1, 2, 3])
+    ///     let countries = try Country.fetchSet(db, ids: ["FR", "US"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - ids: A collection of primary keys.
     /// - returns: A set of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<Collection>(_ db: Database, ids: Collection)
-    throws -> Set<Self>
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchSet<IDS>(_ db: Database, ids: IDS) throws -> Set<Self>
+    where IDS: Collection, IDS.Element == ID
     {
         if ids.isEmpty {
             // Avoid hitting the database
@@ -353,22 +395,34 @@ extension FetchableRecord where Self: TableRecord {
     /// Returns a cursor over records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     // Cursor of Player
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
     ///     let players = try Player.fetchCursor(db, keys: [
     ///         ["email": "a@example.com"],
     ///         ["email": "b@example.com"]])
-    ///     while let player = try players.next() { // Player
-    ///         ...
+    ///     while let player = try players.next() {
+    ///         print(player.name)
     ///     }
+    /// }
+    /// ```
     ///
-    /// Records are iterated in unspecified order.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
+    ///
+    /// The returned cursor is valid only during the remaining execution of the
+    /// database access. Do not store or return the cursor for later use.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
-    /// - returns: A cursor over fetched records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]])
+    /// - returns: A ``RecordCursor`` over fetched records.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchCursor(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]])
     throws -> RecordCursor<Self>
     {
         try filter(keys: keys).fetchCursor(db)
@@ -377,19 +431,25 @@ extension FetchableRecord where Self: TableRecord {
     /// Returns an array of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     // [Player]
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
     ///     let players = try Player.fetchAll(db, keys: [
     ///         ["email": "a@example.com"],
     ///         ["email": "b@example.com"]])
+    /// }
+    /// ```
     ///
-    /// The order of records in the returned array is undefined.
+    /// The order in which the records are returned is undefined
+    /// ([ref](https://www.sqlite.org/lang_select.html#the_order_by_clause)).
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self] {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> [Self] {
         if keys.isEmpty {
             // Avoid hitting the database
             return []
@@ -397,22 +457,54 @@ extension FetchableRecord where Self: TableRecord {
         return try filter(keys: keys).fetchAll(db)
     }
     
-    /// Returns a single record identified by a unique key (the primary key or
+    /// Returns the record identified by a unique key (the primary key or
     /// any key with a unique index on it).
     ///
-    ///     let player = try Player.fetchOne(db, key: ["name": Arthur"]) // Player?
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.fetchOne(db, key: ["name": "Arthur"])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - key: A dictionary of values.
+    ///     - key: A key dictionary.
     /// - returns: An optional record.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self? {
-        guard let key = key else {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]?) throws -> Self? {
+        guard let key else {
             // Avoid hitting the database
             return nil
         }
         return try filter(key: key).fetchOne(db)
+    }
+    
+    /// Returns the record identified by a unique key (the primary key or
+    /// any key with a unique index on it), or throws an error if the record
+    /// does not exist.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
+    ///     let player = try Player.find(db, key: ["name": "Arthur"])
+    /// }
+    /// ```
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A key dictionary.
+    /// - returns: A record.
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or a
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` if the record
+    ///   does not exist in the database.
+    public static func find(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Self {
+        guard let record = try filter(key: key).fetchOne(db) else {
+            throw recordNotFound(key: key)
+        }
+        return record
     }
 }
 
@@ -420,17 +512,22 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     /// Returns a set of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///
-    ///     // Set<Player>
+    /// For example:
+    ///
+    /// ```swift
+    /// try dbQueue.read { db in
     ///     let players = try Player.fetchSet(db, keys: [
     ///         ["email": "a@example.com"],
     ///         ["email": "b@example.com"]])
+    /// }
+    /// ```
     ///
     /// - parameters:
     ///     - db: A database connection.
     ///     - keys: An array of key dictionaries.
     /// - returns: A set of records.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Set<Self> {
+    /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
+    public static func fetchSet(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Set<Self> {
         if keys.isEmpty {
             // Avoid hitting the database
             return []

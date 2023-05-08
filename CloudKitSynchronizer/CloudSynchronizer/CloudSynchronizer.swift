@@ -895,11 +895,11 @@ extension CloudSynchronizer: TableObserverDelegate {
         return mappedCkRecords
     }
     
-    func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow]) {
+    func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow.Identifier]) {
         
         let table = observer.tableName
         
-        let deletedIdentifiers = deleted.map{ $0.identifier }
+        let deletedIdentifiers = deleted
         
         var recordsToDelete: [CKRecord] = []
         var recordsToUpdate: [CKRecord] = []
