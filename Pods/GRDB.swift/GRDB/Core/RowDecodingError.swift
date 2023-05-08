@@ -1,6 +1,6 @@
 /// A key that is used to decode a value in a row
 @usableFromInline
-enum RowKey: Hashable {
+enum RowKey: Hashable, Sendable {
     /// A column name
     case columnName(String)
     
@@ -18,13 +18,15 @@ enum RowKey: Hashable {
 @usableFromInline
 enum RowDecodingError: Error {
     @usableFromInline
-    struct Context: CustomDebugStringConvertible {
+    struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
         @usableFromInline
         let debugDescription: String
         
+        let rowImpl: ArrayRowImpl // Sendable
+        
         /// The row that could not be decoded
-        let row: Row
+        var row: Row { Row(impl: rowImpl) }
         
         /// Nil for RowDecodingError.keyNotFound, in order to avoid redundancy
         let key: RowKey?
@@ -35,10 +37,9 @@ enum RowDecodingError: Error {
         /// The SQL query arguments
         let statementArguments: StatementArguments?
         
-        @usableFromInline
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
-            self.row = decodingContext.row
+            self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
             self.key = decodingContext.key
             self.sql = decodingContext.sql
             self.statementArguments = decodingContext.statementArguments
@@ -77,7 +78,7 @@ enum RowDecodingError: Error {
     static func valueMismatch(
         _ type: Any.Type,
         sqliteStatement: SQLiteStatement,
-        index: Int32,
+        index: CInt,
         context: RowDecodingContext)
     -> Self
     {
@@ -89,17 +90,16 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
-        statement: SelectStatement,
+        statement: Statement,
         index: Int)
     -> Self
     {
         valueMismatch(
             type,
             context: RowDecodingContext(statement: statement, index: index),
-            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: Int32(index)))
+            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: CInt(index)))
     }
     
     /// Convenience method that builds the `column not found: <column>`
@@ -137,7 +137,7 @@ struct RowDecodingContext {
         } else if let sqliteStatement = row.sqliteStatement {
             self.key = key
             self.row = row.copy()
-            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
+            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
             self.statementArguments = nil // Can't rebuild them
         } else {
             self.key = key
@@ -149,7 +149,7 @@ struct RowDecodingContext {
     
     /// Convenience initializer
     @usableFromInline
-    init(statement: SelectStatement, index: Int) {
+    init(statement: Statement, index: Int) {
         self.key = .columnIndex(index)
         self.row = Row(copiedFromSQLiteStatement: statement.sqliteStatement, statement: statement)
         self.sql = statement.sql
@@ -171,21 +171,21 @@ extension RowDecodingError: CustomStringConvertible {
                 let columnName = row.columnNames[rowIndex]
                 chunks.append("column: \(String(reflecting: columnName))")
                 chunks.append("column index: \(columnIndex)")
-
+                
             case let .columnName(columnName):
                 if let columnIndex = row.index(forColumn: columnName) {
                     chunks.append("column: \(String(reflecting: columnName))")
                     chunks.append("column index: \(columnIndex)")
                 } else {
-                    // column name is already mentionned in context.debugDescription
+                    // column name is already mentioned in context.debugDescription
                 }
                 
             case .prefetchKey:
-                // key is already mentionned in context.debugDescription
+                // key is already mentioned in context.debugDescription
                 break
                 
             case .scope:
-                // scope is already mentionned in context.debugDescription
+                // scope is already mentioned in context.debugDescription
                 break
             }
         }

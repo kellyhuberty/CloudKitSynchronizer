@@ -107,15 +107,23 @@ struct SQLRelation {
         var condition: SQLAssociationCondition
         var relation: SQLRelation
         
-        /// Returns true iff this child can change the parent count.
+        /// Returns whether this child can change the parent count.
         ///
         /// Record.including(required: association) // true
         /// Record.including(all: association)      // false
         var impactsParentCount: Bool {
             switch kind {
-            case .oneOptional, .oneRequired:
+            case .oneRequired:
+                // INNER JOIN can clearly reduce the number of rows
+                return true
+            case .oneOptional:
+                // LEFT JOIN does not itself reduce the number of rows, but
+                // maybe the joined table is used somewhere in the relation, in
+                // a way that can reduce the number of rows.
                 return true
             case .all, .bridge:
+                // HasMany associations are prefetched in another SQL request:
+                // they have no impact on this relation.
                 return false
             }
         }
@@ -189,99 +197,122 @@ extension SQLRelation {
 }
 
 extension SQLRelation: Refinable {
-    func select(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
-        with(\.selectionPromise, DatabasePromise(selection))
+    func selectWhenConnected(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+        with {
+            $0.selectionPromise = DatabasePromise(selection)
+        }
     }
     
     // Convenience
     func select(_ selection: [SQLSelection]) -> Self {
-        select { _ in selection }
+        selectWhenConnected { _ in selection }
     }
     
     // Convenience
     func select(_ expressions: SQLExpression...) -> Self {
-        select { _ in expressions.map { .expression($0) } }
+        select(expressions.map { .expression($0) })
     }
     
-    /// Sets the selection, removes all selections from chidren, and clears the
+    /// Sets the selection, removes all selections from children, and clears the
     /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
         self
             .select(selection)
-            .with(\.isDistinct, false)
-            .map(\.children) { children in
-                children.mapValues { child in
-                    child.map(\.relation) { $0.selectOnly([]) }
+            .with {
+                $0.isDistinct = false
+                $0.children = children.mapValues { child in
+                    child.with {
+                        $0.relation = $0.relation.selectOnly([])
+                    }
                 }
             }
     }
     
-    func annotated(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
-        map(\.selectionPromise) { selectionPromise in
-            DatabasePromise { db in
-                try selectionPromise.resolve(db) + selection(db)
+    func annotatedWhenConnected(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+        with {
+            let old = $0.selectionPromise
+            $0.selectionPromise = DatabasePromise { db in
+                try old.resolve(db) + selection(db)
             }
         }
     }
     
     // Convenience
     func annotated(with selection: [SQLSelection]) -> Self {
-        annotated(with: { _ in selection })
+        annotatedWhenConnected(with: { _ in selection })
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
-        map(\.filterPromise) { promise in
-            DatabasePromise { db in
-                if let filter = try promise?.resolve(db) {
-                    return try filter && predicate(db)
-                } else {
-                    return try predicate(db)
+    func filterWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        with {
+            if let old = $0.filterPromise {
+                $0.filterPromise = DatabasePromise { db in
+                    try old.resolve(db) && predicate(db)
                 }
+            } else {
+                $0.filterPromise = DatabasePromise(predicate)
             }
         }
     }
     
     // Convenience
     func filter(_ predicate: SQLExpression) -> Self {
-        filter { _ in predicate }
+        filterWhenConnected { _ in predicate }
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
-        with(\.ordering, SQLRelation.Ordering(orderings: orderings))
+    func orderWhenConnected(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
+        with {
+            $0.ordering = SQLRelation.Ordering(orderings: orderings)
+        }
     }
     
     func reversed() -> Self {
-        map(\.ordering, \.reversed)
+        with {
+            $0.ordering = $0.ordering.reversed
+        }
     }
     
     func unordered() -> Self {
-        self
-            .with(\.ordering, SQLRelation.Ordering())
-            .map(\.children) { children in
-                children.mapValues { child in
-                    child.map(\.relation) { $0.unordered() }
-                }
-            }
-    }
-    
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
-        with(\.groupPromise, DatabasePromise(expressions))
-    }
-    
-    func having(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
-        map(\.havingExpressionPromise) { promise in
-            DatabasePromise { db in
-                if let filter = try promise?.resolve(db) {
-                    return try filter && predicate(db)
-                } else {
-                    return try predicate(db)
+        with {
+            $0.ordering = SQLRelation.Ordering()
+            $0.children = children.mapValues { child in
+                child.with {
+                    $0.relation = $0.relation.unordered()
                 }
             }
         }
     }
     
+    // Remove ordering iff relation has no LIMIT clause
+    func unorderedUnlessLimited() -> Self {
+        if limit != nil {
+            return self
+        } else {
+            return unordered()
+        }
+    }
+    
+    func groupWhenConnected(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+        with {
+            $0.groupPromise = DatabasePromise(expressions)
+        }
+    }
+    
+    func havingWhenConnected(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        with {
+            if let old = $0.havingExpressionPromise {
+                $0.havingExpressionPromise = DatabasePromise { db in
+                    try old.resolve(db) && predicate(db)
+                }
+            } else {
+                $0.havingExpressionPromise = DatabasePromise(predicate)
+            }
+        }
+    }
+    
     func aliased(_ alias: TableAlias) -> Self {
-        map(\.source) { $0.aliased(alias) }
+        with {
+            $0.source = $0.source.aliased(alias)
+        }
     }
 }
 
@@ -296,9 +327,9 @@ extension SQLRelation {
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
-                    let child = child.map(\.relation) { relation in
-                        assert(relation.children[pivotKey] != nil)
-                        return relation.removingChild(forKey: pivotKey)
+                    let child = child.with {
+                        assert($0.relation.children[pivotKey] != nil)
+                        $0.relation = $0.relation.removingChild(forKey: pivotKey)
                     }
                     return association.through(child.makeAssociationForKey(key))
                 }
@@ -364,7 +395,7 @@ extension SQLRelation {
         // has-many-through associations, where we user the cardinality of
         // the association instead.
         //
-        // By prefering the cardinality of the child kind in general, we make it
+        // By preferring the cardinality of the child kind in general, we make it
         // possible to join to a plural association and decode it in a singular
         // key. In the example below, we have a singular kind `.oneRequired`,
         // a plural to-many association, and we use a singular key:
@@ -488,18 +519,29 @@ extension SQLRelation {
     }
     
     func removingChild(forKey key: String) -> Self {
-        mapInto(\.children) { $0.removeValue(forKey: key) }
+        with {
+            $0.children.removeValue(forKey: key)
+        }
     }
     
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
-        try map(\.children) { try $0.filter { try included($1) } }
+        try with {
+            $0.children = try $0.children.filter { (_, child) in try included(child) }
+        }
     }
     
-    func removingChildrenForPrefetchedAssociations() -> Self {
-        filteringChildren {
-            switch $0.kind {
-            case .all, .bridge: return false
-            case .oneRequired, .oneOptional: return true
+    /// Return a relation without any `.all` and `.bridge` children, recursively.
+    func removingPrefetchedAssociations() -> Self {
+        with {
+            $0.children = $0.children.compactMapValues { child in
+                switch child.kind {
+                case .all, .bridge:
+                    return nil
+                case .oneRequired, .oneOptional:
+                    return child.with {
+                        $0.relation = $0.relation.removingPrefetchedAssociations()
+                    }
+                }
             }
         }
     }
@@ -519,11 +561,19 @@ extension SQLRelation {
     }
     
     func _joining(optional association: _SQLAssociation) -> Self {
-        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
+        // Remove association selection
+        let associationWithEmptySelection = association.with {
+            $0.destination.relation = $0.destination.relation.select([])
+        }
+        return appendingChild(for: associationWithEmptySelection, kind: .oneOptional)
     }
     
     func _joining(required association: _SQLAssociation) -> Self {
-        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
+        // Remove association selection
+        let associationWithEmptySelection = association.with {
+            $0.destination.relation = $0.destination.relation.select([])
+        }
+        return appendingChild(for: associationWithEmptySelection, kind: .oneRequired)
     }
 }
 
@@ -562,7 +612,12 @@ extension SQLRelation {
             guard !isDistinct else {
                 return try fetchTrivialCount(db)
             }
-    
+            
+            // <https://github.com/groue/GRDB.swift/issues/1357>
+            guard selection.allSatisfy(\.isTriviallyCountable) else {
+                return try fetchTrivialCount(db)
+            }
+            
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
@@ -585,7 +640,7 @@ struct SQLLimit {
     let offset: Int?
     
     var sql: String {
-        if let offset = offset {
+        if let offset {
             return "\(limit) OFFSET \(offset)"
         } else {
             return "\(limit)"
@@ -858,7 +913,7 @@ extension JoinMapping {
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
-        let mappings: [(leftIndex: Rows.Element.ColumnIndex, rightColumn: Column)] = map { mapping in
+        let mappings = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }
@@ -869,33 +924,46 @@ extension JoinMapping {
             return true.sqlExpression
         }
         
+        // SQLite doesn't match foreign keys on NULL: https://www.sqlite.org/foreignkeys.html
+        // > The foreign key constraint is satisfied if for each row in the
+        // > child table either one or more of the child key columns are NULL,
+        // > or there exists a row in the parent table for which each parent key
+        // > column contains a value equal to the value in its associated child
+        // > key column.
+        //
+        // Since a single NULL value satisfies the foreign key constraint
+        // without requiring a matching matching parent row, below we'll ignore
+        // left rows (children) that attempt at matching on NULL.
         if mappings.count == 1 {
             // Join on a single right column.
+            // table.a IN (1, 2, 3, ...)
             
-            // Unique database values and filter out NULL:
+            // Unique database values and filter out NULL because SQLite doesn't
+            // match foreign keys on NULL
             let leftIndex = mapping.leftIndex
             var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
-            dbValues.remove(.null) // SQLite doesn't match foreign keys on NULL
-            // table.a IN (1, 2, 3, ...)
+            dbValues.remove(.null)
+            
             // Sort database values for nicer output.
             return dbValues.sorted(by: <).contains(mapping.rightColumn)
         } else {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
             return leftRows
-                .map({ leftRow in
+                .compactMap { leftRow -> SQLExpression? in
                     // (table.a = 1) AND (table.b = 2)
-                    mappings
-                        .map({ mapping -> SQLExpression in
-                            let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
-                            // Force `=` operator, because SQLite doesn't match foreign keys on NULL
-                            return SQLExpression.compare(
-                                .equal,
-                                mapping.rightColumn.sqlExpression,
-                                leftValue.sqlExpression)
-                        })
-                        .joined(operator: .and)
-                })
+                    var conditions: [SQLExpression] = []
+                    for mapping in mappings {
+                        let dbValue = leftRow.databaseValue(at: mapping.leftIndex)
+                        if dbValue.isNull {
+                            // SQLite doesn't match foreign keys on NULL:
+                            // give up this left row.
+                            return nil
+                        }
+                        conditions.append(mapping.rightColumn == dbValue)
+                    }
+                    return conditions.joined(operator: .and)
+                }
                 .joined(operator: .or)
         }
     }
@@ -926,25 +994,19 @@ protocol ColumnAddressable {
 struct DummyRow: ColumnAddressable {
     struct DummyIndex { }
     func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
-    @inline(__always)
     func databaseValue(at index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
 }
 
 /// Row has columns
 extension Row: ColumnAddressable {
-    @inline(__always)
     func databaseValue(at index: Int) -> DatabaseValue { self[index] }
 }
 
 /// PersistenceContainer has columns
 extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
-    @inline(__always)
     func databaseValue(at column: String) -> DatabaseValue {
-        guard let value = self[caseInsensitive: column] else {
-            fatalError("Missing column: \(column)")
-        }
-        return value.databaseValue
+        self[caseInsensitive: column]?.databaseValue ?? .null
     }
 }
 

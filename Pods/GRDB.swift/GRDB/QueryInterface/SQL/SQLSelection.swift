@@ -1,5 +1,20 @@
-/// The type that can be selected, as described at
-/// https://www.sqlite.org/syntax/result-column.html
+/// An SQL result column.
+///
+/// `SQLSelection` is an opaque representation of an SQL result column.
+/// You generally build `SQLSelection` from other expressions. For example:
+///
+/// ```swift
+/// // Aliased expressions
+/// (Column("score") + Column("bonus")).forKey("total")
+///
+/// // Literal selection
+/// SQL("IFNULL(name, \(defaultName)) AS name").sqlSelection
+/// ```
+///
+/// `SQLSelection` is better used as the return type of a function. For
+/// function arguments, prefer the ``SQLSelectable`` protocol.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/syntax/result-column.html>
 public struct SQLSelection {
     private var impl: Impl
     
@@ -71,26 +86,6 @@ extension SQLSelection {
             // We do not embed any SQL parser: we can't count the number of
             // columns in a literal selection.
             return nil
-        }
-    }
-    
-    /// Support for `count(selection)`.
-    /// TODO: deprecate `count(selection)`, and get rid of this property.
-    var countExpression: SQLExpression {
-        switch impl {
-        case .allColumns:
-            return .countAll
-            
-        case .qualifiedAllColumns:
-            // COUNT(player.*) is not valid SQL
-            fatalError("Uncountable selection")
-            
-        case let .expression(expression),
-             let .aliasedExpression(expression, _):
-            return .count(expression)
-            
-        case let .literal(sqlLiteral):
-            return .count(sqlLiteral.sqlExpression)
         }
     }
     
@@ -175,7 +170,7 @@ extension SQLSelection {
     ///     COUNT(*)
     ///     (score + bonus) AS total
     ///
-    /// See https://sqlite.org/syntax/result-column.html
+    /// See <https://sqlite.org/syntax/result-column.html>
     ///
     /// - parameter context: An SQL generation context which accepts
     ///   statement arguments.
@@ -249,9 +244,21 @@ extension SQLSelection {
             return .literal(sqlLiteral.qualified(with: alias))
         }
     }
+    
+    /// Supports SQLRelation.fetchCount.
+    ///
+    /// See <https://github.com/groue/GRDB.swift/issues/1357>
+    var isTriviallyCountable: Bool {
+        switch impl {
+        case .aliasedExpression, .literal:
+            return false
+        case .allColumns, .qualifiedAllColumns, .expression:
+            return true
+        }
+    }
 }
 
-extension Array where Element == SQLSelection {
+extension [SQLSelection] {
     /// Returns the number of columns in the selection.
     ///
     /// This method raises a fatal error if the selection contains a literal,
@@ -284,8 +291,16 @@ enum SQLCount {
 
 // MARK: - SQLSelectable
 
-/// SQLSelectable is the protocol for types that can be selected, as
-/// described at https://www.sqlite.org/syntax/result-column.html
+/// A type that can be used as SQL result columns.
+///
+/// Related SQLite documentation <https://www.sqlite.org/syntax/result-column.html>
+///
+/// ## Topics
+///
+/// ### Supporting Types
+///
+/// - ``AllColumns``
+/// - ``SQLSelection``
 public protocol SQLSelectable {
     /// Returns an SQL selection.
     var sqlSelection: SQLSelection { get }
@@ -299,29 +314,22 @@ extension SQLSelection: SQLSelectable {
 
 // MARK: - AllColumns
 
-/// AllColumns is the `*` in `SELECT *`.
-///
-/// You use AllColumns in your custom implementation of
-/// TableRecord.databaseSelection.
+/// `AllColumns` is the `*` in `SELECT *`.
 ///
 /// For example:
 ///
-///     struct Player : TableRecord {
-///         static var databaseTableName = "player"
-///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
-///     }
-///
-///     // SELECT *, rowid FROM player
-///     let request = Player.all()
-public struct AllColumns: SQLSelectable {
+/// ```swift
+/// try dbQueue.read { db in
+///     // SELECT * FROM player
+///     let players = try Player.select(AllColumns()).fetchAll(db)
+/// }
+/// ```
+public struct AllColumns {
     /// The `*` selection.
-    ///
-    /// For example:
-    ///
-    ///     // SELECT * FROM player
-    ///     Player.select(AllColumns())
     public init() { }
-    
+}
+
+extension AllColumns: SQLSelectable {
     public var sqlSelection: SQLSelection {
         .allColumns
     }

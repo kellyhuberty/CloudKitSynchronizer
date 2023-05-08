@@ -28,7 +28,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         return tableView
     }()
     
-    var observer: TransactionObserver?
+    var observer: AnyDatabaseCancellable?
     
     var data: [Item] = [] {
         didSet {
@@ -237,6 +237,10 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         super.viewDidLoad()
         
         observer = try! regionObservation.start(in: repo.databaseQueue) { [weak self] (database) in
+            DispatchQueue.main.async {
+                self?.refetchResults()
+            }
+        } onChange: { [weak self] db in
             DispatchQueue.main.async {
                 self?.refetchResults()
             }

@@ -12,6 +12,9 @@ import GRDB
 
 class TableRow : FetchableRecord {
     
+    typealias RawIdentifier = Int64
+
+    
     typealias Identifier = String
     
     let dict:[String: DatabaseValue?]

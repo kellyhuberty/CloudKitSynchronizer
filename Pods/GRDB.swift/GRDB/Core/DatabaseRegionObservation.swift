@@ -3,116 +3,146 @@ import Combine
 #endif
 import Foundation
 
-/// DatabaseRegionObservation tracks changes in the results of database
-/// requests, and notifies each database transaction whenever the
-/// database changes.
-///
-/// For example:
-///
-///     let observation = DatabaseRegionObservation(tracking: Player.all)
-///     let observer = try observation.start(in: dbQueue) { db: Database in
-///         print("Players have changed.")
-///     }
 public struct DatabaseRegionObservation {
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: the observation lasts until the
-    /// observer returned by the `start(in:onChange:)` method
-    /// is deallocated.
-    public var extent: Database.TransactionObservationExtent
-    
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
 }
 
 extension DatabaseRegionObservation {
-    /// Creates a DatabaseRegionObservation which observes *regions*, and
-    /// notifies whenever one of the observed regions is modified by a
-    /// database transaction.
+    /// Creates a `DatabaseRegionObservation` that notifies all transactions
+    /// that modify one of the provided regions.
     ///
-    /// For example, this sample code counts the number of a times the player
-    /// table is modified:
+    /// For example:
     ///
-    ///     let observation = DatabaseRegionObservation(tracking: Player.all())
-    ///
-    ///     var count = 0
-    ///     let observer = observation.start(in: dbQueue) { _ in
-    ///         count += 1
-    ///         print("Players have been modified \(count) times.")
-    ///     }
-    ///
-    /// The observation lasts until the observer returned by `start` is
-    /// deallocated. See the `extent` property for more information.
+    /// ```swift
+    /// // An observation that tracks the 'player' table
+    /// let observation = DatabaseRegionObservation(tracking: Player.all())
+    /// ```
     ///
     /// - parameter regions: A list of observed regions.
-    public init(tracking regions: DatabaseRegionConvertible...) {
+    public init(tracking regions: any DatabaseRegionConvertible...) {
         self.init(tracking: regions)
     }
     
-    /// Creates a DatabaseRegionObservation which observes *regions*, and
-    /// notifies whenever one of the observed regions is modified by a
-    /// database transaction.
+    /// Creates a `DatabaseRegionObservation` that notifies all transactions
+    /// that modify one of the provided regions.
     ///
-    /// For example, this sample code counts the number of a times the player
-    /// table is modified:
+    /// For example:
     ///
-    ///     let observation = DatabaseRegionObservation(tracking: [Player.all()])
+    /// ```swift
+    /// // An observation that tracks the 'player' table
+    /// let observation = DatabaseRegionObservation(tracking: [Player.all()])
+    /// ```
     ///
-    ///     var count = 0
-    ///     let observer = observation.start(in: dbQueue) { _ in
-    ///         count += 1
-    ///         print("Players have been modified \(count) times.")
-    ///     }
-    ///
-    /// The observation lasts until the observer returned by `start` is
-    /// deallocated. See the `extent` property for more information.
-    ///
-    /// - parameter regions: A list of observed regions.
-    public init(tracking regions: [DatabaseRegionConvertible]) {
-        self.init(
-            extent: .observerLifetime,
-            observedRegion: DatabaseRegion.union(regions))
+    /// - parameter regions: An array of observed regions.
+    public init(tracking regions: [any DatabaseRegionConvertible]) {
+        self.init(observedRegion: DatabaseRegion.union(regions))
     }
 }
 
 extension DatabaseRegionObservation {
-    /// Starts the observation in the provided database writer (such as
-    /// a database queue or database pool), and returns a transaction observer.
+    /// The state of a started DatabaseRegionObservation
+    private enum ObservationState {
+        case cancelled
+        case pending
+        case started(DatabaseRegionObserver)
+    }
+    
+    /// Starts observing the database.
     ///
-    /// - parameter reader: A DatabaseWriter.
-    /// - parameter onChange: A closure that is provided a database connection
-    ///   with write access each time the observed region has been modified.
-    /// - returns: a TransactionObserver
+    /// The observation lasts until the returned cancellable is cancelled
+    /// or deallocated.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let observation = DatabaseRegionObservation(tracking: Player.all())
+    ///
+    /// let cancellable = try observation.start(in: dbQueue) { error in
+    ///     // handle error
+    /// } onChange: { (db: Database) in
+    ///     print("A modification of the player table has just been committed.")
+    /// }
+    /// ```
+    ///
+    /// If this method is called from the writer dispatch queue of `writer` (see
+    /// ``DatabaseWriter``), the observation starts immediately. Otherwise, it
+    /// blocks the current thread until a write access can be established.
+    ///
+    /// Both `onError` and `onChange` closures are executed in the writer
+    /// dispatch queue, serialized with all database updates performed
+    /// by `writer`.
+    ///
+    /// The ``Database`` argument to `onChange` is valid only during the
+    /// execution of the closure. Do not store or return the database connection
+    /// for later use.
+    ///
+    /// - parameter writer: A DatabaseWriter.
+    /// - parameter onError: The closure to execute when the observation fails.
+    /// - parameter onChange: The closure to execute when a transaction has
+    ///   modified the observed region.
+    /// - returns: A DatabaseCancellable that can stop the observation.
     public func start(
-        in dbWriter: DatabaseWriter,
+        in writer: some DatabaseWriter,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Database) -> Void)
-    throws -> TransactionObserver
+    -> AnyDatabaseCancellable
     {
+        @LockedBox var state = ObservationState.pending
+        
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
-        return try dbWriter.unsafeReentrantWrite { db -> TransactionObserver in
-            let region = try observedRegion(db).observableRegion(db)
-            let observer = DatabaseRegionObserver(region: region, onChange: onChange)
-            db.add(transactionObserver: observer, extent: extent)
-            return observer
+        writer.unsafeReentrantWrite { db in
+            do {
+                let region = try observedRegion(db).observableRegion(db)
+                $state.update {
+                    let observer = DatabaseRegionObserver(region: region, onChange: {
+                        if case .cancelled = state {
+                            return
+                        }
+                        onChange($0)
+                    })
+                    
+                    // Use the `.observerLifetime` extent so that we can cancel
+                    // the observation by deallocating the observer. This is
+                    // a simpler way to cancel the observation than waiting for
+                    // *another* write access in order to explicitly remove
+                    // the observer.
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
+                    
+                    $0 = .started(observer)
+                }
+            } catch {
+                onError(error)
+            }
+        }
+        
+        return AnyDatabaseCancellable {
+            // Deallocates the transaction observer. This makes sure that the
+            // `onChange` callback will never be called again, because the
+            // observation was started with the `.observerLifetime` extent.
+            state = .cancelled
         }
     }
 }
 
 #if canImport(Combine)
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabaseRegionObservation {
     // MARK: - Publishing Impactful Transactions
     
-    /// Returns a publisher that tracks changes in a database region.
+    /// Returns a publisher that observes the database.
     ///
-    /// It emits database connections on a protected dispatch queue.
+    /// The publisher publishes ``Database`` connections on the writer dispatch
+    /// queue of `writer` (see ``DatabaseWriter``). Those connections are valid
+    /// only when published. Do not store or return them for later use.
     ///
-    /// Error completion, if any, is only emitted, synchronously,
-    /// on subscription.
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func publisher(in writer: DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
-        return DatabasePublishers.DatabaseRegion(self, in: writer)
+    /// Do not reschedule the publisher with `receive(on:options:)` or any
+    /// `Publisher` method that schedules publisher elements.
+    @available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
+    public func publisher(in writer: some DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
+        DatabasePublishers.DatabaseRegion(self, in: writer)
     }
 }
 #endif
@@ -151,24 +181,23 @@ private class DatabaseRegionObserver: TransactionObserver {
 }
 
 #if canImport(Combine)
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+@available(iOS 13, macOS 10.15, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that tracks changes in a database region.
+    /// A publisher that tracks transactions that modify a database region.
     ///
-    /// See `DatabaseRegionObservation.publisher(in:)`.
+    /// You build such a publisher from ``DatabaseRegionObservation``.
     public struct DatabaseRegion: Publisher {
         public typealias Output = Database
         public typealias Failure = Error
         
-        let writer: DatabaseWriter
+        let writer: any DatabaseWriter
         let observation: DatabaseRegionObservation
         
-        init(_ observation: DatabaseRegionObservation, in writer: DatabaseWriter) {
+        init(_ observation: DatabaseRegionObservation, in writer: some DatabaseWriter) {
             self.writer = writer
             self.observation = observation
         }
         
-        /// :nodoc:
         public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
             let subscription = DatabaseRegionSubscription(
                 writer: writer,
@@ -183,13 +212,13 @@ extension DatabasePublishers {
     {
         private struct WaitingForDemand {
             let downstream: Downstream
-            let writer: DatabaseWriter
+            let writer: any DatabaseWriter
             let observation: DatabaseRegionObservation
         }
         
         private struct Observing {
             let downstream: Downstream
-            let writer: DatabaseWriter // Retain writer until subscription is finished
+            let writer: any DatabaseWriter // Retain writer until subscription is finished
             var remainingDemand: Subscribers.Demand
         }
         
@@ -204,14 +233,14 @@ extension DatabasePublishers {
             case finished
         }
         
-        // Observer is not stored in self.state because we must enter the
+        // cancellable is not stored in self.state because we must enter the
         // .observing state *before* the observation starts.
-        private var observer: TransactionObserver?
+        private var cancellable: AnyDatabaseCancellable?
         private var state: State
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
         init(
-            writer: DatabaseWriter,
+            writer: some DatabaseWriter,
             observation: DatabaseRegionObservation,
             downstream: Downstream)
         {
@@ -228,18 +257,14 @@ extension DatabasePublishers {
                     guard demand > 0 else {
                         return
                     }
-                    do {
-                        state = .observing(Observing(
-                                            downstream: info.downstream,
-                                            writer: info.writer,
-                                            remainingDemand: demand))
-                        observer = try info.observation.start(
-                            in: info.writer,
-                            onChange: { [weak self] in self?.receive($0) })
-                    } catch {
-                        state = .finished
-                        info.downstream.receive(completion: .failure(error))
-                    }
+                    state = .observing(Observing(
+                        downstream: info.downstream,
+                        writer: info.writer,
+                        remainingDemand: demand))
+                    cancellable = info.observation.start(
+                        in: info.writer,
+                        onError: { [weak self] in self?.receive(failure: $0) },
+                        onChange: { [weak self] in self?.receive($0) })
                     
                 case var .observing(info):
                     info.remainingDemand += demand
@@ -253,7 +278,7 @@ extension DatabasePublishers {
         
         func cancel() {
             lock.synchronized {
-                observer = nil
+                cancellable = nil
                 state = .finished
             }
         }
@@ -269,6 +294,15 @@ extension DatabasePublishers {
                         info.remainingDemand -= 1
                         state = .observing(info)
                     }
+                }
+            }
+        }
+        
+        private func receive(failure error: Error) {
+            lock.synchronized {
+                if case let .observing(info) = state {
+                    state = .finished
+                    info.downstream.receive(completion: .failure(error))
                 }
             }
         }

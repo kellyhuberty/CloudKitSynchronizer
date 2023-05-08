@@ -1,169 +1,206 @@
-// MARK: - ABS(...)
-
-/// Returns an expression that evaluates the `ABS` SQL function.
+/// The `ABS` SQL function.
 ///
-///     // ABS(amount)
-///     abs(Column("amount"))
-public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // ABS(amount)
+/// abs(Column("amount"))
+/// ```
+public func abs(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("ABS", [value.sqlExpression])
 }
 
-
-// MARK: - AVG(...)
-
-/// Returns an expression that evaluates the `AVG` SQL function.
+/// The `AVG` SQL function.
 ///
-///     // AVG(length)
-///     average(Column("length"))
-public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // AVG(length)
+/// average(Column("length"))
+/// ```
+public func average(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("AVG", [value.sqlExpression])
 }
 
-
-// MARK: - COUNT(...)
-
-// TODO: deprecate, replace with count(expression)
-/// Returns an expression that evaluates the `COUNT` SQL function.
+/// The `COUNT` SQL function.
 ///
-///     // COUNT(email)
-///     count(Column("email"))
-public func count(_ counted: SQLSelectable) -> SQLExpression {
-    counted.sqlSelection.countExpression
+/// For example:
+///
+/// ```swift
+/// // COUNT(email)
+/// count(Column("email"))
+/// ```
+public func count(_ counted: some SQLSpecificExpressible) -> SQLExpression {
+    .count(counted.sqlExpression)
 }
 
-
-// MARK: - COUNT(DISTINCT ...)
-
-/// Returns an expression that evaluates the `COUNT(DISTINCT)` SQL function.
+/// The `COUNT(DISTINCT)` SQL function.
 ///
-///     // COUNT(DISTINCT email)
-///     count(distinct: Column("email"))
-public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // COUNT(DISTINCT email)
+/// count(distinct: Column("email"))
+/// ```
+public func count(distinct value: some SQLSpecificExpressible) -> SQLExpression {
     .countDistinct(value.sqlExpression)
 }
 
-
-// MARK: - IFNULL(...)
-
-/// Returns an expression that evaluates the `IFNULL` SQL function.
-///
-///     // IFNULL(name, 'Anonymous')
-///     Column("name") ?? "Anonymous"
-public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
+extension SQLSpecificExpressible {
+    /// The `IFNULL` SQL function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// // IFNULL(name, 'Anonymous')
+    /// Column("name") ?? "Anonymous"
+    /// ```
+    public static func ?? (lhs: Self, rhs: some SQLExpressible) -> SQLExpression {
+        .function("IFNULL", [lhs.sqlExpression, rhs.sqlExpression])
+    }
 }
 
-
-// MARK: - LENGTH(...)
-
-/// Returns an expression that evaluates the `LENGTH` SQL function.
+/// The `LENGTH` SQL function.
 ///
-///     // LENGTH(name)
-///     length(Column("name"))
-public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // LENGTH(name)
+/// length(Column("name"))
+/// ```
+public func length(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .function("LENGTH", [value.sqlExpression])
 }
 
-
-// MARK: - MAX(...)
-
-/// Returns an expression that evaluates the `MAX` SQL function.
+/// The `MAX` SQL function.
 ///
-///     // MAX(score)
-///     max(Column("score"))
-public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // MAX(score)
+/// max(Column("score"))
+/// ```
+public func max(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("MAX", [value.sqlExpression])
 }
 
-
-// MARK: - MIN(...)
-
-/// Returns an expression that evaluates the `MIN` SQL function.
+/// The `MIN` SQL function.
 ///
-///     // MIN(score)
-///     min(Column("score"))
-public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // MIN(score)
+/// min(Column("score"))
+/// ```
+public func min(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("MIN", [value.sqlExpression])
 }
 
-
-// MARK: - SUM(...)
-
-/// Returns an expression that evaluates the `SUM` SQL function.
+/// The `SUM` SQL function.
 ///
-///     // SUM(amount)
-///     sum(Column("amount"))
-public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
+/// For example:
+///
+/// ```swift
+/// // SUM(amount)
+/// sum(Column("amount"))
+/// ```
+///
+/// See also ``total(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+public func sum(_ value: some SQLSpecificExpressible) -> SQLExpression {
     .aggregate("SUM", [value.sqlExpression])
 }
 
+/// The `TOTAL` SQL function.
+///
+/// For example:
+///
+/// ```swift
+/// // TOTAL(amount)
+/// total(Column("amount"))
+/// ```
+///
+/// See also ``sum(_:)``.
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+public func total(_ value: some SQLSpecificExpressible) -> SQLExpression {
+    .aggregate("TOTAL", [value.sqlExpression])
+}
 
 // MARK: - String functions
 
-/// :nodoc:
 extension SQLSpecificExpressible {
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// capitalized String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Foundation
+    /// `String.capitalized` property.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.capitalized)
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").capitalized
+    /// ```
     public var capitalized: SQLExpression {
         DatabaseFunction.capitalize(sqlExpression)
     }
     
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// lowercased String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Swift
+    /// `String.lowercased()` method.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.lowercased())
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").lowercased
+    /// ```
     public var lowercased: SQLExpression {
         DatabaseFunction.lowercase(sqlExpression)
     }
     
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// uppercased String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Swift
+    /// `String.uppercased()` method.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.uppercased())
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").uppercased
+    /// ```
     public var uppercased: SQLExpression {
         DatabaseFunction.uppercase(sqlExpression)
     }
 }
 
-/// :nodoc:
 extension SQLSpecificExpressible {
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedCapitalized String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Foundation
+    /// `String.localizedCapitalized` property.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.localizedCapitalized)
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").localizedCapitalized
+    /// ```
     public var localizedCapitalized: SQLExpression {
         DatabaseFunction.localizedCapitalize(sqlExpression)
     }
     
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedLowercased String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Foundation
+    /// `String.localizedLowercase` property.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.localizedLowercased)
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").localizedLowercased
+    /// ```
     public var localizedLowercased: SQLExpression {
         DatabaseFunction.localizedLowercase(sqlExpression)
     }
     
-    /// Returns an SQL expression that applies the Swift's built-in
-    /// localizedUppercased String property. It is NULL for non-String arguments.
+    /// An SQL expression that calls the Foundation
+    /// `String.localizedUppercase` property.
     ///
-    ///     let nameColumn = Column("name")
-    ///     let request = Player.select(nameColumn.localizedUppercased)
-    ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
+    /// For example:
+    ///
+    /// ```swift
+    /// Column("name").localizedUppercased
+    /// ```
     public var localizedUppercased: SQLExpression {
         DatabaseFunction.localizedUppercase(sqlExpression)
     }
@@ -171,10 +208,9 @@ extension SQLSpecificExpressible {
 
 // MARK: - Date functions
 
-/// A date modifier for SQLite date functions such as `julianDay(_:_:)` and
-/// `dateTime(_:_:)`.
+/// A date modifier for SQLite date functions.
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
+/// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
 public enum SQLDateModifier: SQLSpecificExpressible {
     /// Adds the specified amount of seconds
     case second(Double)
@@ -203,16 +239,16 @@ public enum SQLDateModifier: SQLSpecificExpressible {
     /// Shifts the date backwards to the beginning of the current year
     case startOfYear
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case weekday(Int)
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case unixEpoch
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case localTime
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case utc
     
     public var sqlExpression: SQLExpression {
@@ -251,32 +287,38 @@ public enum SQLDateModifier: SQLSpecificExpressible {
     }
 }
 
-// MARK: JULIANDAY(...)
-
-/// Returns an expression that evaluates the `JULIANDAY` SQL function.
+/// The `JULIANDAY` SQL function.
 ///
-///     // JULIANDAY(date)
-///     julianDay(Column("date"))
+/// For example:
 ///
-///     // JULIANDAY(date, '1 days')
-///     julianDay(Column("date"), .day(1))
+/// ```swift
+/// // JULIANDAY(date)
+/// julianDay(Column("date"))
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
-public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+/// // JULIANDAY(date, '1 days')
+/// julianDay(Column("date"), .day(1))
+/// ```
+///
+/// Related SQLite documentation: <https://www.sqlite.org/lang_datefunc.html>
+public func julianDay(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("JULIANDAY", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }
 
 // MARK: DATETIME(...)
 
-/// Returns an expression that evaluates the `DATETIME` SQL function.
+/// The `DATETIME` SQL function.
 ///
-///     // DATETIME(date)
-///     dateTime(Column("date"))
+/// For example:
 ///
-///     // DATETIME(date, '1 days')
-///     dateTime(Column("date"), .day(1))
+/// ```swift
+/// // DATETIME(date)
+/// dateTime(Column("date"))
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
-public func dateTime(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+/// // DATETIME(date, '1 days')
+/// dateTime(Column("date"), .day(1))
+/// ```
+///
+/// Related SQLite documentation:<https://www.sqlite.org/lang_datefunc.html>
+public func dateTime(_ value: some SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }

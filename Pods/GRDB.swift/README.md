@@ -1,87 +1,70 @@
-![GRDB: A toolkit for SQLite databases, with a focus on application development](https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png)
-
-<p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
+<picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB~dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png">
+    <img alt="GRDB: A toolkit for SQLite databases, with a focus on application development." src="https://raw.githubusercontent.com/groue/GRDB.swift/master/GRDB.png">
+</picture>
 
 <p align="center">
-    <a href="https://developer.apple.com/swift/"><img alt="Swift 5.2" src="https://img.shields.io/badge/swift-5.2-orange.svg?style=flat"></a>
-    <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
-    <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
-    <a href="https://travis-ci.org/groue/GRDB.swift"><img alt="Build Status" src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master"></a>
+    <strong>A toolkit for SQLite databases, with a focus on application development</strong><br>
+    Proudly serving the community since 2015
 </p>
 
----
+<p align="center">
+    <a href="https://developer.apple.com/swift/"><img alt="Swift 5.7" src="https://img.shields.io/badge/swift-5.7-orange.svg?style=flat"></a>
+    <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
+    <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
+</p>
 
-**Latest release**: May 16, 2021 • version 5.8.0 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+**Latest release**: April 29, 2023 • [version 6.12.0](https://github.com/groue/GRDB.swift/tree/v6.12.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
 
-**Requirements**: iOS 10.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.2+ / Xcode 11.4+
-
-| Swift version  | GRDB version                                                |
-| -------------- | ----------------------------------------------------------- |
-| **Swift 5.2+** | **v5.8.0**                                                  |
-| Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 5        | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.2      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
-| Swift 4.1      | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
-| Swift 4        | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
-| Swift 3.2      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3.1      | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |
-| Swift 3        | [v1.0](https://github.com/groue/GRDB.swift/tree/v1.0)       |
-| Swift 2.3      | [v0.81.2](https://github.com/groue/GRDB.swift/tree/v0.81.2) |
-| Swift 2.2      | [v0.80.2](https://github.com/groue/GRDB.swift/tree/v0.80.2) |
+**Requirements**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ &bull; SQLite 3.19.3+ &bull; Swift 5.7+ / Xcode 14+
 
 **Contact**:
 
-- Release announcements and usage tips: follow [@groue](http://twitter.com/groue) on Twitter.
+- Release announcements and usage tips: follow [@groue](http://twitter.com/groue) on Twitter, [@groue@hachyderm.io](https://hachyderm.io/@groue) on Mastodon.
 - Report bugs in a [Github issue](https://github.com/groue/GRDB.swift/issues/new). Make sure you check the [existing issues](https://github.com/groue/GRDB.swift/issues?q=is%3Aopen) first.
-- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GRDB forums](https://forums.swift.org/c/related-projects/grdb), or open a [Github issue](https://github.com/groue/GRDB.swift/issues/new).
+- A question? Looking for advice? Do you wonder how to contribute? Fancy a chat? Go to the [GitHub discussions](https://github.com/groue/GRDB.swift/discussions), or the [GRDB forums](https://forums.swift.org/c/related-projects/grdb).
 
 
-## What is this?
+## What is GRDB?
 
-GRDB provides raw access to SQL and advanced SQLite features, because one sometimes enjoys a sharp tool. It has robust concurrency primitives, so that multi-threaded applications can efficiently use their databases. It grants your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.
+Use this library to save your application’s permanent data into SQLite databases. It comes with built-in tools that address common needs:
 
-Compared to [SQLite.swift](http://github.com/stephencelis/SQLite.swift) or [FMDB](http://github.com/ccgus/fmdb), GRDB can spare you a lot of glue code. Compared to [Core Data](https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/) or [Realm](http://realm.io), it can simplify your multi-threaded applications.
+- **SQL Generation**
+    
+    Enhance your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.
 
-It comes with [up-to-date documentation](#documentation), [general guides](#general-guides--good-practices), and it is [fast](https://github.com/groue/GRDB.swift/wiki/Performance).
+- **Database Observation**
+    
+    Get notifications when database values are modified. 
 
-See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your favorite database library.
+- **Robust Concurrency**
+    
+    Multi-threaded applications can efficiently use their databases, including WAL databases that support concurrent reads and writes. 
 
+- **Migrations**
+    
+    Evolve the schema of your database as you ship new versions of your application.
+    
+- **Leverage your SQLite skills**
+
+    Not all developers need advanced SQLite features. But when you do, GRDB is as sharp as you want it to be. Come with your SQL and SQLite skills, or learn new ones as you go!
 
 ---
 
 <p align="center">
-    <a href="#features">Features</a> &bull;
     <a href="#usage">Usage</a> &bull;
-    <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
+    <a href="#installation">Installation</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
 ---
 
-
-## Features
-
-GRDB ships with:
-
-- [Access to raw SQL and SQLite](#sqlite-api)
-- [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
-- [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
-- [Associations]: Relations and joins between record types.
-- [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
-- [Migrations]: Transform your database as your application evolves.
-- [Database Observation]: Observe database changes and transactions.
-- [Combine Support]: Access and observe the database with Combine publishers.
-- [RxSwift Support](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
-- [Full-Text Search]
-- [Encryption](#encryption)
-- [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
-
-
 ## Usage
 
 <details open>
-  <summary>Start using the database in four easy steps</summary>
+  <summary>Start using the database in four steps</summary>
 
 ```swift
 import GRDB
@@ -92,7 +75,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 // 2. Define the database schema
 try dbQueue.write { db in
     try db.create(table: "player") { t in
-        t.autoIncrementedPrimaryKey("id")
+        t.primaryKey("id", .text)
         t.column("name", .text).notNull()
         t.column("score", .integer).notNull()
     }
@@ -100,38 +83,21 @@ try dbQueue.write { db in
 
 // 3. Define a record type
 struct Player: Codable, FetchableRecord, PersistableRecord {
-    var id: Int64
+    var id: String
     var name: String
     var score: Int
 }
 
-// 4. Access the database
+// 4. Write and read in the database
 try dbQueue.write { db in
-    try Player(id: 1, name: "Arthur", score: 100).insert(db)
-    try Player(id: 2, name: "Barbara", score: 1000).insert(db)
+    try Player(id: "1", name: "Arthur", score: 100).insert(db)
+    try Player(id: "2", name: "Barbara", score: 1000).insert(db)
 }
 
 let players: [Player] = try dbQueue.read { db in
     try Player.fetchAll(db)
 }
 ```
-
-</details>
-
-<details>
-  <summary>Activate the WAL mode</summary>
-
-```swift
-import GRDB
-
-// Simple database connection
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-
-// Enhanced multithreading based on SQLite's WAL mode
-let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-```
-    
-See [Database Connections](#database-connections)
 
 </details>
 
@@ -244,8 +210,8 @@ See [Records](#records)
 
 ```swift
 try dbQueue.read { db in
-    // Place?
-    let paris = try Place.fetchOne(db, id: 1)
+    // Place
+    let paris = try Place.find(db, id: 1)
     
     // Place?
     let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
@@ -280,7 +246,7 @@ let observation = ValueObservation.tracking { db in
 // Start observation
 let cancellable = observation.start(
     in: dbQueue,
-    onError: { error in ... }
+    onError: { error in ... },
     onChange: { (places: [Place]) in print("Fresh places: \(places)") })
 ```
 
@@ -302,7 +268,6 @@ See [Database Observation], [Combine Support], [RxGRDB].
 
 </details>
 
-
 Documentation
 =============
 
@@ -311,17 +276,17 @@ Documentation
 
 #### Demo Applications & Frequently Asked Questions
 
-- [Demo Applications]: Two flavors: vanilla UIKit, and Combine + SwiftUI
-- [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
+- [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
+- [FAQ]
 
 #### Reference
 
-- [GRDB Reference](http://groue.github.io/GRDB.swift/docs/5.8/index.html) (generated by [Jazzy](https://github.com/realm/jazzy))
+- 📖 [GRDB Reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/)
 
 #### Getting Started
 
 - [Installation](#installation)
-- [Database Connections](#database-connections): Connect to SQLite databases
+- [Database Connections]: Connect to SQLite databases
 
 #### SQLite and SQL
 
@@ -330,39 +295,31 @@ Documentation
 #### Records and the Query Interface
 
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies
-- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [table creation](#database-schema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
+- [Query Interface](#the-query-interface): A swift way to generate SQL &bull; [create tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) &bull; [requests](#requests) • [associations between record types](Documentation/AssociationsBasics.md)
 
 #### Application Tools
 
 - [Migrations]: Transform your database as your application evolves.
 - [Full-Text Search]: Perform efficient and customizable full-text searches.
-- [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
 - [Database Observation]: Observe database changes and transactions.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
-- [Sharing a Database]: Recommendations for App Group Containers and sandboxed macOS apps.
+- [Sharing a Database]: How to share an SQLite database between multiple processes - recommendations for App Group containers, App Extensions, App Sandbox, and file coordination.
 
 #### Good to Know
 
+- [Concurrency]: How to access databases in a multi-threaded application.
+- [SwiftUI](https://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
+- [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
 - [Avoiding SQL Injection](#avoiding-sql-injection)
 - [Error Handling](#error-handling)
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
-- [Data Protection](#data-protection)
-- [Concurrency](#concurrency)
-
-#### General Guides & Good Practices
-
-- :bulb: [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
-- :bulb: [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
-- :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
-- :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
-- :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
-- :blue_book: [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3)
-- :blue_book: [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
-- :blue_book: [Unexpected SQLite with Swift](https://hackernoon.com/unexpected-sqlite-with-swift-ddc6343bcbfc)
-
+- [Data Protection](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)
+- :bulb: [Migrating From GRDB 5 to GRDB 6](Documentation/GRDB6MigrationGuide.md)
+- :bulb: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
+- :bulb: [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices)
 
 **[FAQ]**
 
@@ -377,8 +334,6 @@ Installation
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
 See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite.
-
-See [Enabling FTS5 Support](Documentation/FullTextSearch.md#enabling-fts5-support) for the installation procedure of GRDB with support for the FTS5 full-text engine.
 
 
 ## CocoaPods
@@ -395,9 +350,11 @@ GRDB can be installed as a framework, or a static library.
 
 The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
 
-> :point_up: **Note**: Linux is not currently supported.
+GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can reveal useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [How to link a Swift Package as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062) for more information.
+
+> **Note**: Linux is not currently supported.
 >
-> :warning: **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
+> **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.
 
 ## Carthage
 
@@ -410,9 +367,9 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 
 2. Embed the `GRDB.xcodeproj` project in your own project.
 
-3. Add the `GRDBOSX`, `GRDBiOS`, `GRDBtvOS`, or `GRDBWatchOS` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
+3. Add the `GRDB` target in the **Target Dependencies** section of the **Build Phases** tab of your application target (extension target for WatchOS).
 
-4. Add the `GRDB.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
+4. Add the `GRDB.framework` to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
 > :bulb: **Tip**: see the [Demo Applications] for examples of such integration.
 
@@ -420,7 +377,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 Database Connections
 ====================
 
-GRDB provides two classes for accessing SQLite databases: `DatabaseQueue` and `DatabasePool`:
+GRDB provides two classes for accessing SQLite databases: [`DatabaseQueue`] and [`DatabasePool`]:
 
 ```swift
 import GRDB
@@ -436,164 +393,9 @@ The differences are:
 - Database pools open your SQLite database in the [WAL mode](https://www.sqlite.org/wal.html) (unless read-only).
 - Database queues support [in-memory databases](https://www.sqlite.org/inmemorydb.html).
 
-**If you are not sure, choose DatabaseQueue.** You will always be able to switch to DatabasePool later.
+**If you are not sure, choose [`DatabaseQueue`].** You will always be able to switch to [`DatabasePool`] later.
 
-- [Database Queues](#database-queues)
-- [Database Pools](#database-pools)
-
-
-## Database Queues
-
-**Open a database queue** with the path to a database file:
-
-```swift
-import GRDB
-
-let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let inMemoryDBQueue = DatabaseQueue()
-```
-
-SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deinitialized.
-
-**A database queue can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
-
-```swift
-// Modify the database:
-try dbQueue.write { db in
-    try db.create(table: "place") { ... }
-    try Place(...).insert(db)
-}
-
-// Read values:
-try dbQueue.read { db in
-    let places = try Place.fetchAll(db)
-    let placeCount = try Place.fetchCount(db)
-}
-```
-
-Database access methods can return values:
-
-```swift
-let placeCount = try dbQueue.read { db in
-    try Place.fetchCount(db)
-}
-
-let newPlaceCount = try dbQueue.write { db -> Int in
-    try Place(...).insert(db)
-    return try Place.fetchCount(db)
-}
-```
-
-**A database queue serializes accesses to the database**, which means that there is never more than one thread that uses the database.
-
-- When you don't need to modify the database, prefer the `read` method. It prevents any modification to the database.
-
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
-    
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
-
-**A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
-
-> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS.
-
-
-### DatabaseQueue Configuration
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // Default is already true
-config.label = "MyDatabase"      // Useful when your app opens multiple databases
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://groue.github.io/GRDB.swift/docs/5.8/Structs/Configuration.html) for more details.
-
-
-## Database Pools
-
-**A database pool allows concurrent database accesses.**
-
-```swift
-import GRDB
-let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
-```
-
-SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deinitialized.
-
-> :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
-
-**A database pool can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
-
-```swift
-// Modify the database:
-try dbPool.write { db in
-    try db.create(table: "place") { ... }
-    try Place(...).insert(db)
-}
-
-// Read values:
-try dbPool.read { db in
-    let places = try Place.fetchAll(db)
-    let placeCount = try Place.fetchCount(db)
-}
-```
-
-Database access methods can return values:
-
-```swift
-let placeCount = try dbPool.read { db in
-    try Place.fetchCount(db)
-}
-
-let newPlaceCount = try dbPool.write { db -> Int in
-    try Place(...).insert(db)
-    return try Place.fetchCount(db)
-}
-```
-
-**Database pools allow several threads to access the database at the same time:**
-
-- When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
-    
-    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
-
-- Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called [snapshot isolation](https://sqlite.org/isolation.html).
-
-- Unlike reads, writes are serialized. There is never more than a single thread that is writing into the database.
-
-- The `write` method wraps your database statements in a transaction that commits if and only if no error occurs. On the first unhandled error, all changes are reverted, the whole transaction is rollbacked, and the error is rethrown.
-    
-    When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
-
-- Database pools can take [snapshots](#database-snapshots) of the database.
-
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
-
-> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
-
-
-### DatabasePool Configuration
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // Default is already true
-config.label = "MyDatabase"      // Useful when your app opens multiple databases
-config.maximumReaderCount = 10   // The default is 5
-
-let dbPool = try DatabasePool(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://groue.github.io/GRDB.swift/docs/5.8/Structs/Configuration.html) for more details.
-
-
-Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
+For more information and tips when opening connections, see [Database Connections](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections).
 
 
 SQLite API
@@ -611,22 +413,22 @@ SQLite API
     - [Date and DateComponents](#date-and-datecomponents)
     - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
-    - [Custom Value Types](#custom-value-types)
-- [Transactions and Savepoints](#transactions-and-savepoints)
+    - [`DatabaseValueConvertible`]: the protocol for custom value types
+- [Transactions and Savepoints]
 - [SQL Interpolation]
 
 Advanced topics:
 
-- [Prepared Statements](#prepared-statements)
+- [Prepared Statements]
 - [Custom SQL Functions and Aggregates](#custom-sql-functions-and-aggregates)
 - [Database Schema Introspection](#database-schema-introspection)
-- [Row Adapters](#row-adapters)
+- [Row Adapters](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter)
 - [Raw SQLite Pointers](#raw-sqlite-pointers)
 
 
 ## Executing Updates
 
-Once granted with a [database connection](#database-connections), the `execute` method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
+Once granted with a [database connection], the [`execute(sql:arguments:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/execute(sql:arguments:)) method executes the SQL statements that do not return any database row, such as `CREATE TABLE`, `INSERT`, `DELETE`, `ALTER`, etc.
 
 For example:
 
@@ -650,14 +452,16 @@ try dbQueue.write { db in
 }
 ```
 
-The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
+The `?` and colon-prefixed keys like `:score` in the SQL query are the **statements arguments**. You pass arguments with arrays or dictionaries, as in the example above. See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
-You can also embed query arguments right into your SQL queries, with the `literal` argument label, as in the example below. See [SQL Interpolation] for more details.
+You can also embed query arguments right into your SQL queries, with [`execute(literal:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/execute(literal:)), as in the example below. See [SQL Interpolation] for more details.
 
 ```swift
 try dbQueue.write { db in
+    let name = "O'Brien"
+    let score = 550
     try db.execute(literal: """
-        INSERT INTO player (name, score) VALUES (\("O'Brien"), \(550))
+        INSERT INTO player (name, score) VALUES (\(name), \(score))
         """)
 }
 ```
@@ -700,9 +504,9 @@ try db.execute(literal: """
     """)
 ```
 
-When you want to make sure that a single statement is executed, use [Prepared Statements](#prepared-statements).
+When you want to make sure that a single statement is executed, use a prepared [`Statement`].
 
-**After an INSERT statement**, you can get the row ID of the inserted row:
+**After an INSERT statement**, you can get the row ID of the inserted row with [`lastInsertedRowID`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/lastinsertedrowid):
 
 ```swift
 try db.execute(
@@ -722,7 +526,7 @@ let playerId = player.id
 
 ## Fetch Queries
 
-[Database connections](#database-connections) let you fetch database rows, plain values, and custom models aka "records".
+[Database connections] let you fetch database rows, plain values, and custom models aka "records".
 
 **Rows** are the raw results of SQL queries:
 
@@ -798,8 +602,11 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
+**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements] found in the SQL string.
 
 ### Cursors
+
+📖 [`Cursor`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/cursor)
 
 **Whenever you consume several rows from the database, you can fetch an Array, a Set, or a Cursor**.
 
@@ -885,7 +692,7 @@ try dbQueue.read { db in
     let dictionary = try Dictionary(uniqueKeysWithValues: cursor)
     ```
 
-- **Cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/5.8/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
+- **Cursors adopt the [Cursor](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/cursor) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
     
     ```swift
     // Prints all Github links
@@ -926,6 +733,7 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 - [Column Values](#column-values)
 - [DatabaseValue](#databasevalue)
 - [Rows as Dictionaries](#rows-as-dictionaries)
+- 📖 [`Row`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/row)
 
 
 #### Fetching Rows
@@ -964,11 +772,11 @@ let rows = try Row.fetchAll(db,
     arguments: ["name": "Arthur"])
 ```
 
-See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html) for a detailed documentation of SQLite arguments.
+See [Values](#values) for more information on supported arguments types (Bool, Int, String, Date, Swift enums, etc.), and [`StatementArguments`] for a detailed documentation of SQLite arguments.
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a cursor of `Row` into an array or a set**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. To get a set of rows, use `Row.fetchSet(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+> **Note**: **Don't turn a cursor of `Row` into an array or a set**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. To get a set of rows, use `Row.fetchSet(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
@@ -1006,7 +814,7 @@ row[...] as Int
 row[...] as Int?
 ```
 
-> :warning: **Warning**: avoid the `as!` and `as?` operators:
+> **Warning**: avoid the `as!` and `as?` operators:
 > 
 > ```swift
 > if let int = row[...] as? Int { ... } // BAD - doesn't work
@@ -1093,9 +901,11 @@ Generally speaking, you can extract the type you need, provided it can be conver
 
 #### DatabaseValue
 
-**DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
+📖 [`DatabaseValue`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalue)
 
-You get DatabaseValue just like other value types:
+**`DatabaseValue` is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
+
+You get `DatabaseValue` just like other value types:
 
 ```swift
 let dbValue: DatabaseValue = row[0]
@@ -1117,7 +927,7 @@ case .blob(let data):       print("Data: \(data)")
 }
 ```
 
-You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
+You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from `DatabaseValue` with the [fromDatabaseValue()](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible/fromdatabasevalue(_:)-21zzv) method:
 
 ```swift
 let dbValue: DatabaseValue = row["bookCount"]
@@ -1203,7 +1013,11 @@ See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://develo
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, **sets**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
+📖 [`DatabaseValueConvertible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible)
+
+**Instead of rows, you can directly fetch values.** There are many supported [value types](#values) (Bool, Int, String, Date, Swift enums, etc.).
+
+Like rows, fetch values as **cursors**, **arrays**, **sets**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 try dbQueue.read { db in
@@ -1212,25 +1026,46 @@ try dbQueue.read { db in
     try Int.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int>
     try Int.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
     
-    // When database may contain NULL:
+    let maxScore = try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player") // Int?
+    let names = try String.fetchAll(db, sql: "SELECT name FROM player")       // [String]
+}
+```
+
+`Int.fetchOne` returns nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value:
+
+```swift
+// No row:
+try Int.fetchOne(db, sql: "SELECT 42 WHERE FALSE") // nil
+
+// One row with a NULL value:
+try Int.fetchOne(db, sql: "SELECT NULL")           // nil
+
+// One row with a non-NULL value:
+try Int.fetchOne(db, sql: "SELECT 42")             // 42
+```
+
+For requests which may contain NULL, fetch optionals:
+
+```swift
+try dbQueue.read { db in
     try Optional<Int>.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int?
     try Optional<Int>.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int?]
     try Optional<Int>.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int?>
 }
-
-let playerCount = try dbQueue.read { db in
-    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
-}
 ```
 
-`fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+> :bulb: **Tip**: One advanced use case, when you fetch one value, is to distinguish the cases of a statement that yields no row, or one row with a NULL value. To do so, use `Optional<Int>.fetchOne`, which returns a double optional `Int??`:
+> 
+> ```swift
+> // No row:
+> try Optional<Int>.fetchOne(db, sql: "SELECT 42 WHERE FALSE") // .none
+> // One row with a NULL value:
+> try Optional<Int>.fetchOne(db, sql: "SELECT NULL")           // .some(.none)
+> // One row with a non-NULL value:
+> try Optional<Int>.fetchOne(db, sql: "SELECT 42")             // .some(.some(42))
+> ```
 
-There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
-
-```swift
-let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")! // Int
-let urls = try URL.fetchAll(db, sql: "SELECT url FROM link")          // [URL]
-```
+There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information.
 
 
 ## Values
@@ -1247,9 +1082,9 @@ GRDB ships with built-in support for the following value types:
 
 - **Full-Text Patterns**: [FTS3Pattern](Documentation/FullTextSearch.md#fts3pattern) and [FTS5Pattern](Documentation/FullTextSearch.md#fts5pattern).
 
-- Generally speaking, all types that adopt the [DatabaseValueConvertible](#custom-value-types) protocol.
+- Generally speaking, all types that adopt the [`DatabaseValueConvertible`] protocol.
 
-Values can be used as [statement arguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html):
+Values can be used as [statement arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
 ```swift
 let url: URL = ...
@@ -1314,7 +1149,9 @@ At each step of the request iteration, the `row[]` subscript creates *two copies
 
 ```swift
 while let row = try rows.next() {
-    let data = row.dataNoCopy(named: "data") // Data?
+    try row.withUnsafeData(name: "data") { (data: Data?) in
+        ...
+    }
 }
 ```
 
@@ -1348,6 +1185,8 @@ Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang
 
 ³ GRDB 2+ interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). Julian days are still supported, with the `Date(julianDay:)` initializer.
 
+> **Warning**: the range of valid years in the SQLite date formats is 0000-9999. You will need to pick another date format when your application needs to process years outside of this range. See the following chapters.
+
 
 #### Date
 
@@ -1364,25 +1203,45 @@ let creationDate: Date = row["creationDate"]
 
 Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone. It is precise to the millisecond.
 
-> :point_up: **Note**: this format was chosen because it is the only format that is:
+> **Note**: this format was chosen because it is the only format that is:
 > 
 > - Comparable (`ORDER BY date` works)
 > - Comparable with the SQLite keyword CURRENT_TIMESTAMP (`WHERE date > CURRENT_TIMESTAMP` works)
 > - Able to feed [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html)
 > - Precise enough
+>
+> **Warning**: the range of valid years in the SQLite date format is 0000-9999. You will experience problems with years outside of this range, such as decoding errors, or invalid date computations with [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html).
 
-When the default format does not fit your needs, customize date conversions. For example:
+Some applications may prefer another date format:
+
+- Some may prefer ISO-8601, with a `T` separator.
+- Some may prefer ISO-8601, with a time zone.
+- Some may need to store years beyond the 0000-9999 range.
+- Some may need sub-millisecond precision.
+- Some may need exact `Date` roundtrip.
+- Etc.
+
+**You should think twice before choosing a different date format:**
+
+- ISO-8601 is about *exchange and communication*, when SQLite is about *storage and data manipulation*. Sharing the same representation in your database and in JSON files only provides a superficial convenience, and should be the least of your priorities. Don't store dates as ISO-8601 without understanding what you lose. For example, ISO-8601 time zones forbid database-level date comparison. 
+- Sub-millisecond precision and exact `Date` roundtrip are not as obvious needs as it seems at first sight. Dates generally don't precisely roundtrip as soon as they leave your application anyway, because the other systems your app communicates with use their own date representation (the Android version of your app, the server your application is talking to, etc.) On top of that, `Date` comparison is at least as hard and nasty as [floating point comparison](https://www.google.com/search?q=floating+point+comparison+is+hard).
+
+The customization of date format is explicit. For example:
 
 ```swift
+let date = Date()
+let timeInterval = date.timeIntervalSinceReferenceDate
 try db.execute(
     sql: "INSERT INTO player (creationDate, ...) VALUES (?, ...)",
-    arguments: [Date().timeIntervalSinceReferenceDate, ...])
+    arguments: [timeInterval, ...])
 
-let row = try Row.fetchOne(db, ...)!
-let creationDate = Date(timeIntervalSinceReferenceDate: row["creationDate"])
+if let row = try Row.fetchOne(db, ...) {
+    let timeInterval: TimeInterval = row["creationDate"]
+    let creationDate = Date(timeIntervalSinceReferenceDate: timeInterval)
+}
 ```
 
-See [Codable Records] for more date customization options.
+See also [Codable Records] for more date customization options, and [`DatabaseValueConvertible`] if you want to define a Date-wrapping type with customized database representation.
 
 
 #### DateComponents
@@ -1390,6 +1249,8 @@ See [Codable Records] for more date customization options.
 DateComponents is indirectly supported, through the **DatabaseDateComponents** helper type.
 
 DatabaseDateComponents reads date components from all [date formats supported by SQLite](https://www.sqlite.org/lang_datefunc.html), and stores them in the format of your choice, from HH:MM to YYYY-MM-DD HH:MM:SS.SSS.
+
+> **Warning**: the range of valid years is 0000-9999. You will experience problems with years outside of this range, such as decoding errors, or invalid date computations with [SQLite date & time functions](https://www.sqlite.org/lang_datefunc.html). See [Date](#date) for more information.
 
 DatabaseDateComponents can be stored and fetched from the database just like other [values](#values):
 
@@ -1457,7 +1318,7 @@ Here is how GRDB supports the various data types supported by SQLite:
     try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(string: "10.5")])
     ```
     
-    > :warning: **Warning**: since SQLite does not support decimal numbers, sending a non-integer `NSDecimalNumber` can result in a loss of precision during the conversion to double.
+    > **Warning**: since SQLite does not support decimal numbers, sending a non-integer `NSDecimalNumber` can result in a loss of precision during the conversion to double.
     >
     > Instead of sending non-integer `NSDecimalNumber` to the database, you may prefer:
     >
@@ -1532,327 +1393,6 @@ if dbValue.isNull {
 ```
 
 
-### Custom Value Types
-
-Conversion to and from the database is based on the `DatabaseValueConvertible` protocol:
-
-```swift
-protocol DatabaseValueConvertible {
-    /// Returns a value that can be stored in the database.
-    var databaseValue: DatabaseValue { get }
-    
-    /// Returns a value initialized from dbValue, if possible.
-    static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
-}
-```
-
-All types that adopt this protocol can be used like all other [values](#values) (Bool, Int, String, Date, Swift enums, etc.)
-
-The `databaseValue` property returns [DatabaseValue](#databasevalue), a type that wraps the five values supported by SQLite: NULL, Int64, Double, String and Data. Since DatabaseValue has no public initializer, use `DatabaseValue.null`, or another type that already adopts the protocol: `1.databaseValue`, `"foo".databaseValue`, etc. Conversion to DatabaseValue *must not* fail.
-
-The `fromDatabaseValue()` factory method returns an instance of your custom type if the database value contains a suitable value. If the database value does not contain a suitable value, such as "foo" for Date, `fromDatabaseValue` *must* return nil (GRDB will interpret this nil result as a conversion error, and react accordingly).
-
-
-## Transactions and Savepoints
-
-- [Transactions and Safety](#transactions-and-safety)
-- [Explicit Transactions](#explicit-transactions)
-- [Savepoints](#savepoints)
-- [Transaction Kinds](#transaction-kinds)
-
-
-### Transactions and Safety
-
-**A transaction** is a fundamental tool of SQLite that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
-
-GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](#concurrency), and provide maximal security for both your application data and application logic:
-
-```swift
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.write { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbPool.write { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-```
-
-Yet you may need to exactly control when transactions take place:
-
-
-### Explicit Transactions
-
-`DatabaseQueue.inDatabase()` and `DatabasePool.writeWithoutTransaction()` execute your database statements outside of any transaction:
-
-```swift
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-try dbQueue.inDatabase { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-try dbPool.writeWithoutTransaction { db in
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-}
-```
-
-**Writing outside of any transaction is dangerous,** for two reasons:
-
-- In our credit/debit example, you may successfully insert a credit, but fail inserting the debit, and end up with unbalanced accounts (oops).
-
-    ```swift
-    // UNSAFE DATABASE INTEGRITY
-    try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
-        try Credit(destinationAccount, amount).insert(db) // may succeed
-        try Debit(sourceAccount, amount).insert(db)      // may fail
-    }
-    ```
-    
-    Transactions avoid this kind of bug.
-    
-- [Database pool](#database-pools) concurrent reads can see an inconsistent state of the database:
-    
-    ```swift
-    // UNSAFE CONCURRENCY
-    try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccount, amount).insert(db)
-        // <- Concurrent dbPool.read sees a partial db update here
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    ```
-    
-    Transactions avoid this kind of bug, too.
-
-To open explicit transactions, use one of the `Database.inTransaction`, `DatabaseQueue.inTransaction`, or `DatabasePool.writeInTransaction` methods:
-
-```swift
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
-    try db.inTransaction {
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-}
-
-// BEGIN TRANSACTION
-// INSERT INTO credit ...
-// INSERT INTO debit ...
-// COMMIT
-try dbQueue.inTransaction { db in  // or dbPool.writeInTransaction
-    try Credit(destinationAccount, amount).insert(db)
-    try Debit(sourceAccount, amount).insert(db)
-    return .commit
-}
-```
-
-If an error is thrown from the transaction block, the transaction is rollbacked and the error is rethrown by the `inTransaction` method. If you return `.rollback` instead of `.commit`, the transaction is also rollbacked, but no error is thrown.
-
-You can also perform manual transaction management:
-
-```swift
-try dbQueue.inDatabase { db in  // or dbPool.writeWithoutTransaction
-    try db.beginTransaction()
-    ...
-    try db.commit()
-    
-    try db.execute(sql: "BEGIN TRANSACTION")
-    ...
-    try db.execute(sql: "ROLLBACK")
-}
-```
-
-Transactions can't be left opened unless you set the [allowsUnsafeTransactions](http://groue.github.io/GRDB.swift/docs/5.8/Structs/Configuration.html) configuration flag:
-
-```swift
-// fatal error: A transaction has been left opened at the end of a database access
-try dbQueue.inDatabase { db in
-    try db.execute(sql: "BEGIN TRANSACTION")
-    // <- no commit or rollback
-}
-```
-
-You can ask if a transaction is currently opened:
-
-```swift
-func myCriticalMethod(_ db: Database) throws {
-    precondition(db.isInsideTransaction, "This method requires a transaction")
-    try ...
-}
-```
-
-Yet, you have a better option than checking for transactions: critical database sections should use savepoints, described below:
-
-```swift
-func myCriticalMethod(_ db: Database) throws {
-    try db.inSavepoint {
-        // Here the database is guaranteed to be inside a transaction.
-        try ...
-    }
-}
-```
-
-
-### Savepoints
-
-**Statements grouped in a savepoint can be rollbacked without invalidating a whole transaction:**
-
-```swift
-try dbQueue.write { db in
-    // Makes sure both inserts succeed, or none:
-    try db.inSavepoint {
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-    
-    // Other savepoints, etc...
-}
-```
-
-If an error is thrown from the savepoint block, the savepoint is rollbacked and the error is rethrown by the `inSavepoint` method. If you return `.rollback` instead of `.commit`, the savepoint is also rollbacked, but no error is thrown.
-
-**Unlike transactions, savepoints can be nested.** They implicitly open a transaction if no one was opened when the savepoint begins. As such, they behave just like nested transactions. Yet the database changes are only written to disk when the outermost transaction is committed:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.inSavepoint {
-        ...
-        try db.inSavepoint {
-            ...
-            return .commit
-        }
-        ...
-        return .commit  // writes changes to disk
-    }
-}
-```
-
-SQLite savepoints are more than nested transactions, though. For advanced uses, use [SQLite savepoint documentation](https://www.sqlite.org/lang_savepoint.html).
-
-
-### Transaction Kinds
-
-SQLite supports [three kinds of transactions](https://www.sqlite.org/lang_transaction.html): deferred (the default), immediate, and exclusive.
-
-The transaction kind can be changed in the database configuration, or for each transaction:
-
-```swift
-// 1) Default configuration:
-let dbQueue = try DatabaseQueue(path: "...")
-
-// BEGIN DEFERED TRANSACTION ...
-dbQueue.write { db in ... }
-
-// BEGIN EXCLUSIVE TRANSACTION ...
-dbQueue.inTransaction(.exclusive) { db in ... }
-
-// 2) Customized default transaction kind:
-var config = Configuration()
-config.defaultTransactionKind = .immediate
-let dbQueue = try DatabaseQueue(path: "...", configuration: config)
-
-// BEGIN IMMEDIATE TRANSACTION ...
-dbQueue.write { db in ... }
-
-// BEGIN EXCLUSIVE TRANSACTION ...
-dbQueue.inTransaction(.exclusive) { db in ... }
-```
-
-
-## Prepared Statements
-
-**Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
-
-There are two kinds of prepared statements: **select statements**, and **update statements**:
-
-```swift
-try dbQueue.write { db in
-    let updateSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let updateStatement = try db.makeUpdateStatement(sql: updateSQL)
-    
-    let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeSelectStatement(sql: selectSQL)
-}
-```
-
-The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
-
-```swift
-updateStatement.arguments = ["name": "Arthur", "score": 1000]
-selectStatement.arguments = ["Arthur"]
-```
-
-Alternatively, you can create a prepared statement with [SQL Interpolation]:
-
-```swift
-let updateStatement = try db.makeUpdateStatement(literal: "INSERT ...")
-let selectStatement = try db.makeSelectStatement(literal: "SELECT ...")
-//                                               ~~~~~~~
-```
-
-Update statements can be executed:
-
-```swift
-try updateStatement.execute()
-```
-
-Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
-
-```swift
-let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
-let players = try Player.fetchAll(selectStatement) // [Player]
-let players = try Player.fetchSet(selectStatement) // Set<Player>
-let player = try Player.fetchOne(selectStatement)  // Player?
-```
-
-You can set the arguments at the moment of the statement execution:
-
-```swift
-try updateStatement.execute(arguments: ["name": "Arthur", "score": 1000])
-let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
-```
-
-> :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
-
-See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
-
-
-### Prepared Statements Cache
-
-When the same query will be used several times in the lifetime of your application, you may feel a natural desire to cache prepared statements.
-
-**Don't cache statements yourself.**
-
-> :point_up: **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
-
-Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
-
-```swift
-let updateStatement = try db.cachedUpdateStatement(sql: sql)
-let selectStatement = try db.cachedSelectStatement(sql: sql)
-```
-
-Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
-
-
 ## Custom SQL Functions and Aggregates
 
 **SQLite lets you define SQL functions and aggregates.**
@@ -1869,6 +1409,8 @@ SELECT maxLength(name) FROM player; -- custom aggregate
 
 
 ### Custom SQL Functions
+
+📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasefunction)
 
 A *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
 
@@ -1948,6 +1490,8 @@ Player.select(reverseString(nameColumn))
 
 
 ### Custom Aggregates
+
+📖 [`DatabaseFunction`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasefunction), [`DatabaseAggregate`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseaggregate)
 
 Before registering a custom aggregate, you need to define a type that adopts the `DatabaseAggregate` protocol:
 
@@ -2057,190 +1601,7 @@ Database.isSQLiteInternalTable(...)
 Database.isGRDBInternalTable(...)
 ```
 
-
-## Row Adapters
-
-**Row adapters let you present database rows in the way expected by the row consumers.**
-
-They basically help two incompatible row interfaces to work together. For example, a row consumer expects a column named "consumed", but the produced row has a column named "produced".
-
-In this case, the `ColumnMapping` row adapter comes in handy:
-
-```swift
-// Turn the 'produced' column into 'consumed':
-let adapter = ColumnMapping(["consumed": "produced"])
-let row = try Row.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapter)!
-
-// [consumed:"Hello"]
-print(row)
-
-// "Hello"
-print(row["consumed"])
-
-// ▿ [consumed:"Hello"]
-//   unadapted: [produced:"Hello"]
-print(row.debugDescription)
-
-// [produced:"Hello"]
-print(row.unadapted)
-```
-
-[Record types](#records) are typical row consumers that expect database rows to have a specific layout so that they can decode them:
-
-```swift
-struct MyRecord: Decodable, FetchableRecord {
-    var consumed: String
-}
-let record = try MyRecord.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapter)!
-print(record.consumed) // "Hello"
-```
-
-There are several situations where row adapters are useful:
-
-- They help disambiguate columns with identical names, which may happen when you select columns from several tables. See [Joined Queries Support](#joined-queries-support) for an example.
-
-- They help when SQLite outputs unexpected column names, which may happen with some subqueries. See [RenameColumnAdapter](#renamecolumnadapter) for an example.
-
-Available row adapters are described below.
-
-- [ColumnMapping](#columnmapping)
-- [EmptyRowAdapter](#emptyrowadapter)
-- [RangeRowAdapter](#rangerowadapter)
-- [RenameColumnAdapter](#renamecolumnadapter)
-- [ScopeAdapter](#scopeadapter)
-- [SuffixRowAdapter](#suffixrowadapter)
-
-
-### ColumnMapping
-
-`ColumnMapping` renames columns. Build one with a dictionary whose keys are adapted column names, and values the column names in the raw row:
-
-```swift
-// [newA:0, newB:1]
-let adapter = ColumnMapping(["newA": "a", "newB": "b"])
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
-```
-
-Note that columns that are not present in the dictionary are not present in the resulting adapted row.
-
-
-### EmptyRowAdapter
-
-`EmptyRowAdapter` hides all columns.
-
-```swift
-let adapter = EmptyRowAdapter()
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
-row.isEmpty // true
-```
-
-This limit adapter may turn out useful in some narrow use cases. You'll be happy to find it when you need it.
-
-
-### RangeRowAdapter
-
-`RangeRowAdapter` only exposes a range of columns.
-
-```swift
-// [b:1]
-let adapter = RangeRowAdapter(1..<2)
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
-```
-
-
-### RenameColumnAdapter
-
-`RenameColumnAdapter` lets you transform column names with a function:
-
-```swift
-// [arrr:0, brrr:1, crrr:2]
-let adapter = RenameColumnAdapter { column in column + "rrr" }
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
-```
-
-This adapter may turn out useful, for example, when subqueries contain duplicated column names:
-
-```swift
-let sql = "SELECT * FROM (SELECT 1 AS id, 2 AS id)"
-
-// Prints ["id", "id:1"]
-// Note the "id:1" column, generated by SQLite.
-let row = try Row.fetchOne(db, sql: sql)!
-print(Array(row.columnNames))
-
-// Drop the `:...` suffix, and prints ["id", "id"]
-let adapter = RenameColumnAdapter { String($0.prefix(while: { $0 != ":" })) }
-let adaptedRow = try Row.fetchOne(db, sql: sql, adapter: adapter)!
-print(Array(adaptedRow.columnNames))
-```
-
-
-### ScopeAdapter
-
-`ScopeAdapter` defines *row scopes*:
-
-```swift
-let adapter = ScopeAdapter([
-    "left": RangeRowAdapter(0..<2),
-    "right": RangeRowAdapter(2..<4)])
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
-```
-
-ScopeAdapter does not change the columns and values of the fetched row. Instead, it defines *scopes*, which you access through the `Row.scopes` property:
-
-```swift
-row                   // [a:0 b:1 c:2 d:3]
-row.scopes["left"]    // [a:0 b:1]
-row.scopes["right"]   // [c:2 d:3]
-row.scopes["missing"] // nil
-```
-
-Scopes can be nested:
-
-```swift
-let adapter = ScopeAdapter([
-    "left": ScopeAdapter([
-        "left": RangeRowAdapter(0..<1),
-        "right": RangeRowAdapter(1..<2)]),
-    "right": ScopeAdapter([
-        "left": RangeRowAdapter(2..<3),
-        "right": RangeRowAdapter(3..<4)])
-    ])
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
-
-let leftRow = row.scopes["left"]!
-leftRow.scopes["left"]  // [a:0]
-leftRow.scopes["right"] // [b:1]
-
-let rightRow = row.scopes["right"]!
-rightRow.scopes["left"]  // [c:2]
-rightRow.scopes["right"] // [d:3]
-```
-
-Any adapter can be extended with scopes:
-
-```swift
-let baseAdapter = RangeRowAdapter(0..<2)
-let adapter = ScopeAdapter(base: baseAdapter, scopes: [
-    "remainder": SuffixRowAdapter(fromIndex: 2)])
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", adapter: adapter)!
-
-row // [a:0 b:1]
-row.scopes["remainder"] // [c:2 d:3]
-```
-
-To see how `ScopeAdapter` can be used, see [Joined Queries Support](#joined-queries-support).
-
-
-### SuffixRowAdapter
-
-`SuffixRowAdapter` hides the first columns in a row:
-
-```swift
-// [b:1 c:2]
-let adapter = SuffixRowAdapter(fromIndex: 1)
-let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
-```
+For more information, see [`tableExists(_:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/tableexists(_:)) and related methods.
 
 
 ## Raw SQLite Pointers
@@ -2263,12 +1624,12 @@ try dbQueue.read { db in
     let sqliteConnection = db.sqliteConnection
 
     // The raw pointer to a statement:
-    let statement = try db.makeSelectStatement(sql: "SELECT ...")
+    let statement = try db.makeStatement(sql: "SELECT ...")
     let sqliteStatement = statement.sqliteStatement
 }
 ```
 
-> :point_up: **Notes**
+> **Note**
 >
 > - Those pointers are owned by GRDB: don't close connections or finalize statements created by GRDB.
 > - GRDB opens SQLite connections in the "[multi-thread mode](https://www.sqlite.org/threadsafe.html)", which (oddly) means that **they are not thread-safe**. Make sure you touch raw databases and statements inside their dedicated dispatch queues.
@@ -2289,15 +1650,15 @@ try dbQueue.write { db in
 }
 ```
 
-Of course, you need to open a [database connection](#database-connections), and [create database tables](#database-schema) first.
+Of course, you need to open a [database connection], and [create database tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema) first.
 
 To define your custom records, you subclass the ready-made `Record` class, or you extend your structs and classes with protocols that come with focused sets of features: fetching methods, persistence methods, record comparison...
 
 Extending structs with record protocols is more "swifty". Subclassing the Record class is more "classic". You can choose either way. See some [examples of record definitions](#examples-of-record-definitions), and the [list of record methods](#list-of-record-methods) for an overview.
 
-> :point_up: **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
+> **Note**: if you are familiar with Core Data's NSManagedObject or Realm's Object, you may experience a cultural shock: GRDB records are not uniqued, do not auto-update, and do not lazy-load. This is both a purpose, and a consequence of protocol-oriented programming. You should read [How to build an iOS application with SQLite and GRDB.swift](https://medium.com/@gwendal.roue/how-to-build-an-ios-application-with-sqlite-and-grdb-swift-d023a06c29b3) for a general introduction.
 >
-> :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+> :bulb: **Tip**: after you have read this chapter, check the [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) Guide.
 >
 > :bulb: **Tip**: see the [Demo Applications] for sample apps that uses records.
 
@@ -2315,13 +1676,15 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
-    - [Persistence Methods](#persistence-methods)
-    - [Customizing the Persistence Methods]
+    - [Persistence Methods]
+    - [Persistence Methods and the `RETURNING` clause]
+    - [Persistence Callbacks]
 - [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
 - [Record Customization Options]
+- [Record Timestamps and Transaction Date]
 
 **Records in a Glance**
 
@@ -2356,6 +1719,7 @@ let bestPlayers = try Player                    // [Player]
     .fetchAll(db)
     
 let spain = try Country.fetchOne(db, id: "ES")  // Country?
+let italy = try Country.find(db, id: "IT")      // Country
 ```
 
 :point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
@@ -2390,7 +1754,7 @@ try Player
     .updateAll(db, Column("score") += 1)
 ```
 
-:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
 
 
 ### Deleting Records
@@ -2413,7 +1777,7 @@ try Player
     .deleteAll(db)
 ```
 
-:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch deletes are available on the [TableRecord] protocol.
 
 
 ### Counting Records
@@ -2500,12 +1864,14 @@ Details follow:
 
 ## FetchableRecord Protocol
 
+📖 [`FetchableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/fetchablerecord)
+
 **The FetchableRecord protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
 protocol FetchableRecord {
     /// Row initializer
-    init(row: Row)
+    init(row: Row) throws
 }
 ```
 
@@ -2569,21 +1935,23 @@ try Place.fetchSet(db, sql: "SELECT ...", arguments:...)    // Set<Place>
 try Place.fetchOne(db, sql: "SELECT ...", arguments:...)    // Place?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [`StatementArguments`] for more information about the query arguments.
 
-> :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
+> **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
-> :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Beyond FetchableRecord] chapter.
+> **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Beyond FetchableRecord] chapter.
 
 
 ## TableRecord Protocol
+
+📖 [`TableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord)
 
 **The TableRecord protocol** generates SQL for you. To use TableRecord, subclass the [Record](#record-class) class, or adopt it explicitly:
 
 ```swift
 protocol TableRecord {
     static var databaseTableName: String { get }
-    static var databaseSelection: [SQLSelectable] { get }
+    static var databaseSelection: [any SQLSelectable] { get }
 }
 ```
 
@@ -2629,10 +1997,12 @@ When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-proto
 let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-TableRecord can also fetch records by primary key and unique keys: see [Fetching by Key](#fetching-by-key).
+TableRecord can also fetch deal with primary and unique keys: see [Fetching by Key](#fetching-by-key) and [Testing for Record Existence](#testing-for-record-existence).
 
 
 ## PersistableRecord Protocol
+
+📖 [`EncodableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/encodablerecord), [`MutablePersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/mutablepersistablerecord), [`PersistableRecord`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/persistablerecord)
 
 **GRDB record types can create, update, and delete rows in the database.**
 
@@ -2642,30 +2012,30 @@ Those abilities are granted by three protocols:
 // Defines how a record encodes itself into the database
 protocol EncodableRecord {
     /// Defines the values persisted in the database
-    func encode(to container: inout PersistenceContainer)
+    func encode(to container: inout PersistenceContainer) throws
 }
 
 // Adds persistence methods
 protocol MutablePersistableRecord: TableRecord, EncodableRecord {
     /// Optional method that lets your adopting type store its rowID upon
     /// successful insertion. Don't call it directly: it is called for you.
-    mutating func didInsert(with rowID: Int64, for column: String?)
+    mutating func didInsert(_ inserted: InsertionSuccess)
 }
 
 // Adds immutability
 protocol PersistableRecord: MutablePersistableRecord {
-    /// Non-mutating version of the optional didInsert(with:for:)
-    func didInsert(with rowID: Int64, for column: String?)
+    /// Non-mutating version of the optional didInsert(_:)
+    func didInsert(_ inserted: InsertionSuccess)
 }
 ```
 
 Yes, three protocols instead of one. Here is how you pick one or the other:
 
-- **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(with:for:)` if the database table has an auto-incremented primary key.
+- **If your type is a class**, choose `PersistableRecord`. On top of that, implement `didInsert(_:)` if the database table has an auto-incremented primary key.
 
-- **If your type is a struct, and the database table has an auto-incremented primary key**, choose `MutablePersistableRecord`, and implement `didInsert(with:for:)`.
+- **If your type is a struct, and the database table has an auto-incremented primary key**, choose `MutablePersistableRecord`, and implement `didInsert(_:)`.
 
-- **Otherwise**, choose `PersistableRecord`, and ignore `didInsert(with:for:)`.
+- **Otherwise**, choose `PersistableRecord`, and ignore `didInsert(_:)`.
 
 The `encode(to:)` method defines which [values](#values) (Bool, Int, String, Date, Swift enums, etc.) are assigned to database columns.
 
@@ -2684,8 +2054,8 @@ extension Place : MutablePersistableRecord {
     }
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 
@@ -2725,8 +2095,8 @@ struct Player: Encodable, MutablePersistableRecord {
     var score: Int
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -2734,96 +2104,372 @@ struct Player: Encodable, MutablePersistableRecord {
 
 ### Persistence Methods
 
-[Record](#record-class) subclasses and types that adopt [PersistableRecord] are given default implementations for methods that insert, update, and delete:
+[Record](#record-class) subclasses and types that adopt [PersistableRecord] are given methods that insert, update, and delete:
 
 ```swift
-// Instance methods
-try place.save(db)                     // INSERT or UPDATE
-try place.insert(db)                   // INSERT
-try place.update(db)                   // UPDATE
-try place.update(db, columns: ...)     // UPDATE
-try place.updateChanges(db, from: ...) // Maybe UPDATE
-try place.updateChanges(db) { ... }    // Maybe UPDATE
-try place.updateChanges(db)            // Maybe UPDATE (Record class only)
-try place.delete(db)                   // DELETE
-try place.exists(db)
+// INSERT
+try place.insert(db)
+let insertedPlace = try place.inserted(db) // non-mutating
 
-// Type methods
-try Place.updateAll(db, ...)               // UPDATE
-try Place.deleteAll(db)                    // DELETE
-try Place.deleteAll(db, ids:...)           // DELETE
-try Place.deleteAll(db, keys:...)          // DELETE
-try Place.deleteOne(db, id:...)            // DELETE
-try Place.deleteOne(db, key:...)           // DELETE
+// UPDATE
+try place.update(db)
+try place.update(db, columns: ["title"])
+
+// Maybe UPDATE
+try place.updateChanges(db, from: otherPlace)
+try place.updateChanges(db) { $0.isFavorite = true }
+try place.updateChanges(db) // Record class only
+
+// INSERT or UPDATE
+try place.save(db)
+let savedPlace = place.saved(db) // non-mutating
+
+// UPSERT
+try place.upsert(db)
+let insertedPlace = place.upsertAndFetch(db)
+
+// DELETE
+try place.delete(db)
+
+// EXISTENCE CHECK
+let exists = try place.exists(db)
 ```
 
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
+See [Upsert](#upsert) below for more information about upserts.
 
-- `update` and `updateChanges` can also throw a [PersistenceError](#persistenceerror), should the update fail because there is no matching row in the database.
-    
-    When saving an object that may or may not already exist in the database, prefer the `save` method:
-
-- `updateAll` performs a batch update. See [Update Requests](#update-requests).
-
-- `save` makes sure your values are stored in the database.
-
-    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
-    
-    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [concurrency](#concurrency)).
-
-- `delete` returns whether a database row was deleted or not.
-
-**All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
-
-
-### Customizing the Persistence Methods
-
-Your custom type may want to perform extra work when the persistence methods are invoked.
-
-For example, it may want to have its UUID automatically set before inserting. Or it may want to validate its values before saving.
-
-When you subclass [Record](#record-class), you simply have to override the customized method, and call `super`:
+**The [TableRecord] protocol comes with batch operations**:
 
 ```swift
-class Player : Record {
-    var uuid: UUID?
+// UPDATE
+try Place.updateAll(db, ...)
+
+// DELETE
+try Place.deleteAll(db)
+try Place.deleteAll(db, ids:...)
+try Place.deleteAll(db, keys:...)
+try Place.deleteOne(db, id:...)
+try Place.deleteOne(db, key:...)
+```
+
+For more information about batch updates, see [Update Requests](#update-requests).
+
+- All persistence methods can throw a [DatabaseError](#error-handling).
+
+- `update` and `updateChanges` throw [RecordError] if the database does not contain any row for the primary key of the record.
+
+- `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
+
+- `delete` and `deleteOne` returns whether a database row was deleted or not. `deleteAll` returns the number of deleted rows. `updateAll` returns the number of updated rows. `updateChanges` returns whether a database row was updated or not.
+
+**All primary keys are supported**, including composite primary keys that span several columns, and the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html).
+
+**To customize persistence methods**, you provide [Persistence Callbacks], described below. Do not attempt at overriding the ready-made persistence methods.
+
+### Upsert
+
+[UPSERT](https://www.sqlite.org/lang_UPSERT.html) is an SQLite feature that causes an INSERT to behave as an UPDATE or a no-op if the INSERT would violate a uniqueness constraint (primary key or unique index).
+
+> **Note**: Upsert apis are available from SQLite 3.35.0+: iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build] or [SQLCipher](#encryption).
+>
+> **Note**: With regard to [persistence callbacks](#available-callbacks), an upsert behaves exactly like an insert. In particular: the `aroundInsert(_:)` and `didInsert(_:)` callbacks reports the rowid of the inserted or updated row; `willUpdate`, `aroundUdate`, `didUdate` are not called.
+
+[PersistableRecord] provides three upsert methods:
+
+- `upsert(_:)`
     
-    override func insert(_ db: Database) throws {
-        if uuid == nil {
-            uuid = UUID()
-        }
-        try super.insert(db)
+    Inserts or updates a record.
+    
+    The upsert behavior is triggered by a violation of any uniqueness constraint on the table (primary key or unique index). In case of conflict, all columns but the primary key are overwritten with the inserted values:
+    
+    ```swift
+    struct Player: Encodable, PersistableRecord {
+        var id: Int64
+        var name: String
+        var score: Int
+    }
+    
+    // INSERT INTO player (id, name, score)
+    // VALUES (1, 'Arthur', 1000)
+    // ON CONFLICT DO UPDATE SET
+    //   name = excluded.name,
+    //   score = excluded.score
+    let player = Player(id: 1, name: "Arthur", score: 1000)
+    try player.upsert(db)
+    ```
+
+- `upsertAndFetch(_:onConflict:doUpdate:)` (requires [FetchableRecord] conformance)
+
+    Inserts or updates a record, and returns the upserted record.
+    
+    The `onConflict` and `doUpdate` arguments let you further control the upsert behavior. Make sure you check the [SQLite UPSERT documentation](https://www.sqlite.org/lang_UPSERT.html) for detailed information.
+    
+    - `onConflict`: the "conflict target" is the array of columns in the uniqueness constraint (primary key or unique index) that triggers the upsert.
+        
+        If empty (the default), all uniqueness constraint are considered.
+    
+    - `doUpdate`: a closure that returns columns assignments to perform in case of conflict. Other columns are overwritten with the inserted values.
+        
+        By default, all inserted columns but the primary key and the conflict target are overwritten.
+    
+    In the example below, we upsert the new vocabulary word "jovial". It is inserted if that word is not already in the dictionary. Otherwise, `count` is incremented, `isTainted` is not overwritten, and `kind` is overwritten:
+    
+    ```swift
+    // CREATE TABLE vocabulary(
+    //   word TEXT NOT NULL PRIMARY KEY,
+    //   kind TEXT NOT NULL,
+    //   isTainted BOOLEAN DEFAULT 0,
+    //   count INT DEFAULT 1))
+    struct Vocabulary: Encodable, PersistableRecord {
+        var word: String
+        var kind: String
+        var isTainted: Bool
+    }
+    
+    // INSERT INTO vocabulary(word, kind, isTainted)
+    // VALUES('jovial', 'adjective', 0)
+    // ON CONFLICT(word) DO UPDATE SET \
+    //   count = count + 1,   -- on conflict, count is incremented
+    //   kind = excluded.kind -- on conflict, kind is overwritten
+    // RETURNING *
+    let vocabulary = Vocabulary(word: "jovial", kind: "adjective", isTainted: false)
+    let upserted = try vocabulary.upsertAndFetch(
+        db, onConflict: ["word"],
+        doUpdate: { _ in
+            [Column("count") += 1,            // on conflict, count is incremented
+             Column("isTainted").noOverwrite] // on conflict, isTainted is NOT overwritten
+        })
+    ```
+    
+    The `doUpdate` closure accepts an `excluded` TableAlias argument that refers to the inserted values that trigger the conflict. You can use it to specify an explicit overwrite, or to perform a computation. In the next example, the upsert keeps the maximum date in case of conflict:
+    
+    ```swift
+    // INSERT INTO message(id, text, date)
+    // VALUES(...)
+    // ON CONFLICT DO UPDATE SET \
+    //   text = excluded.text,
+    //   date = MAX(date, excluded.date)
+    // RETURNING *
+    let upserted = try message.upsertAndFetch(doUpdate: { excluded in
+        // keep the maximum date in case of conflict
+        [Column("date").set(to: max(Column("date"), excluded["date"]))]
+    })
+    ```
+
+- `upsertAndFetch(_:as:onConflict:doUpdate:)` (does not require [FetchableRecord] conformance)
+
+    This method is identical to `upsertAndFetch(_:onConflict:doUpdate:)` described above, but you can provide a distinct [FetchableRecord] record type as a result, in order to specify the returned columns.
+
+### Persistence Methods and the `RETURNING` clause
+
+SQLite is able to return values from a inserted, updated, or deleted row, with the [`RETURNING` clause](https://www.sqlite.org/lang_returning.html).
+
+> **Note**: Support for the `RETURNING` clause is available from SQLite 3.35.0+: iOS 15.0+, macOS 12.0+, tvOS 15.0+, watchOS 8.0+, or with a [custom SQLite build] or [SQLCipher](#encryption).
+
+The `RETURNING` clause helps dealing with database features such as auto-incremented ids, default values, and [generated columns](https://sqlite.org/gencol.html). You can, for example, insert a few columns and fetch the default or generated ones in one step.
+
+GRDB uses the `RETURNING` clause in all persistence methods that contain `AndFetch` in their name.
+
+For example, given a database table with an auto-incremented primary key and a default score:
+
+```swift
+try dbQueue.write { db in
+    try db.execute(sql: """
+        CREATE TABLE player(
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          score INTEGER NOT NULL DEFAULT 1000)
+        """)
+}
+```
+
+You can define a record type with full database information, and another partial record type that deals with a subset of columns:
+
+```swift
+// A player with full database information
+struct Player: Codable, PersistableRecord, FetchableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
+// A partial player
+struct PartialPlayer: Encodable, PersistableRecord {
+    static let databaseTableName = "player"
+    var name: String
+}
+```
+
+And now you can get a full player by inserting a partial one:
+
+```swift
+try dbQueue.write { db in
+    let partialPlayer = PartialPlayer(name: "Alice")
+    
+    // INSERT INTO player (name) VALUES ('Alice') RETURNING *
+    if let player = try partialPlayer.insertAndFetch(db, as: Player.self) {
+        print(player.id)    // The inserted id
+        print(player.name)  // The inserted name
+        print(player.score) // The default score
     }
 }
 ```
 
-If you use the raw [PersistableRecord] protocol, use one of the *special methods* `performInsert`, `performUpdate`, `performSave`, `performDelete`, or `performExists`:
+For extra precision, you can select only the columns you need, and fetch the desired value from the provided prepared [`Statement`]:
 
 ```swift
-struct Link : PersistableRecord {
+try dbQueue.write { db in
+    let partialPlayer = PartialPlayer(name: "Alice")
+    
+    // INSERT INTO player (name) VALUES ('Alice') RETURNING score
+    let score = try partialPlayer.insertAndFetch(db, selection: [Column("score")]) { statement in
+        try Int.fetchOne(statement)
+    }
+    print(score) // Prints 1000, the default score
+}
+```
+
+There are other similar persistence methods, such as `upsertAndFetch`, `saveAndFetch`, `updateAndFetch`, `updateChangesAndFetch`, etc. They all behave like `upsert`, `save`, `update`, `updateChanges`, except that they return saved values. For example:
+
+```swift
+// Save and return the saved player
+let savedPlayer = try player.saveAndFetch(db)
+```
+
+See [Persistence Methods], [Upsert](#upsert), and [`updateChanges` methods](#the-updatechanges-methods) for more information.
+
+**Batch operations** can return updated or deleted values:
+
+> **Warning**: Make sure you check the [documentation of the `RETURNING` clause](https://www.sqlite.org/lang_returning.html), which describes important limitations and caveats for batch operations.
+
+```swift
+let request = Player.filter(...)...
+
+// Fetch all deleted players
+// DELETE FROM player RETURNING *
+let deletedPlayers = try request.deleteAndFetchAll(db) // [Player]
+
+// Fetch a selection of columns from the deleted rows
+// DELETE FROM player RETURNING name
+let statement = try request.deleteAndFetchStatement(db, selection: [Column("name")])
+let deletedNames = try String.fetchSet(statement)
+
+// Fetch all updated players
+// UPDATE player SET score = score + 10 RETURNING *
+let updatedPlayers = try request.updateAndFetchAll(db, [Column("score") += 10]) // [Player]
+
+// Fetch a selection of columns from the updated rows
+// UPDATE player SET score = score + 10 RETURNING score
+let statement = try request.updateAndFetchStatement(
+    db, [Column("score") += 10],
+    select: [Column("score")])
+let updatedScores = try Int.fetchAll(statement)
+```
+
+
+### Persistence Callbacks
+
+Your custom type may want to perform extra work when the persistence methods are invoked.
+
+To this end, your record type can implement **persistence callbacks**. Callbacks are methods that get called at certain moments of a record's life cycle. With callbacks it is possible to write code that will run whenever an record is inserted, updated, or deleted.
+
+In order to use a callback method, you need to provide its implementation. For example, a frequently used callback is `didInsert`, in the case of auto-incremented database ids:
+
+```swift
+struct Player: MutablePersistableRecord {
+    var id: Int64?
+    
+    // Update auto-incremented id upon successful insertion
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
+    }
+}
+
+try dbQueue.write { db in
+    var player = Player(id: nil, ...)
+    try player.insert(db)
+    print(player.id) // didInsert was called: prints some non-nil id
+}
+```
+
+When you subclass the [Record](#record-class) class, override the callback, and make sure you call `super` at some point of your implementation:
+
+```swift
+class Player: Record {
+    var id: Int64?
+    
+    // Update auto-incremented id upon successful insertion
+    func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
+    }
+}
+```
+
+Callbacks can also help implementing record validation:
+
+```swift
+struct Link: PersistableRecord {
     var url: URL
     
-    func insert(_ db: Database) throws {
-        try validate()
-        try performInsert(db)
-    }
-    
-    func update(_ db: Database, columns: Set<String>) throws {
-        try validate()
-        try performUpdate(db, columns: columns)
-    }
-    
-    func validate() throws {
+    func willSave(_ db: Database) throws {
         if url.host == nil {
             throw ValidationError("url must be absolute.")
         }
     }
 }
+
+try link.insert(db) // Calls the willSave callback
+try link.update(db) // Calls the willSave callback
+try link.save(db)   // Calls the willSave callback
+try link.upsert(db) // Calls the willSave callback
 ```
 
-> :point_up: **Note**: the special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
+#### Available Callbacks
+
+Here is a list with all the available [persistence callbacks], listed in the same order in which they will get called during the respective operations:
+
+- Inserting a record (all `record.insert` and `record.upsert` methods)
+    - `willSave`
+    - `aroundSave`
+    - `willInsert`
+    - `aroundInsert`
+    - `didInsert`
+    - `didSave`
+    
+- Updating a record (all `record.update` methods)
+    - `willSave`
+    - `aroundSave`
+    - `willUpdate`
+    - `aroundUpdate`
+    - `didUpdate`
+    - `didSave`
+    
+- Deleting a record (only the `record.delete(_:)` method)
+    - `willDelete`
+    - `aroundDelete`
+    - `didDelete`
+
+For detailed information about each callback, check the [reference](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/mutablepersistablerecord/).
+
+In the `MutablePersistableRecord` protocol, `willInsert` and `didInsert` are mutating methods. In `PersistableRecord`, they are not mutating.
+
+> **Note**: The `record.save(_:)` method performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key. It triggers update and/or insert callbacks accordingly.
 >
-> :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+> **Warning**: Callbacks are only invoked from persistence methods called on record instances. Callbacks are not invoked when you call a type method, perform a batch operations, or execute raw SQL.
+>
+> **Warning**: When a `did***` callback is invoked, do not assume that the change is actually persisted on disk, because the database may still be inside an uncommitted transaction. When you need to handle transaction completions, use the [afterNextTransaction(onCommit:onRollback:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)). For example:
+>
+> ```swift
+> struct PictureFile: PersistableRecord {
+>     var path: String
+>     
+>     func willDelete(_ db: Database) {
+>         db.afterNextTransaction { _ in
+>             try? deleteFileOnDisk()
+>         }
+>     }
+> }
+> ```
 
 
 ## Identifiable Records
@@ -2838,12 +2484,13 @@ struct Player: Identifiable, FetchableRecord, PersistableRecord {
 }
 ```
 
-When `id` has a [database-compatible type](#values) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
+When `id` has a [database-compatible type](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
 
 ```swift
-let player = try Player.fetchOne(db, id: 1)
-let players = try Player.fetchAll(db, ids: [1, 2, 3])
-let players = try Player.fetchSet(db, ids: [1, 2, 3])
+let player = try Player.find(db, id: 1)               // Player
+let player = try Player.fetchOne(db, id: 1)           // Player?
+let players = try Player.fetchAll(db, ids: [1, 2, 3]) // [Player]
+let players = try Player.fetchSet(db, ids: [1, 2, 3]) // Set<Player>
 
 let request = Player.filter(id: 1)
 let request = Player.filter(ids: [1, 2, 3])
@@ -2852,7 +2499,7 @@ try Player.deleteOne(db, id: 1)
 try Player.deleteAll(db, ids: [1, 2, 3])
 ```
 
-> :point_up: **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
+> **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
 > 
 > ```swift
 > // Those methods are not type-checked
@@ -2872,7 +2519,7 @@ Some database tables have a single-column primary key which is not called "id":
 
 ```swift
 try db.create(table: "country") { t in
-    t.column("isoCode", .text).notNull().primaryKey()
+    t.primaryKey("isoCode", .text)
     t.column("name", .text).notNull()
     t.column("population", .integer).notNull()
 }
@@ -2916,13 +2563,14 @@ try dbQueue.write { db in
 
 Codable records encode and decode their properties according to their own implementation of the Encodable and Decodable protocols. Yet databases have specific requirements:
 
-- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [DatabaseValueConvertible](#custom-value-types) protocol).
+- Properties are always coded according to their preferred database representation, when they have one (all [values](#values) that adopt the [`DatabaseValueConvertible`] protocol).
 - You can customize the encoding and decoding of dates and uuids.
 - Complex properties (arrays, dictionaries, nested structs, etc.) are stored as JSON.
 
 For more information about Codable records, see:
 
 - [JSON Columns]
+- [Column Names Coding Strategies]
 - [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
@@ -2950,7 +2598,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var achievements: [Achievement] // stored in a JSON column
 }
 
-try! dbQueue.write { db in
+try dbQueue.write { db in
     // INSERT INTO player (name, score, achievements)
     // VALUES (
     //   'Arthur',
@@ -2976,7 +2624,26 @@ protocol EncodableRecord {
 }
 ```
 
-> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, tvOS 9.0+ and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
+> :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
+
+
+### Column Names Coding Strategies
+
+By default, [Codable Records] store their values into database columns that match their coding keys: the `teamID` property is stored into the `teamID` column.
+
+This behavior can be overridden, so that you can, for example, store the `teamID` property into the `team_id` column:
+
+```swift
+protocol FetchableRecord {
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { get }
+}
+
+protocol EncodableRecord {
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { get }
+}
+```
+
+See [DatabaseColumnDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumndecodingstrategy) and [DatabaseColumnEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasecolumnencodingstrategy/) to learn about all available strategies.
 
 
 ### Date and UUID Coding Strategies
@@ -2998,57 +2665,42 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.8/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.8/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.8/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
+See [DatabaseDateDecodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedatedecodingstrategy/), [DatabaseDateEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasedateencodingstrategy/), and [DatabaseUUIDEncodingStrategy](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseuuidencodingstrategy/) to learn about all available strategies.
 
-> :point_up: **Note**: there is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
+There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
-> :point_up: **Note**: Customized date and uuid handling only apply during the encoding and decoding of database rows to and from records. *They do not apply* when you define requests based on date or uuid values.
+Customized date and uuid handling apply:
+
+- When encoding and decoding database rows to and from records (fetching and persistence methods).
+- In requests by single-column primary key: `fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.
+
+*They do not apply* in other requests based on date or uuid values.
 
 So make sure that dates and uuids are properly encoded in your requests. For example:
 
 ```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
     // UUIDs are stored as strings
-    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
-    var uuid: UUID
+    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
+    var id: UUID
     ...
 }
 
 try dbQueue.write { db in
     let uuid = UUID()
-    let player = Player(uuid: uuid, ...)
+    let player = Player(id: uuid, ...)
     
-    // Inserts a player in the database, with a string uuid
+    // OK: inserts a player in the database, with a string uuid
     try player.insert(db)
     
-    // BAD: performs a blob-based query, fails to find the inserted player
-    _ = try Player.filter(Column("uuid") == uuid).fetchOne(db)
+    // OK: performs a string-based query, finds the inserted player
     _ = try Player.filter(id: uuid).fetchOne(db)
-    
-    // GOOD: performs a string-based query, finds the inserted player
-    _ = try Player.filter(Column("uuid") == uuid.uuidString).fetchOne(db)
-    _ = try Player.filter(id: uuid.uuidString).fetchOne(db)
-}
-```
 
-The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) suggest to define a specific method in such situation:
-
-```swift
-extension DerivableRequest where RowDecoder == Player {
-    func filter(uuid: UUID) -> Self {
-        filter(Column("uuid") == uuid.uuidString)
-    }
-}
-
-try dbQueue.write { db in
-    let uuid = UUID()
-    let player = Player(uuid: uuid, ...)
+    // NOT OK: performs a blob-based query, fails to find the inserted player
+    _ = try Player.filter(Column("id") == uuid).fetchOne(db)
     
-    // Inserts a player in the database, with a string uuid
-    try player.insert(db)
-    
-    // GOOD: performs a string-based query, finds the inserted player
-    _ = try Player.all().filter(uuid: uuid).fetchOne(db)
+    // OK: performs a string-based query, finds the inserted player
+    _ = try Player.filter(Column("id") == uuid.uuidString).fetchOne(db)
 }
 ```
 
@@ -3105,7 +2757,7 @@ extension Player: FetchableRecord {
 let player = try Player.fetchOne(db, ...)
 ```
 
-> :point_up: **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
+> **Note**: make sure the `databaseDecodingUserInfo` and `databaseEncodingUserInfo` properties are explicitly declared as `[CodingUserInfoKey: Any]`. If they are not, the Swift compiler may silently miss the protocol requirement, resulting in sticky empty userInfo.
 
 
 ### Tip: Derive Columns from Coding Keys
@@ -3128,7 +2780,7 @@ extension Player: FetchableRecord, PersistableRecord {
 }
 ```
 
-See the [query interface](#the-query-interface) and [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) for further information.
+See the [query interface](#the-query-interface) and [Recommended Practices for Designing Record Types](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordrecommendedpractices) for further information.
 
 
 ## Record Class
@@ -3161,18 +2813,18 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.favorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.id] = id
         container[Columns.title] = title
         container[Columns.favorite] = isFavorite
@@ -3181,8 +2833,9 @@ class Place: Record {
     }
     
     /// Update record ID after a successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 ```
@@ -3219,7 +2872,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
     }
     ```
 
-- `updateChanges(_:with:)`
+- `updateChanges(_:modify:)`
     
     This method lets you update a record in place:
     
@@ -3265,7 +2918,7 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 }
 ```
 
-> :point_up: **Note**: The comparison is performed on the database representation of records. As long as your record type adopts the EncodableRecord protocol, you don't need to care about Equatable.
+> **Note**: The comparison is performed on the database representation of records. As long as your record type adopts the EncodableRecord protocol, you don't need to care about Equatable.
 
 
 ### The `databaseChanges` and `hasDatabaseChanges` Methods
@@ -3275,7 +2928,7 @@ if newPlayer.databaseEquals(oldPlayer) == false {
 ```swift
 let oldPlayer = Player(id: 1, name: "Arthur", score: 100)
 let newPlayer = Player(id: 1, name: "Arthur", score: 1000)
-for (column, oldValue) in newPlayer.databaseChanges(from: oldPlayer) {
+for (column, oldValue) in try newPlayer.databaseChanges(from: oldPlayer) {
     print("\(column) was \(oldValue)")
 }
 // prints "score was 100"
@@ -3288,7 +2941,7 @@ The [Record](#record-class) class is able to compare against itself:
 let player = Player(id: 1, name: "Arthur", score: 100)
 try player.insert(db)
 player.score = 1000
-for (column, oldValue) in player.databaseChanges {
+for (column, oldValue) in try player.databaseChanges {
     print("\(column) was \(oldValue)")
 }
 // prints "score was 100"
@@ -3308,17 +2961,17 @@ if player.hasDatabaseChanges {
 
 ```swift
 let player = Player(name: "Barbara", score: 750)
-player.hasDatabaseChanges // true
+player.hasDatabaseChanges  // true
 
 try player.insert(db)
-player.hasDatabaseChanges // false
+player.hasDatabaseChanges  // false
 
 player.name = "Barbara"
-player.hasDatabaseChanges // false
+player.hasDatabaseChanges  // false
 
 player.score = 1000
-player.hasDatabaseChanges // true
-player.databaseChanges    // ["score": 750]
+player.hasDatabaseChanges  // true
+try player.databaseChanges // ["score": 750]
 ```
 
 For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [groue/SortedDifference](https://github.com/groue/SortedDifference).
@@ -3328,15 +2981,15 @@ For an efficient algorithm which synchronizes the content of a database table wi
 
 GRDB records come with many default behaviors, that are designed to fit most situations. Many of those defaults can be customized for your specific needs:
 
-- [Customizing the Persistence Methods]: define what happens when you call a persistance method such as `player.insert(db)`
+- [Persistence Callbacks]: define what happens when you call a persistence method such as `player.insert(db)`
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
-- [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
 - [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
 
 [Codable Records] have a few extra options:
 
 - [JSON Columns]: control the format of JSON columns.
+- [Column Names Coding Strategies]: control how coding keys are turned into column names
 - [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
@@ -3386,7 +3039,7 @@ The [five different policies](https://www.sqlite.org/lang_conflict.html) are: ab
     try db.execute(sql: "INSERT OR REPLACE INTO player (email) VALUES (?)", arguments: ["arthur@example.com"])
     ```
 
-When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods](#persistence-methods):
+When you want to handle conflicts at the query level, specify a custom `persistenceConflictPolicy` in your type that adopts the PersistableRecord protocol. It will alter the INSERT and UPDATE queries run by the `insert`, `update` and `save` [persistence methods]:
 
 ```swift
 protocol MutablePersistableRecord {
@@ -3409,131 +3062,19 @@ struct Player : MutablePersistableRecord {
 try player.insert(db)
 ```
 
-> :point_up: **Note**: the `ignore` policy does not play well at all with the `didInsert` method which notifies the rowID of inserted records. Choose your poison:
+> **Note**: If you specify the `ignore` policy for inserts, the [`didInsert`  callback](#persistence-callbacks) will be called with some random id in case of failed insert. You can detect failed insertions with `insertAndFetch`:
+>     
+> ```swift
+> // How to detect failed `INSERT OR IGNORE`:
+> // INSERT OR IGNORE INTO player ... RETURNING *
+> if let insertedPlayer = try player.insertAndFetch(db) {
+>     // Succesful insertion
+> } else {
+>     // Ignored failure
+> }
+> ```
 >
-> - if you specify the `ignore` policy in the database table definition, don't implement the `didInsert` method: it will be called with some random id in case of failed insert.
-> - if you specify the `ignore` policy at the query level, the `didInsert` method is never called.
->
-> :point_up: **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](#transactionobserver-protocol) (this might change in a future release of SQLite).
-
-
-### The Implicit RowID Primary Key
-
-**All SQLite tables have a primary key.** Even when the primary key is not explicit:
-
-```swift
-// No explicit primary key
-try db.create(table: "event") { t in
-    t.column("message", .text)
-    t.column("date", .datetime)
-}
-
-// No way to define an explicit primary key
-try db.create(virtualTable: "book", using: FTS4()) { t in
-    t.column("title")
-    t.column("author")
-    t.column("body")
-}
-```
-
-The implicit primary key is stored in the hidden column `rowid`. Hidden means that `SELECT *` does not select it, and yet it can be selected and queried: `SELECT *, rowid ... WHERE rowid = 1`.
-
-Some GRDB methods will automatically use this hidden column when a table has no explicit primary key:
-
-```swift
-// SELECT * FROM event WHERE rowid = 1
-let event = try Event.fetchOne(db, id: 1)
-
-// DELETE FROM book WHERE rowid = 1
-try Book.deleteOne(db, id: 1)
-```
-
-
-#### Exposing the RowID Column
-
-**By default, a record type that wraps a table without any explicit primary key doesn't know about the hidden rowid column.**
-
-Without primary key, records don't have any identity, and the [persistence method](#persistence-methods) can behave in undesired fashion: `update()` throws errors, `save()` always performs insertions and may break constraints, `exists()` is always false.
-
-When SQLite won't let you provide an explicit primary key (as in [full-text](Documentation/FullTextSearch.md) tables, for example), you may want to make your record type fully aware of the hidden rowid column:
-
-1. Have the `databaseSelection` static property (from the [TableRecord] protocol) return the hidden rowid column:
-    
-    ```swift
-    struct Event : TableRecord {
-        static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
-    }
-    
-    // When you subclass Record, you need an override:
-    class Book : Record {
-        override class var databaseSelection: [SQLSelectable] {
-            [AllColums(), Column.rowID]
-        }
-    }
-    ```
-    
-    GRDB will then select the `rowid` column by default:
-    
-    ```swift
-    // SELECT *, rowid FROM event
-    let events = try Event.fetchAll(db)
-    ```
-
-2. Have `init(row:)` from the [FetchableRecord] protocol consume the "rowid" column:
-    
-    ```swift
-    struct Event : FetchableRecord {
-        var id: Int64?
-        
-        init(row: Row) {
-            id = row[Column.rowID]
-        }
-    }
-    ```
-    
-    Your fetched records will then know their ids:
-    
-    ```swift
-    let event = try Event.fetchOne(db)!
-    event.id // some value
-    ```
-
-3. Encode the rowid in `encode(to:)`, and keep it in the `didInsert(with:for:)` method (both from the [PersistableRecord and MutablePersistableRecord](#persistablerecord-protocol) protocols):
-    
-    ```swift
-    struct Event : MutablePersistableRecord {
-        var id: Int64?
-        
-        func encode(to container: inout PersistenceContainer) {
-            container[Column.rowID] = id
-            container["message"] = message
-            container["date"] = date
-        }
-        
-        // Update auto-incremented id upon successful insertion
-        mutating func didInsert(with rowID: Int64, for column: String?) {
-            id = rowID
-        }
-    }
-    ```
-    
-    You will then be able to track your record ids, update them, or check for their existence:
-    
-    ```swift
-    let event = Event(message: "foo", date: Date())
-    
-    // Insertion sets the record id:
-    try event.insert(db)
-    event.id // some value
-    
-    // Record can be updated:
-    event.message = "bar"
-    try event.update(db)
-    
-    // Record knows if it exists:
-    event.exists(db) // true
-    ```
-
+> **Note**: The `replace` policy may have to delete rows so that inserts and updates can succeed. Those deletions are not reported to [transaction observers](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver) (this might change in a future release of SQLite).
 
 ### Beyond FetchableRecord
 
@@ -3543,11 +3084,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
 
 - Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
 
-- Your application needs a record type that supports untrusted databases, and may fail at decoding database rows (throw an error when a row contains invalid values).
-
 Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
-
-Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Documentation/Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
 ## Examples of Record Definitions
@@ -3614,8 +3151,8 @@ extension Place: FetchableRecord { }
 // Persistence methods
 extension Place: MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3668,8 +3205,8 @@ extension Place: MutablePersistableRecord {
     }
     
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3716,7 +3253,7 @@ extension Place: TableRecord {
     }
     
     /// Arrange the selected columns and lock their order
-    static let databaseSelection: [SQLSelectable] = [
+    static let databaseSelection: [any SQLSelectable] = [
         Columns.id,
         Columns.title,
         Columns.favorite,
@@ -3742,8 +3279,8 @@ extension Place: FetchableRecord {
 // Persistence methods
 extension Place: MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
-    mutating func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    mutating func didInsert(_ inserted: InsertionSuccess) {
+        id = inserted.rowID
     }
 }
 ```
@@ -3779,18 +3316,18 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.isFavorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
-    override func encode(to container: inout PersistenceContainer) {
+    override func encode(to container: inout PersistenceContainer) throws {
         container[Columns.id] = id
         container[Columns.title] = title
         container[Columns.isFavorite] = isFavorite
@@ -3799,8 +3336,9 @@ class Place: Record {
     }
     
     // Update auto-incremented id upon successful insertion
-    override func didInsert(with rowID: Int64, for column: String?) {
-        id = rowID
+    override func didInsert(_ inserted: InsertionSuccess) {
+        super.didInsert(inserted)
+        id = inserted.rowID
     }
 }
 ```
@@ -3820,27 +3358,59 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
 | `record.encode(to:)` | [EncodableRecord] | |
-| `record.didInsert(with:for:)` | [PersistableRecord] | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [PersistableRecord] | |
+| `record.insertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.insertAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.insertAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
+| `record.inserted(db)` | [PersistableRecord] | |
 | `record.save(db)` | [PersistableRecord] | |
+| `record.saveAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.saveAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.saveAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
+| `record.saved(db)` | [PersistableRecord] | |
 | `record.update(db)` | [PersistableRecord] | |
+| `record.updateAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.updateAndFetch(_:as:)` | [PersistableRecord] | |
+| `record.updateAndFetch(_:selection:fetch:)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
+| `record.updateAndFetch(_:columns:selection:fetch:)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
+| `record.updateChangesAndFetch(_:columns:as:modify:)` | [PersistableRecord] | |
+| `record.updateChangesAndFetch(_:columns:selection:fetch:modify:)` | [PersistableRecord] | |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
-| `Type.updateAll(db, ...)` | [PersistableRecord] | |
-| `Type.filter(...).updateAll(db, ...)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `record.upsert(db)` | [PersistableRecord] | |
+| `record.upsertAndFetch(db)` | [PersistableRecord] & [FetchableRecord] | |
+| `record.upsertAndFetch(_:as:)` | [PersistableRecord] | |
+| `Type.updateAll(db, ...)` | [TableRecord] | |
+| `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
-| `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteOne(db, id:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db)` | [PersistableRecord] | |
-| `Type.deleteAll(db, keys:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db, ids:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).deleteAll(db)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.deleteOne(db, key:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteOne(db, id:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db)` | [TableRecord] | |
+| `Type.deleteAll(db, keys:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db, ids:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| **Persistence Callbacks** | | |
+| `record.willInsert(_:)` | [PersistableRecord] | |
+| `record.aroundInsert(_:insert:)` | [PersistableRecord] | |
+| `record.didInsert(_:)` | [PersistableRecord] | |
+| `record.willUpdate(_:columns:)` | [PersistableRecord] | |
+| `record.aroundUpdate(_:columns:update:)` | [PersistableRecord] | |
+| `record.didUpdate(_:)` | [PersistableRecord] | |
+| `record.willSave(_:)` | [PersistableRecord] | |
+| `record.aroundSave(_:save:)` | [PersistableRecord] | |
+| `record.didSave(_:)` | [PersistableRecord] | |
+| `record.willDelete(_:)` | [PersistableRecord] | |
+| `record.aroundDelete(_:delete:)` | [PersistableRecord] | |
+| `record.didDelete(deleted:)` | [PersistableRecord] | |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
+| `Type.exists(db, key: ...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.exists(db, id: ...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).isEmpty(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Convert Record to Dictionary** | | |
 | `record.databaseDictionary` | [EncodableRecord] | |
 | **Count Records** | | |
@@ -3874,6 +3444,8 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.find(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.find(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | **[Codable Records]** | | |
 | `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
@@ -3894,8 +3466,11 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.selectPrimaryKey(as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(id:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
+| `Type.filter(ids:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
 | `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(all:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -3918,7 +3493,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.databaseChanges` | [Record](#record-class) | |
 | `record.updateChanges(db)` | [Record](#record-class) | |
 
-<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
+<a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [`rowid`](https://www.sqlite.org/rowidtable.html)) and unique indexes:
 
 ```swift
 try Player.fetchOne(db, id: 1)                                // Player?
@@ -3940,10 +3515,10 @@ let count = try request.fetchCount(db)  // Int
 let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", arguments: [1]) // Player?
 ```
 
-<a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
+<a name="list-of-record-methods-4">⁴</a> See [`Statement`]:
 
 ```swift
-let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
+let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
 let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
 
@@ -3981,7 +3556,7 @@ try dbQueue.write { db in
 }
 ```
 
-You need to open a [database connection](#database-connections) before you can query the database.
+You need to open a [database connection] before you can query the database.
 
 Please bear in mind that the query interface can not generate all possible SQL queries. You may also *prefer* writing SQL, and this is just OK. From little snippets to full queries, your SQL skills are welcome:
 
@@ -4010,15 +3585,17 @@ try dbQueue.write { db in
 
 So don't miss the [SQL API](#sqlite-api).
 
-> :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
+> **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
-- [Database Schema](#database-schema)
+- [The Database Schema](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseschema)
 - [Requests](#requests)
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
+- [Embedding SQL in Query Interface Requests]
 - [Fetching from Requests]
 - [Fetching by Key](#fetching-by-key)
+- [Testing for Record Existence](#testing-for-record-existence)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
 - [Update Requests](#update-requests)
@@ -4027,207 +3604,9 @@ So don't miss the [SQL API](#sqlite-api).
 - :blue_book: [Common Table Expressions]
 - :blue_book: [Query Interface Organization]
 
-
-## Database Schema
-
-Once granted with a [database connection](#database-connections), you can setup your database schema without writing SQL:
-
-- [Create Tables](#create-tables)
-- [Modify Tables](#modify-tables)
-- [Drop Tables](#drop-tables)
-- [Create Indexes](#create-indexes)
-
-
-### Create Tables
-
-```swift
-// CREATE TABLE place (
-//   id INTEGER PRIMARY KEY AUTOINCREMENT,
-//   title TEXT,
-//   favorite BOOLEAN NOT NULL DEFAULT 0,
-//   latitude DOUBLE NOT NULL,
-//   longitude DOUBLE NOT NULL
-// )
-try db.create(table: "place") { t in
-    t.autoIncrementedPrimaryKey("id")
-    t.column("title", .text)
-    t.column("favorite", .boolean).notNull().defaults(to: false)
-    t.column("longitude", .double).notNull()
-    t.column("latitude", .double).notNull()
-}
-```
-
-The `create(table:)` method covers nearly all SQLite table creation features. For virtual tables, see [Full-Text Search], or use raw SQL.
-
-SQLite itself has many reference documents about table creation: [CREATE TABLE](https://www.sqlite.org/lang_createtable.html), [Datatypes In SQLite Version 3](https://www.sqlite.org/datatype3.html), [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html), [ON CONFLICT](https://www.sqlite.org/lang_conflict.html), [The WITHOUT ROWID Optimization](https://www.sqlite.org/withoutrowid.html).
-
-**Configure table creation**:
-
-```swift
-// CREATE TABLE example ( ... )
-try db.create(table: "example") { t in ... }
-    
-// CREATE TEMPORARY TABLE example IF NOT EXISTS (
-try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
-```
-
-> :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
->
-> This will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
->
-> :point_up: **Note**: [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables can not be tracked with [Database Observation] tools.
-
-**Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
-
-```swift
-// CREATE TABLE example (
-//   a,
-//   name TEXT,
-//   creationDate DATETIME,
-try db.create(table: "example") { t in
-    t.column("a")
-    t.column("name", .text)
-    t.column("creationDate", .datetime)
-```
-
-Define **not null** columns, and set **default** values:
-
-```swift
-    // email TEXT NOT NULL,
-    t.column("email", .text).notNull()
-    
-    // name TEXT NOT NULL DEFAULT 'Anonymous',
-    t.column("name", .text).notNull().defaults(to: "Anonymous")
-```
-    
-Use an individual column as **primary**, **unique**, or **foreign key**. When defining a foreign key, the referenced column is the primary key of the referenced table (unless you specify otherwise):
-
-```swift
-    // id INTEGER PRIMARY KEY AUTOINCREMENT,
-    t.autoIncrementedPrimaryKey("id")
-    
-    // uuid TEXT PRIMARY KEY,
-    t.column("uuid", .text).primaryKey()
-    
-    // email TEXT UNIQUE,
-    t.column("email", .text).unique()
-    
-    // countryCode TEXT REFERENCES country(code) ON DELETE CASCADE,
-    t.column("countryCode", .text).references("country", onDelete: .cascade)
-```
-
-> :bulb: **Tip**: when you need an integer primary key that automatically generates unique values, it is highly recommended that you use the `autoIncrementedPrimaryKey` method:
->
-> ```swift
-> try db.create(table: "example") { t in
->     t.autoIncrementedPrimaryKey("id")
->     ...
-> }
-> ```
->
-> The reason for this recommendation is that auto-incremented primary keys prevent the reuse of ids. This prevents your app or [database observation tools](#database-changes-observation) to think that a row was updated, when it was actually deleted, then replaced. Depending on your application needs, this may be acceptable. But usually it is not.
-
-**Create an index** on the column:
-
-```swift
-    t.column("score", .integer).indexed()
-```
-
-For extra index options, see [Create Indexes](#create-indexes) below.
-
-**Perform integrity checks** on individual columns, and SQLite will only let conforming rows in. In the example below, the `$0` closure variable is a column which lets you build any SQL [expression](#expressions).
-
-```swift
-    // name TEXT CHECK (LENGTH(name) > 0)
-    // score INTEGER CHECK (score > 0)
-    t.column("name", .text).check { length($0) > 0 }
-    t.column("score", .integer).check(sql: "score > 0")
-```
-
-Columns can also be defined with a raw sql String, or an [SQL literal] in which you can safely embed raw values without any risk of syntax errors or SQL injection:
-
-```swift
-    t.column(sql: "name TEXT")
-    
-    let defaultName: String = ...
-    t.column(literal: "name TEXT DEFAULT \(defaultName)")
-```
-
-Other **table constraints** can involve several columns:
-
-```swift
-    // PRIMARY KEY (a, b),
-    t.primaryKey(["a", "b"])
-    
-    // UNIQUE (a, b) ON CONFLICT REPLACE,
-    t.uniqueKey(["a", "b"], onConflict: .replace)
-    
-    // FOREIGN KEY (a, b) REFERENCES parents(c, d),
-    t.foreignKey(["a", "b"], references: "parents")
-    
-    // CHECK (a + b < 10),
-    t.check(Column("a") + Column("b") < 10)
-    
-    // CHECK (a + b < 10)
-    t.check(sql: "a + b < 10")
-    
-    // Raw SQL constraints
-    t.constraint(sql: "CHECK (a + b < 10)")
-    t.constraint(literal: "CHECK (a + b < \(10))")
-```
-
-[Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
-
-```swift
-    t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
-    t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
-}
-```
-
-### Modify Tables
-
-SQLite lets you modify existing tables:
-
-```swift
-// ALTER TABLE referer RENAME TO referrer
-try db.rename(table: "referer", to: "referrer")
-
-// ALTER TABLE player ADD COLUMN hasBonus BOOLEAN
-// ALTER TABLE player RENAME COLUMN url TO homeURL
-try db.alter(table: "player") { t in
-    t.add(column: "hasBonus", .boolean)
-    t.rename(column: "url", to: "homeURL") // SQLite 3.25+
-}
-```
-
-> :point_up: **Note**: SQLite restricts the possible table alterations, and may require you to recreate dependent triggers or views. See the documentation of the [ALTER TABLE](https://www.sqlite.org/lang_altertable.html) for details. See [Advanced Database Schema Changes](Documentation/Migrations.md#advanced-database-schema-changes) for a way to lift restrictions.
-
-
-### Drop Tables
-
-Drop tables with the `drop(table:)` method:
-
-```swift
-try db.drop(table: "obsolete")
-```
-
-### Create Indexes
-
-Create indexes with the `create(index:)` method:
-
-```swift
-// CREATE UNIQUE INDEX byEmail ON users(email)
-try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
-```
-
-Relevant SQLite documentation:
-
-- [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
-- [Indexes On Expressions](https://www.sqlite.org/expridx.html)
-- [Partial Indexes](https://www.sqlite.org/partialindex.html)
-
-
 ## Requests
+
+📖 [`QueryInterfaceRequest`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest), [`Table`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/table)
 
 **The query interface requests** let you fetch values from the database:
 
@@ -4237,13 +3616,33 @@ let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
-All requests start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
+Query interface requests usually start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Player : Record { ... }
+class Player: Record { ... }
+
+// The request for all players:
+let request = Player.all()
+let players = try request.fetchAll(db) // [Player]
 ```
 
-Declare the table **columns** that you want to use for filtering, or sorting:
+When you can not use a record type, use `Table`:
+
+```swift
+// The request for all rows from the player table:
+let table = Table("player")
+let request = table.all()
+let rows = try request.fetchAll(db)    // [Row]
+
+// The request for all players from the player table:
+let table = Table<Player>("player")
+let request = table.all()
+let players = try request.fetchAll(db) // [Player]
+```
+
+> **Note**: all examples in the documentation below use a record type, but you can always substitute a `Table` instead.
+
+Next, declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
 let idColumn = Column("id")
@@ -4263,7 +3662,7 @@ enum Columns: String, ColumnExpression {
 
 You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`, `with`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
-- `all()`, `none()`: the requests for all rows, or no row.
+- [`all()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/all()), [`none()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerecord/none()): the requests for all rows, or no row.
 
     ```swift
     // SELECT * FROM player
@@ -4272,33 +3671,21 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     By default, all columns are selected. See [Columns Selected by a Request].
 
-- `select(...)` and `select(..., as:)` define the selected columns. See [Columns Selected by a Request].
+- [`select(...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/select(_:)-30yzl) and [`select(..., as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/select(_:as:)-282xc) define the selected columns. See [Columns Selected by a Request].
     
     ```swift
     // SELECT name FROM player
     Player.select(nameColumn, as: String.self)
     ```
 
-- `annotated(with: expression...)` extends the selection.
+- [`annotated(with: expression...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/selectionrequest/annotated(with:)-6ehs4) extends the selection.
 
     ```swift
     // SELECT *, (score + bonus) AS total FROM player
     Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
     ```
 
-    Such annotations can help using [Associations]:
-
-    ```swift
-    // SELECT player.*, team.name
-    // FROM player
-    // JOIN team ON team.id = player.teamId
-    let teamAlias = TableAlias()
-    let request = Player
-        .annotated(with: teamAlias[nameColumn])
-        .joining(required: Player.team.aliased(teamAlias))
-    ```
-
-- `annotated(with: aggregate)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
+- [`annotated(with: aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/annotated(with:)-74xfs) extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
@@ -4308,14 +3695,23 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.annotated(with: Team.players.count)
     ```
 
-- `distinct()` performs uniquing.
+- [`annotated(withRequired: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withrequired:)) and [`annotated(withOptional: association)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/annotated(withoptional:)) extends the selection with [Associations].
+    
+    ```swift
+    // SELECT player.*, team.color
+    // FROM player
+    // JOIN team ON team.id = player.teamId
+    Player.annotated(withRequired: Player.team.select(colorColumn))
+    ```
+
+- [`distinct()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/distinct()) performs uniquing.
     
     ```swift
     // SELECT DISTINCT name FROM player
     Player.select(nameColumn, as: String.self).distinct()
     ```
 
-- `filter(expression)` applies conditions.
+- [`filter(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/filteredrequest/filter(_:)) applies conditions.
     
     ```swift
     // SELECT * FROM player WHERE id IN (1, 2, 3)
@@ -4325,7 +3721,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
-- `filter(id:)` and `filter(ids:)` are type-safe methods available on [Identifiable Records]:
+- [`filter(id:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(id:)) and [`filter(ids:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(ids:)) are type-safe methods available on [Identifiable Records]:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -4335,7 +3731,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Country.filter(ids: ["FR", "US"])
     ```
     
-- `filter(key:)` and `filter(keys:)` apply conditions on primary and unique keys:
+- [`filter(key:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(key:)-1p9sq) and [`filter(keys:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/filter(keys:)-6ggt1) apply conditions on primary and unique keys:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -4351,7 +3747,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(key: ["email": "arthur@example.com"])
     ```
 
-- `matching(pattern)` performs [full-text search](Documentation/FullTextSearch.md).
+- `matching(pattern)` ([FTS3](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-3s3zr), [FTS5](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/matching(_:)-7c1e8)) performs [full-text search](Documentation/FullTextSearch.md).
     
     ```swift
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
@@ -4361,7 +3757,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     When the pattern is nil, no row will match.
 
-- `group(expression, ...)` groups rows.
+- [`group(expression, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/group(_:)-edak) groups rows.
     
     ```swift
     // SELECT name, MAX(score) FROM player GROUP BY name
@@ -4370,7 +3766,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .group(nameColumn)
     ```
 
-- `having(expression)` applies conditions on grouped rows.
+- [`having(expression)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/aggregatingrequest/having(_:)) applies conditions on grouped rows.
     
     ```swift
     // SELECT team, MAX(score) FROM player GROUP BY team HAVING MIN(score) >= 1000
@@ -4380,7 +3776,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         .having(min(scoreColumn) >= 1000)
     ```
 
-- `having(aggregate)` applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
+- [`having(aggregate)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/having(_:)) applies conditions on grouped rows, according to an [association aggregate](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
     // SELECT team.*
@@ -4391,7 +3787,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Team.having(Team.players.count >= 5)
     ```
 
-- `order(ordering, ...)` sorts.
+- [`order(ordering, ...)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/order(_:)-63rzl) sorts.
     
     ```swift
     // SELECT * FROM player ORDER BY name
@@ -4415,7 +3811,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn).order(nameColumn)
     ```
 
-- `reversed()` reverses the eventual orderings.
+- [`reversed()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/orderedrequest/reversed()) reverses the eventual orderings.
     
     ```swift
     // SELECT * FROM player ORDER BY score ASC, name DESC
@@ -4429,7 +3825,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.all().reversed()
     ```
 
-- `limit(limit, offset: offset)` limits and pages results.
+- [`limit(limit, offset: offset)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/limit(_:offset:)) limits and pages results.
     
     ```swift
     // SELECT * FROM player LIMIT 5
@@ -4439,7 +3835,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.limit(5, offset: 10)
     ```
 
-- `joining(...)` and `including(...)` fetch and join records through [Associations].
+- [`joining(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(required:)), [`joining(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/joining(optional:)), [`including(required:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(required:)), [`including(optional:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(optional:)), and [`including(all:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/joinablerequest/including(all:)) fetch and join records through [Associations].
     
     ```swift
     // SELECT player.*, team.*
@@ -4448,7 +3844,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.including(required: Player.team)
     ```
 
-- `with(cte)` embeds a [common table expression]:
+- [`with(cte)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/derivablerequest/with(_:)) embeds a [common table expression]:
     
     ```swift
     // WITH ... SELECT * FROM player
@@ -4458,7 +3854,20 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 
 - Other requests that involve the primary key:
     
-    - `orderByPrimaryKey()` sorts by primary key.
+    - [`selectPrimaryKey(as:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/selectprimarykey(as:)) selects the primary key.
+    
+        ```swift
+        // SELECT id FROM player
+        Player.selectPrimaryKey(as: Int64.self)    // QueryInterfaceRequest<Int64>
+        
+        // SELECT code FROM country
+        Country.selectPrimaryKey(as: String.self)  // QueryInterfaceRequest<String>
+        
+        // SELECT citizenId, countryCode FROM citizenship
+        Citizenship.selectPrimaryKey(as: Row.self) // QueryInterfaceRequest<Row>
+        ```
+        
+    - [`orderByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/orderbyprimarykey()) sorts by primary key.
         
         ```swift
         // SELECT * FROM player ORDER BY id
@@ -4471,7 +3880,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         Citizenship.orderByPrimaryKey()
         ```
     
-    - `groupByPrimaryKey()` groups rows by primary key.
+    - [`groupByPrimaryKey()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/tablerequest/groupbyprimarykey()) groups rows by primary key.
 
 
 You can refine requests by chaining those methods:
@@ -4495,7 +3904,7 @@ Player                          // SELECT * FROM player
 ```
 
 
-Raw SQL snippets are also accepted, with eventual [arguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html):
+Raw SQL snippets are also accepted, with eventual [arguments](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments):
 
 ```swift
 // SELECT DATE(creationDate), COUNT(*) FROM player WHERE name = 'Arthur' GROUP BY date(creationDate)
@@ -4512,16 +3921,24 @@ By default, query interface requests select all columns:
 
 ```swift
 // SELECT * FROM player
+struct Player: TableRecord { ... }
 let request = Player.all()
+
+// SELECT * FROM player
+let table = Table("player")
+let request = table.all()
 ```
 
-**The selection can be changed for each individual requests, or for all requests built from a given type.**
+**The selection can be changed for each individual requests, or in the case of record-based requests, for all requests built from this record type.**
 
 The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
-let request = Player.select(max(scoreColumn))
-let maxScore: Int? = try Int.fetchOne(db, request)
+let request = Player.select(max(Column("score")))
+let maxScore = try Int.fetchOne(db, request) // Int?
+
+let request = Player.select(max(Column("score")), as: Int.self)
+let maxScore = try request.fetchOne(db)      // Int?
 ```
 
 The default selection for a record type is controlled by the `databaseSelection` property:
@@ -4529,12 +3946,12 @@ The default selection for a record type is controlled by the `databaseSelection`
 ```swift
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+    static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
 }
 
 struct ExtendedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 }
 
 // SELECT id, name FROM player
@@ -4544,7 +3961,7 @@ let request = RestrictedPlayer.all()
 let request = ExtendedPlayer.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
+> **Note**: make sure the `databaseSelection` property is explicitly declared as `[any SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
 
 
 ## Expressions
@@ -4554,7 +3971,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Operators
 
-GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
+
+GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL operators.
 
 - `=`, `<>`, `<`, `<=`, `>`, `>=`, `IS`, `IS NOT`
     
@@ -4586,7 +4005,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Player.filter(scoreColumn == maximumScore)
     ```
     
-    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
+    > **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
 - `*`, `/`, `+`, `-`
     
@@ -4597,7 +4016,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Planet.select((temperatureColumn * 1.8 + 32).forKey("fahrenheit"))
     ```
     
-    > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
+    > **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
     
     When you want to join a sequence of expressions with the `+` or `*` operator, use `joined(operator:)`:
     
@@ -4698,13 +4117,13 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     ```swift
     // WITH selectedName AS (...)
     // SELECT * FROM player WHERE name IN selectedName
-    let cte = CommonTableExpression<Void>(named: "selectedName", ...)
+    let cte = CommonTableExpression(named: "selectedName", ...)
     Player
         .with(cte)
         .filter(cte.contains(nameColumn))
     ```
     
-    > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
+    > **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
 - `EXISTS`, `NOT EXISTS`
     
@@ -4761,7 +4180,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Player.filter(emailColumn.like("%10\\%%", escape: "\\"))
     ```
     
-    > :point_up: **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
+    > **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
 
 - `MATCH`
     
@@ -4787,15 +4206,39 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
     Document.matching(pattern)
     ```
+- `AS`
+    
+    To give an alias to an expression, use the `forKey` method:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player
+    Player.select((Column("score") + Column("bonus")).forKey("total"))
+    ```
+    
+    If you need to refer to this aliased column in another place of the request, use a detached column:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player 
+    // ORDER BY total
+    Player
+        .select((Column("score") + Column("bonus")).forKey("total"))
+        .order(Column("total").detached)
+    ```
+    
+    Unlike `Column("total")`, the detached column `Column("total").detached` is never associated to the "player" table, so it is always rendered as `total` in the generated SQL, even when the request involves other tables via an [association](Documentation/AssociationsBasics.md) or a [common table expression].
 
 
 ### SQL Functions
 
-GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+📖 [`SQLSpecificExpressible`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlspecificexpressible)
 
-- `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`:
+GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
+
+- `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
     
-    Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min` and `sum` Swift functions:
+    Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min`, `sum` and `total` Swift functions:
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player
@@ -4835,7 +4278,7 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Player.select(nameColumn.uppercased())
     ```
     
-    > :point_up: **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
+    > **Note**: When *comparing* strings, you'd rather use a [collation](#string-comparison):
     >
     > ```swift
     > let name: String = ...
@@ -4858,22 +4301,138 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Player.select(f.apply(nameColumn))
     ```
 
-### Adding support for missing SQL functions or operators
+## Embedding SQL in Query Interface Requests
 
-When you spot an SQL function or operator that misses its Swift version, you can define it right into your application code.
+You will sometimes want to extend your query interface requests with SQL snippets. This can happen because GRDB does not provide a Swift interface for some SQL function or operator, or because you want to use an SQLite construct that GRDB does not support.
 
-For example, you can add support for the `DATE` function, thanks to [SQL Interpolation]:
+Support for extensibility is large, but not unlimited. All the SQL queries built by the query interface request have the shape below. _If you need something else, you'll have to use [raw SQL requests](#sqlite-api)._
 
-```swift
-func date(_ value: SQLSpecificExpressible) -> SQLExpression {
-    SQL("DATE(\(value))").sqlExpression
-}
-
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+```sql
+WITH ...     -- 1
+SELECT ...   -- 2
+FROM ...     -- 3
+JOIN ...     -- 4
+WHERE ...    -- 5
+GROUP BY ... -- 6
+HAVING ...   -- 7
+ORDER BY ... -- 8
+LIMIT ...    -- 9
 ```
 
-See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
+1. `WITH ...`: see [Common Table Expressions].
+
+2. `SELECT ...`
+
+    The selection can be provided as raw SQL:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let request = Player.select(sql: "IFNULL(name, 'O''Brien'), score")
+    
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let defaultName = "O'Brien"
+    let request = Player.select(sql: "IFNULL(name, ?), score", arguments: [suffix])
+    ```
+
+    The selection can be provided with [SQL Interpolation]:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let defaultName = "O'Brien"
+    let request = Player.select(literal: "IFNULL(name, \(defaultName)), score")
+    ```
+    
+    The selection can be provided with a mix of Swift and [SQL Interpolation]:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
+    let defaultName = "O'Brien"
+    let displayName: SQL = "IFNULL(\(Column("name")), \(defaultName)) AS displayName"
+    let request = Player.select(displayName, Column("score"))
+    ```
+    
+    When the custom SQL snippet should behave as a full-fledged expression, with support for the `+` Swift operator, the `forKey` aliasing method, and all other [SQL Operators](#sql-operators), build an _expression literal_ with the `SQL.sqlExpression` method:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
+    let defaultName = "O'Brien"
+    let displayName = SQL("IFNULL(\(Column("name")), \(defaultName))").sqlExpression
+    let request = Player.select(displayName.forKey("displayName"), Column("score"))
+    ```
+    
+    Such expression literals allow you to build a reusable support library of SQL functions or operators that are missing from the query interface. For example, you can define a Swift `date` function:
+    
+    ```swift
+    func date(_ value: some SQLSpecificExpressible) -> SQLExpression {
+        SQL("DATE(\(value))").sqlExpression
+    }
+    
+    // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+    let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+    ```
+    
+    See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
+    
+3. `FROM ...`: only one table is supported here. You can not customize this SQL part.
+
+4. `JOIN ...`: joins are fully controlled by [Associations]. You can not customize this SQL part.
+
+5. `WHERE ...`
+    
+    The WHERE clause can be provided as raw SQL:
+    
+    ```swift
+    // SELECT * FROM player WHERE score >= 1000
+    let request = Player.filter(sql: "score >= 1000")
+    
+    // SELECT * FROM player WHERE score >= 1000
+    let minScore = 1000
+    let request = Player.filter(sql: "score >= ?", arguments: [minScore])
+    ```
+
+    The WHERE clause can be provided with [SQL Interpolation]:
+    
+    ```swift
+    // SELECT * FROM player WHERE score >= 1000
+    let minScore = 1000
+    let request = Player.filter(literal: "score >= \(minScore)")
+    ```
+    
+    The WHERE clause can be provided with a mix of Swift and [SQL Interpolation]:
+    
+    ```swift
+    // SELECT * FROM player WHERE (score >= 1000) AND (team = 'red')
+    let minScore = 1000
+    let scoreCondition: SQL = "\(Column("score")) >= \(minScore)"
+    let request = Player.filter(scoreCondition && Column("team") == "red")
+    ```
+    
+    See `SELECT ...` above for more SQL Interpolation examples.
+    
+6. `GROUP BY ...`
+
+    The GROUP BY clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+7. `HAVING ...`
+
+    The HAVING clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+8. `ORDER BY ...`
+
+    The ORDER BY clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+    In order to support the `desc` and `asc` query interface operators, and the `reversed()` query interface method, you must provide your orderings as _expression literals_ with the `SQL.sqlExpression` method:
+    
+    ```swift
+    // SELECT * FROM "player" 
+    // ORDER BY (score + bonus) ASC, name DESC
+    let total = SQL("(score + bonus)").sqlExpression
+    let request = Player
+        .order(total.desc, Column("name"))
+        .reversed()
+    ```
+    
+9. `LIMIT ...`: use the `limit(_:offset:)` method. You can not customize this SQL part.
 
 
 ## Fetching from Requests
@@ -4952,27 +4511,29 @@ You can also change the request so that it knows the type it has to fetch:
 
 **Fetching records according to their primary key** is a common task.
 
-[Identifiable Records] can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
+[Identifiable Records] can use the type-safe methods `find(_:id:)`, `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
 
 ```swift
+try Player.find(db, id: 1)                   // Player
 try Player.fetchOne(db, id: 1)               // Player?
 try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
 ```
 
-All record types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
+All record types can use `find(_:key:)`, `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
+try Player.find(db, key: 1)                  // Player
 try Player.fetchOne(db, key: 1)              // Player?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
 try Player.fetchOne(db, key: ["email": "arthur@example.com"])            // Player?
 try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
 ```
 
-When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+When the table has no explicit primary key, GRDB uses the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
 
 ```swift
 // SELECT * FROM document WHERE rowid = 1
-try Document.fetchOne(db, id: 1)             // Document?
+try Document.fetchOne(db, key: 1)            // Document?
 ```
 
 **When you want to build a request and plan to fetch from it later**, use a `filter` method:
@@ -4982,6 +4543,55 @@ let request = Player.filter(id: 1)
 let request = Country.filter(ids: ["FR", "US"])
 let request = Player.filter(key: ["email": "arthur@example.com"])
 let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
+```
+
+
+## Testing for Record Existence
+
+**You can check if a request has matching rows in the database.**
+
+```swift
+// Some request based on `Player`
+let request = Player.filter(...)...
+
+// Check for player existence:
+let noSuchPlayer = try request.isEmpty(db) // Bool
+```
+
+You should check for emptiness instead of counting:
+
+```swift
+// Correct
+let noSuchPlayer = try request.fetchCount(db) == 0
+// Even better
+let noSuchPlayer = try request.isEmpty(db)
+```
+
+**You can also check if a given primary or unique key exists in the database.**
+
+[Identifiable Records] can use the type-safe method `exists(_:id:)`:
+
+```swift
+try Player.exists(db, id: 1)
+try Country.exists(db, id: "FR")
+```
+
+All record types can use `exists(_:key:)` that can check primary and unique keys:
+
+```swift
+try Player.exists(db, key: 1)
+try Country.exists(db, key: "FR")
+try Player.exists(db, key: ["email": "arthur@example.com"])
+try Citizenship.exists(db, key: ["citizenId": 1, "countryCode": "FR"])
+```
+
+You should check for key existence instead of fetching a record and checking for nil:
+
+```swift
+// Correct
+let playerExists = try Player.fetchOne(db, id: 1) != nil
+// Even better
+let playerExists = try Player.exists(db, id: 1)
 ```
 
 
@@ -5037,7 +4647,13 @@ try Player
     .deleteAll(db)
 ```
 
-> :point_up: **Note** Deletion methods are only available for records that adopts the [PersistableRecord] protocol.
+> **Note** Deletion methods are available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.deleteAll(db)          // Fine
+> try Table("player").deleteAll(db) // Just as fine
+> ```
 
 **Deleting records according to their primary key** is a common task.
 
@@ -5057,7 +4673,7 @@ try Player.deleteOne(db, key: ["email": "arthur@example.com"])
 try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
 ```
 
-When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
+When the table has no explicit primary key, GRDB uses the [hidden `rowid` column](https://www.sqlite.org/rowidtable.html):
 
 ```swift
 // DELETE FROM document WHERE rowid = 1
@@ -5114,7 +4730,13 @@ Default [Conflict Resolution] rules apply, and you may also provide a specific o
 try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
 ```
 
-> :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
+> **Note** The `updateAll` method is available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.updateAll(db, ...)          // Fine
+> try Table("player").updateAll(db, ...) // Just as fine
+> ```
 
 
 ## Custom Requests
@@ -5176,7 +4798,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     }
     ```
     
-- The `asRequest(of:)` method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
+- The [`asRequest(of:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/queryinterfacerequest/asrequest(of:)) method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
 
     ```swift
     struct BookInfo: FetchableRecord, Decodable {
@@ -5192,1255 +4814,7 @@ try Player.customRequest().fetchAll(db) // [Player]
     try request.fetchAll(db)
     ```
 
-- The `adapted(_:)` method eases the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for some sample code that uses this method.
-
-- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/5.8/Structs/AnyFetchRequest.html): a type-erased request.
-
-
-## Joined Queries Support
-
-**GRDB helps consuming joined queries with complex selection.**
-
-In this chapter, we will focus on the extraction of information from complex rows, such as the ones fetched by the query below:
-
-```sql
--- How to consume the left, middle, and right parts of those rows?
-SELECT player.*, team.*, MAX(round.score) AS maxScore
-FROM player
-LEFT JOIN team ON ...
-LEFT JOIN round ON ...
-GROUP BY ...
-```
-
-We will not talk about the *generation* of joined queries, which is covered in [Associations].
-
-**So what are we talking about?**
-
-It is difficult to consume rows fetched from complex joined queries, because they often contain several columns with the same name: `id` from table `player`, `id` from table `team`, etc.
-
-When such ambiguity happens, GRDB row accessors always favor the leftmost matching column. This means that `row["id"]` would give a player id, without any obvious way to access the team id.
-
-A classical technique to avoid this ambiguity is to give each column a unique name. For example:
-
-```sql
--- A classical technique
-SELECT player.id AS player_id, player.name AS player_name, team.id AS team_id, team.name AS team_name, team.color AS team_color, MAX(round.score) AS maxScore
-FROM player
-LEFT JOIN team ON ...
-LEFT JOIN round ON ...
-GROUP BY ...
-```
-
-This technique works pretty well, but it has three drawbacks:
-
-1. The selection becomes hard to read and understand.
-2. Such queries are difficult to write by hand.
-3. The mangled names are a *very* bad fit for [FetchableRecord] types that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM team ...`, it should be able to read `SELECT ..., team.*, ...` as well.
-
-We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
-
-`SELECT player.*, team.*, MAX(round.score) AS maxScore FROM ...` will be split into three slices: one that contains player's columns, one that contains team's columns, and a remaining slice that contains remaining column(s). The Player record type will be able to read the first slice, which contains the columns expected by the `Player.init(row:)` initializer. In the same way, the Team record type could read the second slice.
-
-Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts your hand-crafted SQL queries, and plays as nicely as possible with your existing [record types](#records).
-
-- [Splitting Rows, an Introduction](#splitting-rows-an-introduction)
-- [Splitting Rows, the Record Way](#splitting-rows-the-record-way)
-- [Splitting Rows, the Codable Way](#splitting-rows-the-codable-way)
-
-
-### Splitting Rows, an Introduction
-
-Let's first write some introductory code, hoping that this chapter will make you understand how pieces fall together. We'll see [later](#splitting-rows-the-record-way) how records will help us streamline the initial approach, how to track changes in joined requests, and how we can use the standard Decodable protocol.
-
-To split rows, we will use [row adapters](#row-adapters). Row adapters adapt rows so that row consumers see exactly the columns they want. Among other things, row adapters can define several *row scopes* that give access to as many *row slices*. Sounds like a perfect match.
-
-At the very beginning, there is an SQL query:
-
-```swift
-try dbQueue.read { db in
-    let sql = """
-        SELECT player.*, team.*, MAX(round.score) AS maxScore
-        FROM player
-        LEFT JOIN team ON ...
-        LEFT JOIN round ON ...
-        GROUP BY ...
-        """
-```
-
-We need an adapter that extracts player columns, in a slice that has as many columns as there are columns in the player table. That's [RangeRowAdapter](#rangerowadapter):
-
-```swift
-    // SELECT player.*, team.*, ...
-    //        <------>
-    let playerWidth = try db.columns(in: "player").count
-    let playerAdapter = RangeRowAdapter(0 ..< playerWidth)
-```
-
-We also need an adapter that extracts team columns:
-
-```swift
-    // SELECT player.*, team.*, ...
-    //                  <---->
-    let teamWidth = try db.columns(in: "team").count
-    let teamAdapter = RangeRowAdapter(playerWidth ..< (playerWidth + teamWidth))
-```
-
-We merge those two adapters in a single [ScopeAdapter](#scopeadapter) that will allow us to access both sliced rows:
-
-```swift
-    let playerScope = "player"
-    let teamScope = "team"
-    let adapter = ScopeAdapter([
-        playerScope: playerAdapter,
-        teamScope: teamAdapter])
-```
-
-And now we can fetch, and start consuming our rows. You already know [row cursors](#fetching-rows):
-
-```swift
-    let rows = try Row.fetchCursor(db, sql: sql, adapter: adapter)
-    while let row = try rows.next() {
-```
-
-From a fetched row, we can build a player:
-
-```swift
-        let player: Player = row[playerScope]
-```
-
-In the SQL query, the team is joined with the `LEFT JOIN` operator. This means that the team may be missing: its slice may contain team values, or it may only contain NULLs. When this happens, we don't want to build a Team record, and we thus load an *optional* Team:
-
-```swift
-        let team: Team? = row[teamScope]
-```
-
-And finally, we can load the maximum score, assuming that the "maxScore" column is not ambiguous:
-
-```swift
-        let maxScore: Int = row["maxScore"]
-        
-        print("player: \(player)")
-        print("team: \(team)")
-        print("maxScore: \(maxScore)")
-    }
-}
-```
-
-> :bulb: In this chapter, we have learned:
-> 
-> - how to use `RangeRowAdapter` to extract a specific table's columns into a *row slice*.
-> - how to use `ScopeAdapter` to gives access to several row slices through named scopes.
-> - how to use Row subscripting to extract records from rows, or optional records in order to deal with left joins.
-
-
-### Splitting Rows, the Record Way
-
-Our introduction above has introduced important techniques. It uses [row adapters](#row-adapters) in order to split rows. It uses Row subscripting in order to extract records from row slices.
-
-But we may want to make it more usable and robust:
-
-1. It's generally easier to consume records than raw rows.
-2. Joined records not always need all columns from a table (see `TableRecord.databaseSelection` in [Columns Selected by a Request]).
-3. Building row adapters is long and error prone.
-
-To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [FetchableRecord] protocol:
-
-```swift
-struct PlayerInfo {
-    var player: Player
-    var team: Team?
-    var maxScore: Int
-}
-
-/// PlayerInfo can decode rows:
-extension PlayerInfo: FetchableRecord {
-    private enum Scopes {
-        static let player = "player"
-        static let team = "team"
-    }
-    
-    init(row: Row) {
-        player = row[Scopes.player]
-        team = row[Scopes.team]
-        maxScore = row["maxScore"]
-    }
-}
-```
-
-Now we write a method that returns a [custom request](#custom-requests), and then build the fetching method on top of that request:
-
-```swift
-extension PlayerInfo {
-    /// The request for all player infos
-    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
-```
-
-To acknowledge that both Player and Team records may customize their selection of the "player" and "team" columns, we'll write our SQL in a slightly different way:
-
-```swift
-        // Let Player and Team customize their selection:
-        let request: SQLRequest<PlayerInfo> = """
-            SELECT
-                \(columnsOf: Player.self), -- instead of player.*
-                \(columnsOf: Team.self),   -- instead of team.*
-                MAX(round.score) AS maxScore
-            FROM player
-            LEFT JOIN team ON ...
-            LEFT JOIN round ON ...
-            GROUP BY ...
-            """
-```
-
-Our SQL is no longer a regular String, but an `SQLRequest<PlayerInfo>` which profits from [SQL Interpolation]. Inside this request, `\(columnsOf: Player.self)` outputs `player.*`, unless Player defines a [customized selection](#columns-selected-by-a-request).
-
-Now we need to build adapters.
-
-We use the `splittingRowAdapters` global function, whose job is precisely to build row adapters of desired widths:
-
-And since counting table columns require a database connection, we use the `adapted(_:)` request method. It allows requests to adapt themselves right before execution, when a database connection is available.
-
-```swift
-        return request.adapted { db in
-            let adapters = try splittingRowAdapters(columnCounts: [
-                Player.numberOfSelectedColumns(db),
-                Team.numberOfSelectedColumns(db)])
-            return ScopeAdapter([
-                Scopes.player: adapters[0],
-                Scopes.team: adapters[1]])
-        }
-    }
-```
-
-> :point_up: **Note**: `splittingRowAdapters` returns as many adapters as necessary to fully split a row. In the example above, it returns *three* adapters: one for player, one for team, and one for the remaining columns.
-
-And finally, we can define the fetching method:
-
-```swift
-    /// Fetches all player infos
-    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
-        try all().fetchAll(db)
-    }
-}
-```
-
-And when your app needs to fetch player infos, it now reads:
-
-```swift
-// Fetch player infos
-let playerInfos = try dbQueue.read { db in
-    try PlayerInfo.fetchAll(db)
-}
-```
-
-
-> :bulb: In this chapter, we have learned:
-> 
-> - how to define a `FetchableRecord` record that consumes rows fetched from a joined query.
-> - how to use [SQL Interpolation] and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
-> - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
-> - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
-
-
-### Splitting Rows, the Codable Way
-
-[Codable Records] build on top of the standard Decodable protocol in order to decode database rows.
-
-You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-record-way) sample code:
-
-```swift
-struct Player: Decodable, FetchableRecord, TableRecord {
-    var id: Int64
-    var name: String
-}
-struct Team: Decodable, FetchableRecord, TableRecord {
-    var id: Int64
-    var name: String
-    var color: Color
-}
-struct PlayerInfo: Decodable, FetchableRecord {
-    var player: Player
-    var team: Team?
-    var maxScore: Int
-}
-
-extension PlayerInfo {
-    /// The request for all player infos
-    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
-        let request: SQLRequest<PlayerInfo> = """
-            SELECT
-                \(columnsOf: Player.self),
-                \(columnsOf: Team.self),
-                MAX(round.score) AS maxScore
-            FROM player
-            LEFT JOIN team ON ...
-            LEFT JOIN round ON ...
-            GROUP BY ...
-            """
-        return request.adapted { db in
-            let adapters = try splittingRowAdapters(columnCounts: [
-                Player.numberOfSelectedColumns(db),
-                Team.numberOfSelectedColumns(db)])
-            return ScopeAdapter([
-                CodingKeys.player.stringValue: adapters[0],
-                CodingKeys.team.stringValue: adapters[1]])
-        }
-    }
-    
-    /// Fetches all player infos
-    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
-        try all().fetchAll(db)
-    }
-}
-
-// Fetch player infos
-let playerInfos = try dbQueue.read { db in
-    try PlayerInfo.fetchAll(db)
-}
-```
-
-> :bulb: In this chapter, we have learned how to use the `Decodable` protocol and its associated `CodingKeys` enum in order to dry up our code.
-
-
-Database Changes Observation
-============================
-
-**SQLite notifies its host application of changes performed to the database, as well of transaction commits and rollbacks.**
-
-GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
-
-- [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
-- [ValueObservation]: Track changes of database values.
-- [DatabaseRegionObservation]: Tracking transactions that impact a database region.
-- [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
-- :blue_book: [Combine Support]: Automated tracking of database changes, with [Combine].
-- :blue_book: [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
-
-Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
-
-
-## After Commit Hook
-
-When your application needs to make sure a specific database transaction has been successfully committed before it executes some work, use the `Database.afterNextTransactionCommit(_:)` method.
-
-Its closure argument is called right after database changes have been successfully written to disk:
-
-```swift
-try dbQueue.write { db in
-    db.afterNextTransactionCommit { db in
-        print("success")
-    }
-    ...
-} // prints "success"
-```
-
-The closure runs in a protected dispatch queue, serialized with all database updates.
-
-**This "after commit hook" helps synchronizing the database with other resources, such as files, or system sensors.**
-
-In the example below, a [location manager](https://developer.apple.com/documentation/corelocation/cllocationmanager) starts monitoring a CLRegion if and only if it has successfully been stored in the database:
-
-```swift
-/// Inserts a region in the database, and start monitoring upon
-/// successful insertion.
-func startMonitoring(_ db: Database, region: CLRegion) throws {
-    // Make sure database is inside a transaction
-    try db.inSavepoint {
-        
-        // Save the region in the database
-        try insert(...)
-        
-        // Start monitoring if and only if the insertion is
-        // eventually committed
-        db.afterNextTransactionCommit { _ in
-            // locationManager prefers the main queue:
-            DispatchQueue.main.async {
-                locationManager.startMonitoring(for: region)
-            }
-        }
-        
-        return .commit
-    }
-}
-```
-
-The method above won't trigger the location manager if the transaction is eventually rollbacked (explicitly, or because of an error), as in the sample code below:
-
-```swift
-try dbQueue.write { db in
-    // success
-    try startMonitoring(db, region)
-    
-    // On error, the transaction is rollbacked, the region is not inserted, and
-    // the location manager is not invoked.
-    try failableMethod(db)
-}
-```
-
-
-## ValueObservation
-
-**ValueObservation tracks changes in database values**. It automatically notifies your application with fresh values whenever changes are committed in the database.
-
-Tracked changes are insertions, updates, and deletions that impact the tracked value, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
-
-**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
-
-- [ValueObservation Usage](#valueobservation-usage)
-- [ValueObservation Scheduling](#valueobservation-scheduling)
-- [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
-- [ValueObservation Performance](#valueobservation-performance)
-- :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
-
-### ValueObservation Usage
-
-1. Make sure that a unique [database connection](#database-connections) is kept open during the whole duration of the observation.
-    
-    ValueObservation does not notify changes performed by external connections.
-
-2. Define a ValueObservation by providing a function that fetches the observed value.
-    
-    ```swift
-    let observation = ValueObservation.tracking { db in
-        /* fetch and return the observed value */
-    }
-    
-    // For example, an observation of [Player], which tracks all players:
-    let observation = ValueObservation.tracking { db in
-        try Player.fetchAll(db)
-    }
-    
-    // The same observation, using shorthand notation:
-    let observation = ValueObservation.tracking(Player.fetchAll)
-    ```
-    
-    The observation can perform multiple requests, from multiple database tables, and even use raw SQL.
-    
-    <details>
-        <summary>Example of a more complex ValueObservation</summary>
-        
-    ```swift
-    struct HallOfFame {
-        var totalPlayerCount: Int
-        var bestPlayers: [Player]
-    }
-    
-    // An observation of HallOfFame
-    let observation = ValueObservation.tracking { db -> HallOfFame in
-        let totalPlayerCount = try Player.fetchCount(db)
-        
-        let bestPlayers = try Player
-            .order(Column("score").desc)
-            .limit(10)
-            .fetchAll(db)
-        
-        return HallOfFame(
-            totalPlayerCount: totalPlayerCount,
-            bestPlayers: bestPlayers)
-    }
-    ```
-    
-    </details>
-    
-    <details>
-        <summary>Example of a SQL ValueObservation</summary>
-        
-    ```swift
-    // An observation of the maximum score
-    let observation = ValueObservation.tracking { db in
-        try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player")
-    }
-    ```
-    
-    </details>
-    
-3. Start the observation in order to be notified of changes:
-    
-    ```swift
-    // Start observing the database
-    let cancellable: DatabaseCancellable = observation.start(
-        in: dbQueue, // or dbPool
-        onError: { error in print("players could not be fetched") },
-        onChange: { (players: [Player]) in print("fresh players", players) })
-    ```
-
-4. Stop the observation by calling the `cancel()` method on the object returned by the `start` method. Cancellation is automatic when the cancellable is deinitialized:
-    
-    ```swift
-    cancellable.cancel()
-    ```
-
-**As a convenience**, ValueObservation can be turned into a Combine publisher, or a RxSwift Observable (see [Combine Support] and the companion library [RxGRDB]):
-
-<details>
-    <summary>Combine example</summary>
-    
-```swift
-import Combine
-import GRDB
-
-let observation = ValueObservation.tracking(Player.fetchAll)
-
-let cancellable = observation.publisher(in: dbQueue).sink(
-    receiveCompletion: { completion in ... },
-    receiveValue: { (players: [Player]) in
-        print("fresh players", players)
-    })
-```
-
-</details>
-
-<details>
-    <summary>RxGRDB example</summary>
-    
-```swift
-import GRDB
-import RxGRDB
-import RxSwift
-
-let observation = ValueObservation.tracking(Player.fetchAll)
-
-let disposable = observation.rx.observe(in: dbQueue).subscribe(
-    onNext: { (players: [Player]) in
-        print("fresh players", players)
-    },
-    onError: { error in ... })
-```
-
-</details>
-
-**Generally speaking**:
-
-- ValueObservation notifies an initial value before the eventual changes.
-- By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
-- ValueObservation may coalesce subsequent changes into a single notification.
-- ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
-- The database observation stops when any of those conditions is met:
-    - The cancellable returned by the `start` method is cancelled or deinitialized.
-    - An error occurs.
-    - The database connection is closed.
-
-Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
-
-
-### ValueObservation Scheduling
-
-By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously:
-
-```swift
-// The default scheduling
-let cancellable = observation.start(
-    in: dbQueue,
-    onError: { error in ... },                   // called asynchronously on the main thread
-    onChange: { value in print("fresh value") }) // called asynchronously on the main thread
-```
-
-You can change this behavior by adding a `scheduling` argument to the `start()` method.
-
-For example, `scheduling: .immediate` makes sure the initial value is notified immediately when the observation starts. It helps your application update the user interface without having to wait for any asynchronous notifications:
-
-```swift
-class PlayersViewController: UIViewController {
-    private var cancellable: DatabaseCancellable?
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        // Start observing the database
-        let observation = ValueObservation.tracking(Player.fetchAll)
-        cancellable = observation.start(
-            in: dbQueue,
-            scheduling: .immediate, // <- immediate scheduler
-            onError: { error in ... },
-            onChange: { [weak self] (players: [Player]) in
-                guard let self = self else { return }
-                self.updateView(players)
-            })
-        // <- Here the view has already been updated.
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-    
-        // Stop observing the database
-        cancellable?.cancel()
-    }
-    
-    private func updateView(_ players: [Player]) { ... }
-}
-```
-
-Note that the `.immediate` scheduling requires that the observation starts from the main thread. A fatal error is raised otherwise.
-
-The other built-in scheduler `.async(onQueue:)` asynchronously schedules values and errors on the dispatch queue of your choice:
-
-```swift
-let queue: DispatchQueue = ...
-let cancellable = observation.start(
-    in: dbQueue,
-    scheduling: .async(onQueue: queue)
-    onError: { error in ... },                   // called asynchronously on queue
-    onChange: { value in print("fresh value") }) // called asynchronously on queue
-```
-
-
-### ValueObservation Operators
-
-**Operators** are methods that transform and configure value observations so that they better fit the needs of your application.
-
-- [ValueObservation.map](#valueobservationmap)
-- [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
-- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess)
-
-**Debugging Operators**
-
-- [ValueObservation.handleEvents](#valueobservationhandleevents)
-- [ValueObservation.print](#valueobservationprint)
-
-
-#### ValueObservation.map
-
-The `map` operator transforms the values notified by a ValueObservation.
-
-For example:
-
-```swift
-// Turn an observation of Player? into an observation of UIImage?
-let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, id: 42) }
-    .map { player in player?.image }
-```
-
-The transformation function does not block any database access. This makes the `map` operator a tool which helps reducing [database contention](#valueobservation-performance).
-
-
-#### ValueObservation.removeDuplicates
-
-The `removeDuplicates` operator filters out consecutive equal values. The observed values must adopt the standard Equatable protocol.
-
-For example:
-
-```swift
-// An observation of distinct Player?
-let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, id: 42) }
-    .removeDuplicates()
-```
-
-:bulb: **Tip**: When the observed value does not adopt Equatable, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
-
-```swift
-// An observation of distinct Player?
-let request = Player.filter(id: 42)
-let observation = ValueObservation
-    .tracking { db in try Row.fetchOne(db, request) }
-    .removeDuplicates() // Row adopts Equatable
-    .map { row in row.map(Player.init(row:) }
-```
-
-This technique is also available for requests that involve [Associations]:
-
-```swift
-struct TeamInfo: Decodable, FetchableRecord {
-    var team: Team
-    var players: [Player]
-}
-
-// An observation of distinct [TeamInfo]
-let request = Team.including(all: Team.players)
-let observation = ValueObservation
-    .tracking { db in try Row.fetchAll(db, request) }
-    .removeDuplicates() // Row adopts Equatable
-    .map { rows in rows.map(TeamInfo.init(row:) }
-```
-
-
-#### ValueObservation.requiresWriteAccess
-
-The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
-
-```swift
-var observation = ValueObservation.tracking { db in
-    // write access allowed
-    ...
-}
-observation.requiresWriteAccess = true
-```
-
-When you use a [database pool](#database-pools), this flag has a performance hit.
-
-
-#### ValueObservation.handleEvents
-
-The `handleEvents` operator lets your application observe the lifetime of a ValueObservation:
-
-```swift
-let observation = ValueObservation
-    .tracking { db in ... }
-    .handleEvents(
-        willStart: {
-            // The observation starts.
-        },
-        willFetch: {
-            // The observation will perform a database fetch.
-        },
-        willTrackRegion: { databaseRegion in
-            // The observation starts tracking a database region.
-        },
-        databaseDidChange: {
-            // The observation was impacted by a database change.
-        },
-        didReceiveValue: { value in
-            // A fresh value was observed.
-            // NOTE: This closure runs on an unspecified DispatchQueue.
-        },
-        didFail: { error in
-            // The observation completes with an error.
-        },
-        didCancel: {
-            // The observation was cancelled.
-        })
-```
-
-See also [ValueObservation.print](#valueobservationprint).
-
-
-#### ValueObservation.print
-
-The `print` operator logs messages for all ValueObservation events.
-
-```swift
-let observation = ValueObservation
-    .tracking { db in ... }
-    .print()
-```
-
-See also [ValueObservation.handleEvents](#valueobservationhandleevents).
-
-
-### ValueObservation Performance
-
-This chapter further describes runtime aspects of ValueObservation, and provides some optimization tips for demanding applications.
-
-
-**ValueObservation is triggered by database transactions that may modify the tracked value.**
-
-For example, if you track the maximum score of players, all transactions that impact the `score` column of the `player` database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed.
-
-You can filter out undesired duplicate notifications with the [removeDuplicates()](#valueobservationremoveduplicates) method.
-
-
-**ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
-
-When needed, you can help GRDB optimize observations and reduce database contention:
-
-1. :bulb: **Tip**: Stop observations when possible.
-    
-    For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`. Check the sample code [above](#valueobservation-scheduling).
-    
-2. :bulb: **Tip**: Share observations when possible.
-    
-    Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single active observation.
-    
-    For example, with RxSwift and RxGRDB, you can use the `share(replay:scope:)` operator:
-    
-    ```swift
-    import GRDB
-    import RxGRDB
-    import RxSwift
-    
-    let observation = ValueObservation.tracking(Player.fetchAll)
-    let observable = observation.rx
-        .observe(in: dbQueue)
-        .share(replay: 1, scope: .whileConnected)
-    ```
-
-3. :bulb: **Tip**: Use a [database pool](#database-pools), because it can perform multi-threaded database accesses.
-
-4. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
-
-    ```swift
-    // Plain observation
-    let observation = ValueObservation.tracking { db -> MyValue in
-        let players = try Player.fetchAll(db)
-        return computeMyValue(players)
-    }
-    
-    // Optimized observation
-    let observation = ValueObservation
-        .tracking { db try Player.fetchAll(db) }
-        .map { players in computeMyValue(players) }
-    ```
-    
-    The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
-
-4. :bulb: **Tip**: When the observation tracks a constant database region, create an optimized observation with the `ValueObservation.trackingConstantRegion(_:)` method.
-    
-    The optimization only kicks in when the observation is started from a [database pool](#database-pools): fresh values are fetched concurrently, and do not block database writes.
-    
-    The `ValueObservation.trackingConstantRegion(_:)` has a precondition: the observed requests must fetch from a single and constant database region. The tracked region is made of tables, columns, and, when possible, rowids of individual rows. All changes that happen outside of this region do not impact the observation.
-    
-    For example:
-    
-    ```swift
-    // Tracks the full 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> [Player] in
-        try Player.fetchAll(db)
-    }
-    
-    // Tracks the row with id 42 in the 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> Player? in
-        try Player.fetchOne(db, id: 42)
-    }
-    
-    // Tracks the 'score' column in the 'player' table (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> Int? in
-        try Player.select(max(Column("score"))).fetchOne(db)
-    }
-    
-    // Tracks both the 'player' and 'team' tables (only)
-    let observation = ValueObservation.trackingConstantRegion { db -> ([Team], [Player]) in
-        let teams = try Team.fetchAll(db)
-        let players = try Player.fetchAll(db)
-        return (teams, players)
-    }
-    ```
-    
-    When you want to observe a varying database region, make sure you use the plain `ValueObservation.tracking(_:)` method instead, or else some changes will not be notified.
-    
-    For example, consider those three observations below that depend on some user preference. They all track a varying region, and must use `ValueObservation.tracking(_:)`:
-    
-    ```swift
-    // Does not always track the same row in the player table.
-    let observation = ValueObservation.tracking { db -> Player? in
-        let pref = try Preference.fetchOne(db) ?? .default
-        return try Player.fetchOne(db, id: pref.favoritePlayerId)
-    }
-    
-    // Only tracks the 'user' table if there are some blocked emails.
-    let observation = ValueObservation.tracking { db -> [User] in
-        let pref = try Preference.fetchOne(db) ?? .default
-        let blockedEmails = pref.blockedEmails
-        return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
-    }
-    
-    // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
-    let observation = ValueObservation.tracking { db -> Int in
-        let pref = try Preference.fetchOne(db) ?? .default
-        switch pref.selection {
-        case .food: return try Food.fetchCount(db)
-        case .beverage: return try Beverage.fetchCount(db)
-        }
-    }
-    ```
-    
-    When you are in doubt, add the [`print()` method](#valueobservationprint) to your observation before starting it, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
-    
-    <details>
-        <summary>Examples of tracked regions</summary>
-    
-    - `empty`: The empty region, which tracks nothing and never triggers the observation.
-    - `player(*)`: The full `player` table
-    - `player(id,name)`: The `id` and `name` columns of the `player` table
-    - `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
-    - `player(*),preference(*)`: Both the full `player` and `preference` tables
-    
-    </details>
-
-
-## DatabaseRegionObservation
-
-**DatabaseRegionObservation tracks changes in database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
-
-Tracked changes are insertions, updates, and deletions that impact the tracked requests, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
-
-DatabaseRegionObservation calls your application right after changes have been committed in the database, and before any other thread had any opportunity to perform further changes. *This is a pretty strong guarantee, that most applications do not really need.* Instead, most applications prefer to be notified with fresh values: make sure you check [ValueObservation] before using DatabaseRegionObservation.
-
-
-### DatabaseRegionObservation Usage
-
-Define an observation by providing one or several requests to track:
-
-```swift
-// Track all players
-let observation = DatabaseRegionObservation(tracking: Player.all())
-```
-
-Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
-
-```swift
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("Players were changed")
-}
-```
-
-And enjoy the changes notifications:
-
-```swift
-try dbQueue.write { db in
-    try Player(name: "Arthur").insert(db)
-}
-// Prints "Players were changed"
-```
-
-By default, the observation lasts until the observer returned by the `start` method is deinitialized. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
-
-You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
-
-```swift
-// Observe the full database
-let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("Database was changed")
-}
-```
-
-
-### DatabaseRegionObservation.extent
-
-The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
-
-```swift
-// This observation lasts until the database connection is closed
-var observation = DatabaseRegionObservation...
-observation.extent = .databaseLifetime
-_ = try observation.start(in: dbQueue) { db in ... }
-```
-
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deinitialized.
-
-Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
-
-```swift
-// Start
-let observer = try observation.start(in: dbQueue) { db in ... }
-
-// Stop
-dbQueue.remove(transactionObserver: observer)
-```
-
-
-## TransactionObserver Protocol
-
-The `TransactionObserver` protocol lets you **observe individual database changes and transactions**:
-
-```swift
-protocol TransactionObserver : class {
-    /// Notifies a database change:
-    /// - event.kind (insert, update, or delete)
-    /// - event.tableName
-    /// - event.rowID
-    ///
-    /// For performance reasons, the event is only valid for the duration of
-    /// this method call. If you need to keep it longer, store a copy:
-    /// event.copy().
-    func databaseDidChange(with event: DatabaseEvent)
-    
-    /// Filters the database changes that should be notified to the
-    /// `databaseDidChange(with:)` method.
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool
-    
-    /// An opportunity to rollback pending changes by throwing an error.
-    func databaseWillCommit() throws
-    
-    /// Database changes have been committed.
-    func databaseDidCommit(_ db: Database)
-    
-    /// Database changes have been rollbacked.
-    func databaseDidRollback(_ db: Database)
-}
-```
-
-- [Activate a Transaction Observer](#activate-a-transaction-observer)
-- [Database Changes And Transactions](#database-changes-and-transactions)
-- [Filtering Database Events](#filtering-database-events)
-- [Observation Extent](#observation-extent)
-- [DatabaseRegion]
-- [Support for SQLite Pre-Update Hooks](#support-for-sqlite-pre-update-hooks)
-
-
-### Activate a Transaction Observer
-
-**To activate a transaction observer, add it to the database queue or pool:**
-
-```swift
-let observer = MyObserver()
-dbQueue.add(transactionObserver: observer)
-```
-
-By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deinitialized. See [Observation Extent](#observation-extent) for more options.
-
-
-### Database Changes And Transactions
-
-**A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions), and [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
-
-> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
-
-Notified changes are not actually written to disk until the [transaction](#transactions-and-savepoints) commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
-
-```swift
-try dbQueue.write { db in
-    try db.execute(sql: "INSERT ...") // 1. didChange
-    try db.execute(sql: "UPDATE ...") // 2. didChange
-}                                     // 3. willCommit, 4. didCommit
-
-try dbQueue.inTransaction { db in
-    try db.execute(sql: "INSERT ...") // 1. didChange
-    try db.execute(sql: "UPDATE ...") // 2. didChange
-    return .rollback                  // 3. didRollback
-}
-
-try dbQueue.write { db in
-    try db.execute(sql: "INSERT ...") // 1. didChange
-    throw SomeError()
-}                                     // 2. didRollback
-```
-
-Database statements that are executed outside of any transaction do not drop off the radar:
-
-```swift
-try dbQueue.inDatabase { db in
-    try db.execute(sql: "INSERT ...") // 1. didChange, 2. willCommit, 3. didCommit
-    try db.execute(sql: "UPDATE ...") // 4. didChange, 5. willCommit, 6. didCommit
-}
-```
-
-Changes that are on hold because of a [savepoint](https://www.sqlite.org/lang_savepoint.html) are only notified after the savepoint has been released. This makes sure that notified events are only events that have an opportunity to be committed:
-
-```swift
-try dbQueue.inTransaction { db in
-    try db.execute(sql: "INSERT ...")            // 1. didChange
-    
-    try db.execute(sql: "SAVEPOINT foo")
-    try db.execute(sql: "UPDATE ...")            // delayed
-    try db.execute(sql: "UPDATE ...")            // delayed
-    try db.execute(sql: "RELEASE SAVEPOINT foo") // 2. didChange, 3. didChange
-    
-    try db.execute(sql: "SAVEPOINT foo")
-    try db.execute(sql: "UPDATE ...")            // not notified
-    try db.execute(sql: "ROLLBACK TO SAVEPOINT foo")
-    
-    return .commit                               // 4. willCommit, 5. didCommit
-}
-```
-
-
-**Eventual errors** thrown from `databaseWillCommit` are exposed to the application code:
-
-```swift
-do {
-    try dbQueue.inTransaction { db in
-        ...
-        return .commit           // 1. willCommit (throws), 2. didRollback
-    }
-} catch {
-    // 3. The error thrown by the transaction observer.
-}
-```
-
-> :point_up: **Note**: all callbacks are called in a protected dispatch queue, and serialized with all database updates.
->
-> :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
-
-
-[DatabaseRegionObservation], [ValueObservation], [Combine Support], and [RxGRDB] are all based on the TransactionObserver protocol.
-
-See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
-
-
-### Filtering Database Events
-
-**Transaction observers can avoid being notified of database changes they are not interested in.**
-
-The filtering happens in the `observes(eventsOfKind:)` method, which tells whether the observer wants notification of specific kinds of changes, or not. For example, here is how an observer can focus on the changes that happen on the "player" database table:
-
-```swift
-class PlayerObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "player" table.
-        return eventKind.tableName == "player"
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        // This method is only called for changes that happen to
-        // the "player" table.
-    }
-}
-```
-
-Generally speaking, the `observes(eventsOfKind:)` method can distinguish insertions from deletions and updates, and is also able to inspect the columns that are about to be changed:
-
-```swift
-class PlayerScoreObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Only observe changes to the "score" column of the "player" table.
-        switch eventKind {
-        case .insert(let tableName):
-            return tableName == "player"
-        case .delete(let tableName):
-            return tableName == "player"
-        case .update(let tableName, let columnNames):
-            return tableName == "player" && columnNames.contains("score")
-        }
-    }
-}
-```
-
-When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks:
-
-```swift
-class PureTransactionObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        // Ignore all individual changes
-        return false
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) { /* Never called */ }
-    func databaseWillCommit() throws { /* Called before commit */ }
-    func databaseDidRollback(_ db: Database) { /* Called on rollback */ }
-    func databaseDidCommit(_ db: Database) { /* Called on commit */ }
-}
-```
-
-For more information about event filtering, see [DatabaseRegion].
-
-
-### Observation Extent
-
-**You can specify how long an observer is notified of database changes and transactions.**
-
-The `remove(transactionObserver:)` method explicitly stops notifications, at any time:
-
-```swift
-// From a database queue or pool:
-dbQueue.remove(transactionObserver: observer)
-
-// From a database connection:
-dbQueue.inDatabase { db in
-    db.remove(transactionObserver: observer)
-}
-```
-
-Alternatively, use the `extent` parameter of the `add(transactionObserver:extent:)` method:
-
-```swift
-let observer = MyObserver()
-
-// On a database queue or pool:
-dbQueue.add(transactionObserver: observer) // default extent
-dbQueue.add(transactionObserver: observer, extent: .observerLifetime)
-dbQueue.add(transactionObserver: observer, extent: .nextTransaction)
-dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
-
-// On a database connection:
-dbQueue.inDatabase { db in
-    db.add(transactionObserver: ...)
-}
-```
-
-- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deinitialized. Meanwhile, observer is notified of all changes and transactions.
-
-- `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
-
-- `.databaseLifetime` has the database retain and notify the observer until the database connection is closed.
-
-Finally, an observer may ignore all database changes until the end of the current transaction:
-
-```swift
-class PlayerObserver: TransactionObserver {
-    var playerTableWasModified = false
-    
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        eventKind.tableName == "player"
-    }
-    
-    func databaseDidChange(with event: DatabaseEvent) {
-        playerTableWasModified = true
-        
-        // It is pointless to keep on tracking further changes:
-        stopObservingDatabaseChangesUntilNextTransaction()
-    }
-}
-```
-
-After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChange(with:)` method will not be notified of any change for the remaining duration of the current transaction. This helps GRDB optimize database observation.
-
-
-### DatabaseRegion
-
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/5.8/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
-
-A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
-
-DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservation].
-
-**A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
-
-For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
-
-For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/5.8/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
-
-
-#### The DatabaseRegionConvertible Protocol
-
-**DatabaseRegionConvertible** is a protocol for all types that can turn into a [DatabaseRegion]:
-
-```swift
-protocol DatabaseRegionConvertible {
-    func databaseRegion(_ db: Database) throws -> DatabaseRegion
-}
-```
-
-All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
-
-
-### Support for SQLite Pre-Update Hooks
-
-When SQLite is built with the SQLITE_ENABLE_PREUPDATE_HOOK option, TransactionObserverType gets an extra callback which lets you observe individual column values in the rows modified by a transaction:
-
-```swift
-protocol TransactionObserverType : class {
-    #if SQLITE_ENABLE_PREUPDATE_HOOK
-    /// Notifies before a database change (insert, update, or delete)
-    /// with change information (initial / final values for the row's
-    /// columns).
-    ///
-    /// The event is only valid for the duration of this method call. If you
-    /// need to keep it longer, store a copy: event.copy().
-    func databaseWillChange(with event: DatabasePreUpdateEvent)
-    #endif
-}
-```
-
-This extra API can be activated in two ways:
-
-1. Use the GRDB.swift CocoaPod with a custom compilation option, as below. It uses the system SQLite, which is compiled with SQLITE_ENABLE_PREUPDATE_HOOK support, but only on iOS 11.0+ (we don't know the minimum version of macOS, tvOS, watchOS):
-
-    ```ruby
-    pod 'GRDB.swift'
-    platform :ios, '11.0' # or above
-    
-    post_install do |installer|
-      installer.pods_project.targets.select { |target| target.name == "GRDB.swift" }.each do |target|
-        target.build_configurations.each do |config|
-          # Enable extra GRDB APIs
-          config.build_settings['OTHER_SWIFT_FLAGS'] = "$(inherited) -D SQLITE_ENABLE_PREUPDATE_HOOK"
-          # Enable extra SQLite APIs
-          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = "$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1"
-        end
-      end
-    end
-    ```
-    
-    > :warning: **Warning**: make sure you use the right platform version! You will get runtime errors on devices with a lower version.
-    
-    > :point_up: **Note**: the `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option in `GCC_PREPROCESSOR_DEFINITIONS` defines some C function prototypes that are lacking from the system `<sqlite3.h>` header. When Xcode eventually ships with an SDK that includes a complete header, you may get a compiler error about duplicate function definitions. When this happens, just remove this `GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1` option.
-    
-2. Use a [custom SQLite build] and activate the `SQLITE_ENABLE_PREUPDATE_HOOK` compilation option.
+- The [`adapted(_:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/fetchrequest/adapted(_:)) method eases the consumption of complex rows with row adapters. See [`RowAdapter`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter) and [`splittingRowAdapters(columnCounts:)`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)) for a sample code that uses `adapted(_:)`.
 
 
 Encryption
@@ -6460,6 +4834,8 @@ pod 'GRDB.swift/SQLCipher'
 pod 'SQLCipher', '~> 3.4'
 ```
 
+Make sure you remove any existing `pod 'GRDB.swift'` from your Podfile. `GRDB.swift/SQLCipher` must be the only active GRDB pod in your whole project, or you will face linker or runtime errors, due to the conflicts between SQLCipher and the system SQLite.
+
 - [Creating or Opening an Encrypted Database](#creating-or-opening-an-encrypted-database)
 - [Changing the Passphrase of an Encrypted Database](#changing-the-passphrase-of-an-encrypted-database)
 - [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database)
@@ -6468,7 +4844,7 @@ pod 'SQLCipher', '~> 3.4'
 
 ### Creating or Opening an Encrypted Database
 
-**You create and open an encrypted database** by providing a passphrase to your [database connection](#database-connections):
+**You create and open an encrypted database** by providing a passphrase to your [database connection]:
 
 ```swift
 var config = Configuration()
@@ -6509,7 +4885,7 @@ See [SQLCipher 4.0.0 Release](https://www.zetetic.net/blog/2018/11/30/sqlcipher-
 
 **You can change the passphrase** of an already encrypted database.
 
-When you use a [database queue](#database-queues), open the database with the old passphrase, and then apply the new passphrase:
+When you use a [database queue](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue), open the database with the old passphrase, and then apply the new passphrase:
 
 ```swift
 try dbQueue.write { db in
@@ -6517,7 +4893,7 @@ try dbQueue.write { db in
 }
 ```
 
-When you use a [database pool](#database-pools), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
+When you use a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), make sure that no concurrent read can happen by changing the passphrase within the `barrierWriteWithoutTransaction` block. You must also ensure all future reads open a new database connection by calling the `invalidateReadOnlyConnections` method:
 
 ```swift
 try dbPool.barrierWriteWithoutTransaction { db in
@@ -6526,7 +4902,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 }
 ```
 
-> :point_up: **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the database preparation function. Consider:
+> **Note**: When an application wants to keep on using a database queue or pool after the passphrase has changed, it is responsible for providing the correct passphrase to the `usePassphrase` method called in the database preparation function. Consider:
 >
 > ```swift
 > // WRONG: this won't work across a passphrase change
@@ -6544,9 +4920,9 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > }
 > ```
 
-> :point_up: **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](#database-snapshots) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
+> **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesnapshot) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
 
-> :point_up: **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
+> **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
 
 
 ### Exporting a Database to an Encrypted Database
@@ -6614,11 +4990,11 @@ For even better control over the lifetime of the passphrase in memory, use a Dat
 // RECOMMENDED: only load the passphrase when it is needed and reset its content immediately after use
 var config = Configuration()
 config.prepareDatabase { db in
-    let passphrase = try getPassphraseData() // Data
+    var passphraseData = try getPassphraseData() // Data
     defer {
-        passphrase.resetBytes(in: 0..<data.count)
+        passphraseData.resetBytes(in: 0..<passphraseData.count)
     }
-    try db.usePassphrase(passphrase)
+    try db.usePassphrase(passphraseData)
 }
 ```
 
@@ -6665,7 +5041,7 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
-For the same reason, [database pools](#database-pools), which open SQLite connections on demand, may fail at any time as soon as the passphrase becomes unavailable:
+For the same reason, [database pools], which open SQLite connections on demand, may fail at any time as soon as the passphrase becomes unavailable:
 
 ```swift
 // Success if and only if the passphrase is available
@@ -6682,7 +5058,7 @@ Because DatabasePool maintains a pool of long-lived SQLite connections, some dat
 
 For the same reason, a database queue, which also maintains a long-lived SQLite connection, will remain available even after the passphrase has turned unavailable.
 
-Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](#data-protection). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
+Applications are thus responsible for protecting database accesses when the passphrase is unavailable. To this end, they can use [Data Protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files). They can also destroy their instances of database queue or pool when the passphrase becomes unavailable.
 
 
 ## Backup
@@ -6699,8 +5075,44 @@ try source.backup(to: destination)
 
 The `backup` method blocks the current thread until the destination database contains the same contents as the source database.
 
-When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
+When the source is a [database pool](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
 
+`Database` has an analogous `backup` method.
+
+```swift
+let source: DatabaseQueue = ...      // or DatabasePool
+let destination: DatabaseQueue = ... // or DatabasePool
+try source.write { sourceDb in
+    try destination.barrierWriteWithoutTransaction { destDb in
+        try sourceDb.backup(to: destDb)
+    }
+}
+```
+
+This method allows for the choice of source and destination `Database` handles with which to backup the database.
+
+### Backup Progress Reporting
+
+The `backup` methods take optional `pagesPerStep` and `progress` parameters. Together these parameters can be used to track a database backup in progress and abort an incomplete backup.
+
+When `pagesPerStep` is provided, the database backup is performed in _steps_. At each step, no more than `pagesPerStep` database pages are copied from the source to the destination. The backup proceeds one step at a time until all pages have been copied.
+
+When a `progress` callback is provided, `progress` is called after every backup step, including the last. Even if a non-default `pagesPerStep` is specified or the backup is otherwise completed in a single step, the `progress` callback will be called.
+
+```swift
+try source.backup(
+    to: destination,
+    pagesPerStep: ...)
+    { backupProgress in
+       print("Database backup progress:", backupProgress)
+    }
+```
+
+### Aborting an Incomplete Backup
+
+If a call to `progress` throws when `backupProgress.isComplete == false`, the backup will be aborted and the error rethrown. However, if a call to `progress` throws when `backupProgress.isComplete == true`, the backup is unaffected and the error is silently ignored.
+
+> **Warning**: Passing non-default values of `pagesPerStep` or `progress` to the backup methods is an advanced API intended to provide additional capabilities to expert users. GRDB's backup API provides a faithful, low-level wrapper to the underlying SQLite online backup API. GRDB's documentation is not a comprehensive substitute for the official SQLite [documentation of their backup API](https://www.sqlite.org/c3ref/backup_finish.html).
 
 ## Interrupt a Database
 
@@ -6739,12 +5151,12 @@ try dbQueue.write { db in
 }                                  // throws SQLITE_ABORT
 ```
 
-You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors with the `DatabaseError.isInterruptionError` property:
+You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors:
 
 ```swift
 do {
     try dbPool.write { db in ... }
-} catch let error as DatabaseError where error.isInterruptionError {
+} catch DatabaseError.SQLITE_INTERRUPT, DatabaseError.SQLITE_ABORT {
     // Oops, the database was interrupted.
 }
 ```
@@ -6812,18 +5224,20 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError](#databaseerror), [RecordError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
 - [DatabaseError](#databaseerror)
-- [PersistenceError](#persistenceerror)
+- [RecordError]
 - [Fatal Errors](#fatal-errors)
 - [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
 
 
 ### DatabaseError
+
+📖 [`DatabaseError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseerror)
 
 **DatabaseError** are thrown on SQLite errors:
 
@@ -6848,12 +5262,14 @@ do {
     // [1, "Bobby"]
     error.arguments
     
-    // Full error description:
-    // "SQLite error 19 with statement `INSERT INTO pet (masterId, name)
-    //  VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed""
+    // Full error description
+    // > SQLite error 19: FOREIGN KEY constraint failed -
+    // > while executing `INSERT INTO pet (masterId, name) VALUES (?, ?)`
     error.description
 }
 ```
+
+If you want to see statement arguments in the error description, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -6890,17 +5306,29 @@ do {
 
 Each DatabaseError has two codes: an `extendedResultCode` (see [extended result code](https://www.sqlite.org/rescode.html#extended_result_code_list)), and a less precise `resultCode` (see [primary result code](https://www.sqlite.org/rescode.html#primary_result_code_list)). Extended result codes are refinements of primary result codes, as `SQLITE_CONSTRAINT_FOREIGNKEY` is to `SQLITE_CONSTRAINT`, for example.
 
-> :warning: **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
+> **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 
 
-### PersistenceError
+### RecordError
 
-**PersistenceError** is thrown by the [PersistableRecord] protocol, in a single case: when the `update` method could not find any row to update:
+📖 [`RecordError`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recorderror)
+
+**RecordError** is thrown by the [PersistableRecord] protocol when the `update` method could not find any row to update:
 
 ```swift
 do {
     try player.update(db)
-} catch let PersistenceError.recordNotFound(databaseTableName: table, key: key) {
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
+    print("Key \(key) was not found in table \(table).")
+}
+```
+
+**RecordError** is also thrown by the [FetchableRecord] protocol when the `find` method does not find any record:
+
+```swift
+do {
+    let player = try Player.find(db, id: 42)
+} catch let RecordError.recordNotFound(databaseTableName: table, key: key) {
     print("Key \(key) was not found in table \(table).")
 }
 ```
@@ -6919,7 +5347,7 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     let name: String = row["name"]
     ```
     
-    Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
+    Solution: fix the contents of the database, use [NOT NULL constraints](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/columndefinition/notnull(onconflict:)), or load an optional:
     
     ```swift
     let name: String? = row["name"]
@@ -7002,7 +5430,7 @@ In such a situation, you can still avoid fatal errors by exposing and handling e
 ```swift
 // Untrusted arguments
 if let arguments = StatementArguments(arguments) {
-    let statement = try db.makeSelectStatement(sql: sql)
+    let statement = try db.makeStatement(sql: sql)
     try statement.setArguments(arguments)
     
     var cursor = try Row.fetchCursor(statement)
@@ -7020,7 +5448,7 @@ if let arguments = StatementArguments(arguments) {
 }
 ```
 
-See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
+See [`Statement`] and [DatabaseValue](#databasevalue) for more information.
 
 
 ### Error Log
@@ -7035,7 +5463,7 @@ Database.logError = { (resultCode, message) in
 }
 ```
 
-> :warning: **Warning**: Database.logError must be set before any database connection is opened. This includes the connections that your application opens with GRDB, but also connections opened by other tools, such as third-party libraries. Setting it after a connection has been opened is an SQLite misuse, and has no effect.
+> **Warning**: Database.logError must be set before any database connection is opened. This includes the connections that your application opens with GRDB, but also connections opened by other tools, such as third-party libraries. Setting it after a connection has been opened is an SQLite misuse, and has no effect.
 
 See [The Error And Warning Log](https://sqlite.org/errlog.html) for more information.
 
@@ -7100,7 +5528,7 @@ try db.create(table: "player") { t in
 let players = try Player.order(nameColumn).fetchAll(db)
 ```
 
-> :warning: **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
+> **Warning**: SQLite *requires* host applications to provide the definition of any collation other than binary, nocase and rtrim. When a database file has to be shared or migrated to another SQLite library of platform (such as the Android version of your application), make sure you provide a compatible collation.
 
 If you can't or don't want to define the comparison behavior of a column (see warning above), you can still use an explicit collation in SQL requests and in the [query interface](#the-query-interface):
 
@@ -7143,597 +5571,36 @@ dbPool.releaseMemory()
 
 This method blocks the current thread until all current database accesses are completed, and the memory collected.
 
+> **Warning**: If `DatabasePool.releaseMemory()` is called while a long read is performed concurrently, then no other read access will be possible until this long read has completed, and the memory has been released. If this does not suit your application needs, look for the asynchronous options below:
+
+You can release memory in an asynchronous way as well:
+
+```swift
+// On a DatabaseQueue
+dbQueue.asyncWriteWithoutTransaction { db in
+    db.releaseMemory()
+}
+
+// On a DatabasePool
+dbPool.releaseMemoryEventually()
+```
+
+`DatabasePool.releaseMemoryEventually()` does not block the current thread, and does not prevent concurrent database accesses. In exchange for this convenience, you don't know when memory has been freed.
+
 
 ### Memory Management on iOS
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues](#database-queues) and [pools](#database-pools) automatically call the `releaseMemory` method when the application receives a memory warning, and when the application enters background.
+[Database queues] and [pools](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
 
-
-## Data Protection
-
-[Data Protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) lets you protect files so that they are encrypted and unavailable until the device is unlocked.
-
-Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
-
-You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools](#database-pools)).
-
-For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
+You can opt out of this automatic memory management:
 
 ```swift
-// Paths
-let fileManager = FileManager.default
-let directoryURL = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("database", isDirectory: true)
-let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
-
-// Create directory if needed
-var isDirectory: ObjCBool = false
-if !fileManager.fileExists(atPath: directoryURL.path, isDirectory: &isDirectory) {
-    try fileManager.createDirectory(atPath: directoryURL.path, withIntermediateDirectories: false)
-} else if !isDirectory.boolValue {
-    throw NSError(domain: NSCocoaErrorDomain, code: NSFileWriteFileExistsError, userInfo: nil)
-}
-
-// Enable data protection
-try fileManager.setAttributes([.protectionKey : FileProtectionType.complete], ofItemAtPath: directoryURL.path)
-
-// Open database
-let dbQueue = try DatabaseQueue(path: databaseURL.path)
+var config = Configuration()
+config.automaticMemoryManagement = false
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config) // or DatabasePool
 ```
-
-When a database is protected, an application that runs in the background on a locked device won't be able to read or write from it. Instead, it will get [DatabaseError](#error-handling) with code [`SQLITE_IOERR`](https://www.sqlite.org/rescode.html#ioerr) (10) "disk I/O error", or [`SQLITE_AUTH`](https://www.sqlite.org/rescode.html#auth) (23) "not authorized".
-
-You can catch those errors and wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification in order to retry the failed database operation.
-
-
-## Concurrency
-
-- [Guarantees and Rules](#guarantees-and-rules)
-- [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools)
-- [Advanced DatabasePool](#advanced-databasepool)
-- [Database Snapshots](#database-snapshots)
-- [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
-- [Asynchronous APIs](#asynchronous-apis)
-- [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- :blue_book: [Sharing a Database]
-
-
-### Guarantees and Rules
-
-GRDB ships with three concurrency modes:
-
-- [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
-- [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
-- [DatabaseSnapshot](#database-snapshots) opens a single read-only database connection on an unchanging database content, and (currently) serializes all database accesses
-
-**All foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
-
-- :bowtie: **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
-    
-    > Database writes always happen in a unique serial dispatch queue, named the *writer protected dispatch queue*.
-
-- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
-    
-    ```swift
-    try dbPool.read { db in // or dbQueue.read
-        // Guaranteed to be equal
-        let count1 = try Player.fetchCount(db)
-        let count2 = try Player.fetchCount(db)
-    }
-    ```
-    
-    > In [database queues](#database-queues), reads happen in the same protected dispatch queue as writes: isolation is just a consequence of the serialization of database accesses
-    >
-    > [Database pools](#database-pools) and [snapshots](#database-snapshots) both use the "snapshot isolation" made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
-
-- :bowtie: **Guarantee 3: requests don't fail**, unless a database constraint violation, a [programmer mistake](#error-handling), or a very low-level issue such as a disk error or an unreadable database file. GRDB grants *correct* use of SQLite, and particularly avoids locking errors and other SQLite misuses.
-
-Those guarantees hold as long as you follow three rules:
-
-- :point_up: **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
-    
-    This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
-    
-    See the [Demo Applications] for sample code that sets up a single database queue that is available throughout the application.
-    
-    See [Sharing a Database] for the specific setup required by applications that share their database files.
-    
-    ```swift
-    // SAFE CONCURRENCY
-    func fetchCurrentUser(_ db: Database) throws -> User? {
-        try User.fetchOne(db)
-    }
-    // dbQueue is a singleton defined somewhere in your app
-    let user = try dbQueue.read { db in // or dbPool.read
-        try fetchCurrentUser(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // This method fails when some other thread is currently writing into
-    // the database.
-    func currentUser() throws -> User? {
-        let dbQueue = try DatabaseQueue(...)
-        return try dbQueue.read { db in
-            try User.fetchOne(db)
-        }
-    }
-    let user = try currentUser()
-    ```
-    
-- :point_up: **Rule 2**: Group related statements within a single call to a DatabaseQueue or DatabasePool database access method (or use [snapshots](#database-snapshots)).
-    
-    Database access methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.read { db in  // or dbQueue.read
-        // Guaranteed to be equal:
-        let count1 = try Place.fetchCount(db)
-        let count2 = try Place.fetchCount(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // Those two values may be different because some other thread may have
-    // modified the database between the two blocks:
-    let count1 = try dbPool.read { db in try Place.fetchCount(db) }
-    let count2 = try dbPool.read { db in try Place.fetchCount(db) }
-    ```
-    
-    In the same vein, when you fetch values that depends on some database updates, group them:
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.write { db in
-        // The count is guaranteed to be non-zero
-        try Place(...).insert(db)
-        let count = try Place.fetchCount(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // The count may be zero because some other thread may have performed
-    // a deletion between the two blocks:
-    try dbPool.write { db in try Place(...).insert(db) }
-    let count = try dbPool.read { db in try Place.fetchCount(db) }
-    ```
-    
-    On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
-    
-- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, make sure those modifications are grouped within a [transaction](#transactions-and-savepoints).
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.write { db in               // or dbQueue.write
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    
-    // SAFE CONCURRENCY
-    try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-    
-    // UNSAFE CONCURRENCY
-    try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccount, amount).insert(db)
-        // <- Concurrent dbPool.read sees a partial db update here
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    ```
-    
-    Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
-    
-    So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency across your application threads: that's what they are made for.
-
-
-### Differences between Database Queues and Pools
-
-Despite the common [guarantees and rules](#guarantees-and-rules) shared by [database queues](#database-queues) and [pools](#database-pools), those two database accessors don't have the same behavior.
-
-**Database queues** serialize all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
-
-![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabaseQueueScheduling.svg)
-
-**Database pools** also serialize all writes. But they allow concurrent reads and writes, and isolate reads so that they don't see changes performed by other threads. This gives a very different picture:
-
-![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolScheduling.svg)
-
-See how, with database pools, two reads can see different database states at the same time.
-
-For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html). See [Database Observation] when you look after automatic notifications of database changes.
-
-
-### Advanced DatabasePool
-
-- [The `concurrentRead` Method](#the-concurrentread-method)
-- [The `barrierWriteWithoutTransaction` Method](#the-barrierwritewithouttransaction-method)
-
-
-#### The `concurrentRead` Method
-
-[Database pools](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
-
-When your application modifies the database, and then reads some value that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
-
-```swift
-try dbPool.write { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-    
-    // Read the number of players. The writer queue is still locked :-(
-    let count = try Player.fetchCount(db)
-}
-```
-
-A wrong solution is to chain a write then a read, as below. Don't do that, because another thread may modify the database in between, and make the read unreliable:
-
-```swift
-// WRONG
-try dbPool.write { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-}
-// <- other threads can write in the database here
-try dbPool.read { db in
-    // Read some random value :-(
-    let count = try Player.fetchCount(db)
-}
-```
-
-The correct solution is the `concurrentRead` method, which must be called from within a write block, outside of any transaction.
-
-`concurrentRead` returns a **future value** which you consume on any dispatch queue, with the `wait()` method:
-
-```swift
-// CORRECT
-let futureCount: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
-    // increment the number of players
-    try Player(...).insert(db)
-    
-    // <- not in a transaction here
-    let futureCount = dbPool.concurrentRead { db
-        try Player.fetchCount(db)
-    }
-    return futureCount
-}
-// <- The writer queue has been unlocked :-)
-
-// Wait for the player count
-let count: Int = try futureCount.wait()
-```
-
-`concurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
-
-The closure can run concurrently with eventual updates performed after `concurrentRead`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
-
-```swift
-try dbPool.writeWithoutTransaction { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-    
-    let futureCount = dbPool.concurrentRead { db
-        // Guaranteed to be non-zero
-        try Player.fetchCount(db)
-    }
-    
-    try Player.deleteAll(db)
-}
-```
-
-[Transaction Observers](#transactionobserver-protocol) can also use `concurrentRead` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
-
-
-#### The `barrierWriteWithoutTransaction` Method
-
-```swift
-try dbPool.barrierWriteWithoutTransaction { db in
-    // Exclusive database access
-}
-```
-
-The barrier write guarantees exclusive access to the database: the method blocks until all concurrent database accesses are completed, reads and writes, and postpones all other accesses until it completes.
-
-There is a known limitation: reads performed by [database snapshots](#database-snapshots) are out of scope, and may run concurrently with the barrier.
-
-
-
-### Database Snapshots
-
-**[Database pool](#database-pools) can take snapshots.** A database snapshot sees an unchanging database content, as it existed at the moment it was created.
-
-"Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
-
-You create snapshots from a [database pool](#database-pools):
-
-```swift
-let snapshot = try dbPool.makeSnapshot()
-```
-
-You can create as many snapshots as you need, regardless of the [maximum number of readers](#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot gets deinitialized.
-
-**A snapshot can be used from any thread.** Its `read` methods is synchronous, and blocks the current thread until your database statements are executed:
-
-```swift
-// Read values:
-try snapshot.read { db in
-    let players = try Player.fetchAll(db)
-    let playerCount = try Player.fetchCount(db)
-}
-
-// Extract a value from the database:
-let playerCount = try snapshot.read { db in
-    try Player.fetchCount(db)
-}
-```
-
-When you want to control the latest committed changes seen by a snapshot, create the snapshot from the pool's writer protected dispatch queue, outside of any transaction:
-
-```swift
-let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
-    try db.inTransaction {
-        // delete all players
-        try Player.deleteAll()
-        return .commit
-    }
-    
-    // <- not in a transaction here
-    return dbPool.makeSnapshot()
-}
-// <- Other threads may modify the database here
-let snapshot2 = try dbPool.makeSnapshot()
-
-try snapshot1.read { db in
-    // Guaranteed to be zero
-    try Player.fetchCount(db)
-}
-
-try snapshot2.read { db in
-    // Could be anything
-    try Player.fetchCount(db)
-}
-```
-
-> :point_up: **Note**: snapshots currently serialize all database accesses. In the future, snapshots may allow concurrent reads.
-
-
-### DatabaseWriter and DatabaseReader Protocols
-
-Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/5.8/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/5.8/Protocols/DatabaseWriter.html) protocols. DatabaseSnapshot adopts DatabaseReader only.
-
-These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
-
-- [Migrations]
-- [DatabaseRegionObservation]
-- [ValueObservation]
-- [Combine Support]
-- [RxGRDB]
-
-Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
-
-DatabaseReader and DatabaseWriter provide the *smallest* common guarantees: they don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
-
-However, you can prevent some parts of your application from writing in the database by giving them a DatabaseReader:
-
-```swift
-// This class can read in the database, but can't write into it.
-class MyReadOnlyComponent {
-    let reader: DatabaseReader
-    
-    init(reader: DatabaseReader) {
-        self.reader = reader
-    }
-}
-
-let dbQueue: DatabaseQueue = ...
-let component = MyReadOnlyComponent(reader: dbQueue)
-```
-
-> :point_up: **Note**: DatabaseReader is not a **secure** way to prevent an application component from writing in the database, because write access is just a cast away:
->
-> ```swift
-> if let dbQueue = reader as? DatabaseQueue {
->     try dbQueue.write { ... }
-> }
-> ```
-
-
-### Asynchronous APIs
-
-**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide asynchronous database access methods.**
-
-- [`asyncRead`](#asyncread)
-- [`asyncWrite`](#asyncwrite)
-- [`asyncWriteWithoutTransaction`](#asyncwritewithouttransaction)
-- [`asyncConcurrentRead`](#asyncconcurrentread)
-
-
-#### `asyncRead`
-
-The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
-
-```swift
-reader.asyncRead { (dbResult: Result<Database, Error>) in
-    do {
-        let db = try dbResult.get()
-        let players = try Player.fetchAll(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-The argument function accepts a standard `Result<Database, Error>` which may contain a failure if it was impossible to start a reading access to the database.
-
-Any attempt at modifying the database throws an error.
-
-When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
-
-When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
-
-
-#### `asyncWrite`
-    
-The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
-
-```swift
-writer.asyncWrite({ (db: Database) in
-    try Player(...).insert(db)
-}, completion: { (db: Database, result: Result<Void, Error>) in
-    switch result {
-    case let .success:
-        // handle transaction success
-    case let .failure(error):
-        // handle transaction error
-    }
-})
-```
-
-`asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts a database connection and the result of the asynchronous transaction.
-
-On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
-
-When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
-
-```swift
-writer.asyncWrite({ (db: Database) -> Int in
-    try Player(...).insert(db)
-    return try Player.fetchCount(db)
-}, completion: { (db: Database, result: Result<Int, Error>) in
-    switch result {
-    case let .success(newPlayerCount):
-        print("new player count: \(newPlayerCount)")
-    case let .failure(error):
-        // handle transaction error
-    }
-})
-```
-
-The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
-
-
-#### `asyncWriteWithoutTransaction`
-
-The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
-
-```swift
-writer.asyncWriteWithoutTransaction { (db: Database) in
-    do {
-        try Player(...).insert(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-**Writing outside of any transaction is dangerous.** You should almost always prefer the `asyncWrite` method described above. Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
-
-The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
-
-
-#### `asyncConcurrentRead`
-
-The `asyncConcurrentRead` method is available on database pools only. It is the asynchronous equivalent of the `concurrentRead` described in the [Advanced DatabasePool](#advanced-databasepool) chapter.
-
-It must be called from a writing dispatch queue, outside of any transaction. You'll get a fatal error otherwise.
-
-The closure argument is guaranteed to see the database in the last committed state at the moment this method is called. Eventual concurrent database updates are *not visible* inside the block.
-
-`asyncConcurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
-
-In the example below, the number of players is fetched concurrently with the player insertion. Yet the future is guaranteed to return zero:
-
-```swift
-try writer.asyncWriteWithoutTransaction { db in
-    do {
-        // Delete all players
-        try Player.deleteAll()
-        
-        // <- not in a transaction here
-        // Count players concurrently
-        writer.asyncConcurrentRead { (dbResult: Result<Database, Error>) in
-            do {
-                let db = try dbResult.get()
-                // Guaranteed to be zero
-                let count = try Player.fetchCount(db)
-            } catch {
-                // handle error
-            }
-        }
-        
-        // Insert a player
-        try Player(...).insert(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-
-### Unsafe Concurrency APIs
-
-**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* database access methods.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
-
-- **`unsafeRead`**
-    
-    The `unsafeRead` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. GRDB does just the bare minimum to provide a database connection that can read.
-    
-    When used on a database pool, reads are no longer isolated:
-    
-    ```swift
-    dbPool.unsafeRead { db in
-        // Those two values may be different because some other thread
-        // may have inserted or deleted a player between the two requests:
-        let count1 = try Player.fetchCount(db)
-        let count2 = try Player.fetchCount(db)
-    }
-    ```
-    
-    When used on a database queue, the closure argument is allowed to write in the database.
-    
-- **`unsafeReentrantRead`**
-    
-    The `unsafeReentrantRead` behaves just as `unsafeRead` (see above), and allows reentrant calls:
-    
-    ```swift
-    dbPool.read { db1 in
-        // No "Database methods are not reentrant" fatal error:
-        dbPool.unsafeReentrantRead { db2 in
-            dbPool.unsafeReentrantRead { db3 in
-                ...
-            }
-        }
-    }
-    ```
-    
-    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
-    
-    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
-    
-- **`unsafeReentrantWrite`**
-    
-    The `unsafeReentrantWrite` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. Writes are serialized: eventual concurrent database updates are postponed until the block has executed.
-    
-    Reentrant calls are allowed:
-    
-    ```swift
-    dbQueue.write { db1 in
-        // No "Database methods are not reentrant" fatal error:
-        dbQueue.unsafeReentrantWrite { db2 in
-            dbQueue.unsafeReentrantWrite { db3 in
-                ...
-            }
-        }
-    }
-    ```
-    
-    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
-    
-    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
-
 
 FAQ
 ===
@@ -7752,6 +5619,7 @@ FAQ
 
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [Does GRDB support library evolution and ABI stability?](#does-grdb-support-library-evolution-and-abi-stability)
 
 **[FAQ: Associations](#faq-associations)**
 
@@ -7766,6 +5634,7 @@ FAQ
 **[FAQ: Errors](#faq-errors)**
 
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7780,51 +5649,53 @@ FAQ
 
 ### How do I create a database in my application?
 
-This question assumes that your application has to create a new database from scratch. If your app has to open an existing database that is embedded inside your application as a resource, see [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application) instead.
+First choose a proper location for the database file. Document-based applications will let the user pick a location. Apps that use the database as a global storage will prefer the Application Support directory.
 
-The database has to be stored in a valid place where it can be created and modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html):
+The sample code below creates or opens a database file inside its dedicated directory (a [recommended practice](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseconnections)). On the first run, a new empty database file is created. On subsequent runs, the database file already exists, so it just opens a connection:
 
 ```swift
-let databaseURL = try FileManager.default
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
+// HOW TO create an empty database, or open an existing database file
+
+// Create the "Application Support/MyDatabase" directory
+let fileManager = FileManager.default
+let appSupportURL = try fileManager.url(
+    for: .applicationSupportDirectory, in: .userDomainMask,
+    appropriateFor: nil, create: true) 
+let directoryURL = appSupportURL.appendingPathComponent("MyDatabase", isDirectory: true)
+try fileManager.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+
+// Open or create the database
+let databaseURL = directoryURL.appendingPathComponent("db.sqlite")
 let dbQueue = try DatabaseQueue(path: databaseURL.path)
 ```
 
-
 ### How do I open a database stored as a resource of my application?
 
-If your application does not need to modify the database, open a read-only [connection](#database-connections) to your resource:
+Open a read-only connection to your resource:
 
 ```swift
-var config = Configuration()
-config.readonly = true
-let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
-```
+// HOW TO open a read-only connection to a database resource
 
-If the application should modify the database, you need to copy it to a place where it can be modified. For example, in the [Application Support directory](https://developer.apple.com/library/content/documentation/FileManagement/Conceptual/FileSystemProgrammingGuide/FileSystemOverview/FileSystemOverview.html). Only then, open a [connection](#database-connections):
+// Get the path to the database resource.
+if let dbPath = Bundle.main.path(forResource: "db", ofType: "sqlite")
 
-```swift
-let fileManager = FileManager.default
-let dbPath = try fileManager
-    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-    .appendingPathComponent("db.sqlite")
-    .path
-if !fileManager.fileExists(atPath: dbPath) {
-    let dbResourcePath = Bundle.main.path(forResource: "db", ofType: "sqlite")!
-    try fileManager.copyItem(atPath: dbResourcePath, toPath: dbPath)
+if let dbPath {
+    // If the resource exists, open a read-only connection.
+    // Writes are disallowed because resources can not be modified. 
+    var config = Configuration()
+    config.readonly = true
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+} else {
+    // The database resource can not be found.
+    // Fix your setup, or report the problem to the user. 
 }
-let dbQueue = try DatabaseQueue(path: dbPath)
 ```
-
 
 ### How do I close a database connection?
-    
-Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deinitialized, and all usages of this connection are completed.
 
-Database accesses that run in background threads postpone the closing of connections.
+Database connections are automatically closed when `DatabaseQueue` or `DatabasePool` instances are deinitialized.
 
+If the correct execution of your program depends on precise database closing, perform an explicit call to [`close()`](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader/close()). This method may fail and create zombie connections, so please check its detailed documentation.
 
 ## FAQ: SQL
 
@@ -7835,13 +5706,14 @@ Database accesses that run in background threads postpone the closing of connect
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
 
-You can compile the request into a prepared statement:
+You can compile the request into a prepared [`Statement`]:
 
 ```swift
 try dbQueue.read { db in
-    let request = Player.filter(Column("name") == "O'Brien")
+    let request = Player.filter(Column("email") == "arthur@example.com")
     let statement = try request.makePreparedRequest(db).statement
-    print(statement) // SQL: SELECT * FROM player WHERE name = ?, Arguments: ["O'Brien"]
+    print(statement) // SELECT * FROM player WHERE email = ?
+    print(statement.arguments) // ["arthur@example.com"]
 }
 ```
 
@@ -7856,23 +5728,14 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
-    // Prints SELECT * FROM player WHERE name = 'O''Brien'
+    // Prints "SELECT * FROM player WHERE email = ?"
+    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
 }
 ```
 
-If you want to hide values such as `'O''Brien'` from the logged statements, adapt the tracing function as below:
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
 
-```swift
-db.trace { event in
-    if case let .statement(statement) = event {
-        // Prints SELECT * FROM player WHERE name = ?
-        print(statement.sql)
-    }
-}
-```
-
-> :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
+> **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
 
 ## FAQ: General
@@ -7880,6 +5743,7 @@ db.trace { event in
 - :arrow_up: [FAQ]
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [Does GRDB support library evolution and ABI stability?](#does-grdb-support-library-evolution-and-abi-stability)
 
 ### How do I monitor the duration of database statements execution?
 
@@ -7901,11 +5765,26 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
-    // Prints "0.003s SELECT * FROM player WHERE name = 'O''Brien'"
+    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
+    // Prints "0.003s SELECT * FROM player WHERE email = ?"
 }
 ```
 
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](https://swiftpackageindex.com/groue/grdb.swift/configuration/publicstatementarguments).
+
+### What Are Experimental Features?
+
+Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
+
+There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
+
+Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
+
+### Does GRDB support library evolution and ABI stability?
+
+No, GRDB does not support library evolution and ABI stability. The only promise is API stability according to [semantic versioning](http://semver.org), with an exception for [experimental features](#what-are-experimental-features).
+
+Yet, GRDB can be built with the "Build Libraries for Distribution" Xcode option (`BUILD_LIBRARY_FOR_DISTRIBUTION`), so that you can build binary frameworks at your convenience.
 
 ## FAQ: Associations
 
@@ -8015,11 +5894,9 @@ struct BookInfo: Decodable, FetchableRecord {
         // SELECT book.*, author.name AS authorName
         // FROM book
         // LEFT JOIN author ON author.id = book.authorID
-        let authorAlias = TableAlias()
-        let authorName = authorAlias[Author.Columns.name].forKey(CodingKeys.authorName)
+        let authorName = Author.Columns.name.forKey(CodingKeys.authorName)
         return Book
-            .annotated(with: authorName)
-            .joining(optional: Book.author.aliased(authorAlias))
+            .annotated(withOptional: Book.author.select(authorName))
             .asRequest(of: BookInfo.self)
     }
 }
@@ -8029,13 +5906,9 @@ let bookInfos: [BookInfo] = try dbQueue.read { db in
 }
 ```
 
-By using a TableAlias, you can refer to an author column from a request of books.
-
 By defining the request as a static method of BookInfo, you have access to the private `CodingKeys.authorName`, and a compiler-checked SQL column name.
 
-By using the `annotated(with:)` method, you append the author name to the top-level selection that can be decoded by the ad-hoc record.
-
-By using the `joining()` method, you make sure no author column is selected, but the one declared in `annotated(with:)`.
+By using the `annotated(withOptional:)` method, you append the author name to the top-level selection that can be decoded by the ad-hoc record.
 
 By using `asRequest(of:)`, you enhance the type-safety of your request.
 
@@ -8099,6 +5972,7 @@ If after all those steps (thanks you!), your observation is still failing you, p
 
 - :arrow_up: [FAQ]
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -8134,6 +6008,31 @@ You can also, when possible, write a single-line closure:
 let string = try dbQueue.read { db in
     try String.fetchOne(db, ...)
 }
+```
+
+
+### Mutation of captured var in concurrently-executing code
+
+The `insert` and `save` [persistence methods](#persistablerecord-protocol) can trigger a compiler error in async contexts:
+
+```swift
+var player = Player(id: nil, name: "Arthur")
+try await dbWriter.write { db in
+    // Error: Mutation of captured var 'player' in concurrently-executing code
+    try player.insert(db)
+}
+print(player.id) // A non-nil id
+```
+
+When this happens, prefer the `inserted` and `saved` methods instead:
+
+```swift
+// OK
+var player = Player(id: nil, name: "Arthur")
+player = try await dbWriter.write { [player] db in
+    return try player.inserted(db)
+}
+print(player.id) // A non-nil id
 ```
 
 
@@ -8176,23 +6075,20 @@ When this is the case, there are two possible explanations:
     try db.execute(sql: "UPDATE player SET name = ?", arguments: [name])
     ```
     
-For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#dblquote), and [Configuration.acceptsDoubleQuotedStringLiterals](http://groue.github.io/GRDB.swift/docs/5.8/Structs/Configuration.html#/s:4GRDB13ConfigurationV33acceptsDoubleQuotedStringLiteralsSbvp).
+For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#double_quoted_string_literals_are_accepted), and [Configuration.acceptsDoubleQuotedStringLiterals](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration/acceptsdoublequotedstringliterals).
     
 
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
 
-Those errors may be the sign that SQLite can't access the database due to [data protection](#data-protection).
+Those errors may be the sign that SQLite can't access the database due to [data protection](https://developer.apple.com/documentation/uikit/protecting_the_user_s_privacy/encrypting_your_app_s_files).
 
 When your application should be able to run in the background on a locked device, it has to catch this error, and, for example, wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification and retry the failed database operation.
 
 ```swift
 do {
     try ...
-} catch let error as DatabaseError where
-    error.resultCode == .SQLITE_IOERR ||
-    error.resultCode == .SQLITE_AUTH
-{
+} catch DatabaseError.SQLITE_IOERR, DatabaseError.SQLITE_AUTH {
     // Handle possible data protection error
 }
 ```
@@ -8226,15 +6122,6 @@ let players: [Player] = try dbQueue.read { db in
 ```
 
 
-### What Are Experimental Features?
-
-Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
-
-There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
-
-Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
-
-
 Sample Code
 ===========
 
@@ -8249,7 +6136,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@fpillet](http://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@alexwlchan](https://github.com/alexwlchan), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@felixscheinost](https://github.com/felixscheinost), [@fpillet](https://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@guidedways](https://github.com/guidedways), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@holsety](https://github.com/holsety), [@jroselightricks](https://github.com/jroselightricks), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@layoutSubviews](https://github.com/layoutSubviews), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@mattgallagher](https://github.com/mattgallagher), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@pp5x](https://github.com/pp5x), [@professordeng](https://github.com/professordeng), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@sberrevoets](https://github.com/sberrevoets), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@tternes](https://github.com/tternes), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), [@ZevEisenberg](https://github.com/ZevEisenberg), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 
@@ -8257,21 +6144,77 @@ Sample Code
 
 [URIs don't change: people change them.](https://www.w3.org/Provider/Style/URI)
 
+#### Adding support for missing SQL functions or operators
+
+This chapter was renamed to [Embedding SQL in Query Interface Requests].
+
+#### Advanced DatabasePool
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### After Commit Hook
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
+
+#### Asynchronous APIs
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
 #### Changes Tracking
 
 This chapter has been renamed [Record Comparison].
+
+#### Concurrency
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### Custom Value Types
+
+Custom Value Types conform to the [`DatabaseValueConvertible`] protocol.
 
 #### Customized Decoding of Database Rows
 
 This chapter has been renamed [Beyond FetchableRecord].
 
+#### Customizing the Persistence Methods
+
+This chapter was replaced with [Persistence Callbacks].
+
+#### Database Changes Observation
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation).
+
+#### Database Configuration
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration).
+
+#### Database Queues
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue).
+
+#### Database Pools
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool).
+
+#### Database Snapshots
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### DatabaseWriter and DatabaseReader Protocols
+
+This chapter was removed. See the references of [DatabaseReader](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasereader) and [DatabaseWriter](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasewriter).
+
 #### Dealing with External Connections
 
 This chapter has been superseded by the [Sharing a Database] guide.
 
+#### Differences between Database Queues and Pools
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
 #### Enabling FTS5 Support
 
-This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
+FTS5 is enabled by default since GRDB 6.7.0.
 
 #### FetchedRecordsController
 
@@ -8283,17 +6226,37 @@ The [Database Observation] chapter describes the other ways to observe the datab
 
 This chapter has [moved](Documentation/FullTextSearch.md).
 
+#### Guarantees and Rules
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### Joined Queries Support
+
+This chapter was replaced with the documentation of [splittingRowAdapters(columnCounts:)](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/splittingrowadapters(columncounts:)).
+
 #### Migrations
 
-This chapter has [moved](Documentation/Migrations.md).
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations).
 
 #### NSNumber and NSDecimalNumber
 
-This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
+This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal).
 
 #### Persistable Protocol
 
 This protocol has been renamed [PersistableRecord] in GRDB 3.0.
+
+#### PersistenceError
+
+This error was renamed to [RecordError].
+
+#### Prepared Statements
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement).
+
+#### Row Adapters
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/rowadapter).
 
 #### RowConvertible Protocol
 
@@ -8303,10 +6266,29 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
+#### Transactions and Savepoints
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions).
+
+#### Transaction Hook
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/database/afternexttransaction(oncommit:onrollback:)).
+
+#### TransactionObserver Protocol
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver).
+
+#### Unsafe Concurrency APIs
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency).
+
+#### ValueObservation
+
+This chapter has [moved](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation).
+
 #### ValueObservation and DatabaseRegionObservation
 
 This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
-
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
@@ -8316,12 +6298,12 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [common table expression]: Documentation/CommonTableExpressions.md
 [Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
-[Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Column Names Coding Strategies]: #column-names-coding-strategies
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
+[Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
-[Migrations]: Documentation/Migrations.md
-[The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
+[Migrations]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
 [FetchableRecord]: #fetchablerecord-protocol
@@ -8329,21 +6311,42 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [PersistableRecord]: #persistablerecord-protocol
 [Record Comparison]: #record-comparison
 [Record Customization Options]: #record-customization-options
+[Persistence Callbacks]: #persistence-callbacks
+[persistence callbacks]: #persistence-callbacks
+[Record Timestamps and Transaction Date]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/recordtimestamps
 [TableRecord]: #tablerecord-protocol
-[ValueObservation]: #valueobservation
-[DatabaseRegionObservation]: #databaseregionobservation
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
-[DatabaseRegion]: #databaseregion
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
+[DatabaseRegionObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregionobservation
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
+[DatabaseRegion]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
-[Demo Applications]: Documentation/DemoApps/README.md
-[Sharing a Database]: Documentation/SharingADatabase.md
+[Concurrency]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
+[Demo Applications]: Documentation/DemoApps
+[Sharing a Database]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasesharing
 [FAQ]: #faq
-[Database Observation]: #database-changes-observation
-[SQLRequest]: http://groue.github.io/GRDB.swift/docs/5.8/Structs/SQLRequest.html
+[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[SQLRequest]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/sqlrequest
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
+[Database Configuration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/configuration
+[Persistence Methods]: #persistence-methods
+[persistence methods]: #persistence-methods
+[Persistence Methods and the `RETURNING` clause]: #persistence-methods-and-the-returning-clause
+[RecordError]: #recorderror
+[Transactions and Savepoints]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactions
+[`DatabaseQueue`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
+[Database queues]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasequeue
+[`DatabasePool`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[database pools]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasepool
+[`DatabaseValueConvertible`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databasevalueconvertible
+[`StatementArguments`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statementarguments
+[Prepared Statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[prepared statements]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[`Statement`]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/statement
+[Database Connections]: #database-connections
+[Database connections]: #database-connections
+[database connection]: #database-connections
