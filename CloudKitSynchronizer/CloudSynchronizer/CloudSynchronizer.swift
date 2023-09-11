@@ -883,11 +883,12 @@ extension CloudSynchronizer: TableObserverDelegate {
             guard let ckRecord = ckRecordsDictionary[row.identifier] else {
                 continue
             }
-
+            
             let mappedCKRecord = mapper.map(data: row.dict, to: ckRecord)
 
-            mappedCkRecords.append(mappedCKRecord)
-
+            if mappedCKRecord.changedKeys().count > 0 {
+                mappedCkRecords.append(mappedCKRecord)
+            }
         }
         
         try? cloudRecordStore.checkinCloudRecords(mappedCkRecords, with: .pushingUpdate, having: nil, error: nil, using: db)
