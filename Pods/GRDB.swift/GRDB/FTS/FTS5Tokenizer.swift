@@ -3,45 +3,67 @@ import Foundation
 
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
 ///
-/// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
+/// See ``FTS5Tokenizer/tokenize(context:tokenization:pText:nText:tokenCallback:)``.
 public typealias FTS5TokenCallback = @convention(c) (
     _ context: UnsafeMutableRawPointer?,
-    _ flags: Int32,
+    _ flags: CInt,
     _ pToken: UnsafePointer<Int8>?,
-    _ nToken: Int32,
-    _ iStart: Int32,
-    _ iEnd: Int32)
-    -> Int32
+    _ nToken: CInt,
+    _ iStart: CInt,
+    _ iEnd: CInt)
+    -> CInt
 
 /// The reason why FTS5 is requesting tokenization.
 ///
-/// See https://www.sqlite.org/fts5.html#custom_tokenizers
+/// See the `FTS5_TOKENIZE_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
 public struct FTS5Tokenization: OptionSet {
-    public let rawValue: Int32
+    public let rawValue: CInt
     
-    public init(rawValue: Int32) {
+    public init(rawValue: CInt) {
         self.rawValue = rawValue
     }
     
-    /// FTS5_TOKENIZE_QUERY
+    /// `FTS5_TOKENIZE_QUERY`
     public static let query = FTS5Tokenization(rawValue: FTS5_TOKENIZE_QUERY)
     
-    /// FTS5_TOKENIZE_PREFIX
+    /// `FTS5_TOKENIZE_PREFIX`
     public static let prefix = FTS5Tokenization(rawValue: FTS5_TOKENIZE_PREFIX)
     
-    /// FTS5_TOKENIZE_DOCUMENT
+    /// `FTS5_TOKENIZE_DOCUMENT`
     public static let document = FTS5Tokenization(rawValue: FTS5_TOKENIZE_DOCUMENT)
     
-    /// FTS5_TOKENIZE_AUX
+    /// `FTS5_TOKENIZE_AUX`
     public static let aux = FTS5Tokenization(rawValue: FTS5_TOKENIZE_AUX)
 }
 
-/// The protocol for FTS5 tokenizers
+/// A type that implements a tokenizer for the ``FTS5`` full-text engine.
+///
+/// You can instantiate tokenizers, including
+/// [built-in tokenizers](https://www.sqlite.org/fts5.html#tokenizers),
+/// with the ``Database/makeTokenizer(_:)`` method:
+///
+/// ```swift
+/// try dbQueue.read { db in
+///     let unicode61 = try db.makeTokenizer(.unicode61()) // FTS5Tokenizer
+/// }
+/// ```
+///
+/// See [FTS5 Tokenizers](https://github.com/groue/GRDB.swift/blob/master/Documentation/FTS5Tokenizers.md)
+/// for more information.
+///
+/// ## Topics
+///
+/// ### Tokenizing Text
+///
+/// - ``tokenize(document:)``
+/// - ``tokenize(query:)``
+/// - ``tokenize(context:tokenization:pText:nText:tokenCallback:)``
+/// - ``FTS5TokenCallback``
 public protocol FTS5Tokenizer: AnyObject {
     /// Tokenizes the text described by `pText` and `nText`, and
     /// notifies found tokens to the `tokenCallback` function.
     ///
-    /// It matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers
+    /// It matches the `xTokenize` function documented at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     ///
     /// - parameters:
     ///     - context: An opaque pointer that is the first argument to
@@ -51,14 +73,14 @@ public protocol FTS5Tokenizer: AnyObject {
     ///       nul-terminated.
     ///     - nText: The number of bytes in the tokenized text.
     ///     - tokenCallback: The function to call for each found token.
-    ///       It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers
+    ///       It matches the `xToken` callback at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
         pText: UnsafePointer<Int8>?,
-        nText: Int32,
+        nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
-    -> Int32
+    -> CInt
 }
 
 private class TokenizeContext {
@@ -67,8 +89,44 @@ private class TokenizeContext {
 
 extension FTS5Tokenizer {
     
-    /// Tokenizes the string argument into an array of
-    /// (String, FTS5TokenFlags) pairs.
+    /// Tokenizes the string argument as a document that would be inserted into
+    /// an FTS5 table.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let tokenizer = try db.makeTokenizer(.ascii())
+    /// try tokenizer.tokenize(document: "foo bar") // [("foo", flags), ("bar", flags)]
+    /// ```
+    ///
+    /// See also `tokenize(query:)`.
+    ///
+    /// - parameter string: The string to tokenize.
+    /// - returns: An array of tokens and flags.
+    /// - throws: An error if tokenization fails.
+    public func tokenize(document string: String) throws -> [(token: String, flags: FTS5TokenFlags)] {
+        try tokenize(string, for: .document)
+    }
+
+    /// Tokenizes the string argument as an FTS5 query.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let tokenizer = try db.makeTokenizer(.ascii())
+    /// try tokenizer.tokenize(query: "foo bar") // [("foo", flags), ("bar", flags)]
+    /// ```
+    ///
+    /// See also `tokenize(document:)`.
+    ///
+    /// - parameter string: The string to tokenize.
+    /// - returns: An array of tokens and flags.
+    /// - throws: An error if tokenization fails.
+    public func tokenize(query string: String) throws -> [(token: String, flags: FTS5TokenFlags)] {
+        try tokenize(string, for: .query)
+    }
+
+    /// Tokenizes the string argument.
     ///
     ///     let tokenizer = try db.makeTokenizer(.ascii())
     ///     try tokenizer.tokenize("foo bar", for: .document) // [("foo", flags), ("bar", flags)]
@@ -78,13 +136,15 @@ extension FTS5Tokenizer {
     ///     - .document: Tokenize like a document being inserted into an FTS table.
     ///     - .query: Tokenize like the search pattern of the MATCH operator.
     /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
-    func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [(String, FTS5TokenFlags)] {
+    private func tokenize(_ string: String, for tokenization: FTS5Tokenization)
+    throws -> [(token: String, flags: FTS5TokenFlags)]
+    {
         try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
             guard let addr = buffer.baseAddress else {
                 return []
             }
             let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
-            let nText = Int32(buffer.count)
+            let nText = CInt(buffer.count)
             
             var context = TokenizeContext()
             try withUnsafeMutablePointer(to: &context) { contextPointer in
@@ -93,8 +153,8 @@ extension FTS5Tokenizer {
                     tokenization: tokenization,
                     pText: pText,
                     nText: nText,
-                    tokenCallback: { (contextPointer, flags, pToken, nToken, _ /* iStart */, _ /* iEnd */) -> Int32 in
-                        guard let contextPointer = contextPointer else {
+                    tokenCallback: { (contextPointer, flags, pToken, nToken, _ /* iStart */, _ /* iEnd */) in
+                        guard let contextPointer else {
                             return SQLITE_ERROR
                         }
                         
@@ -120,16 +180,6 @@ extension FTS5Tokenizer {
             return context.tokens
         }
     }
-    
-    func nonSynonymTokens(in string: String, for tokenization: FTS5Tokenization) throws -> [String] {
-        var tokens: [String] = []
-        for (token, flags) in try tokenize(string, for: tokenization) {
-            if !flags.contains(.colocated) {
-                tokens.append(token)
-            }
-        }
-        return tokens
-    }
 }
 
 extension Database {
@@ -150,7 +200,7 @@ extension Database {
             self.xTokenizer = xTokenizer
             
             var tokenizerPointer: OpaquePointer? = nil
-            let code: Int32
+            let code: CInt
             if arguments.isEmpty {
                 code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
             } else {
@@ -176,7 +226,7 @@ extension Database {
                         xCreate(
                             contextPointer,
                             UnsafeMutablePointer(OpaquePointer(azArg.baseAddress!)),
-                            Int32(cStrings.count),
+                            CInt(cStrings.count),
                             &tokenizerPointer)
                     }
                 }
@@ -186,7 +236,7 @@ extension Database {
                 throw DatabaseError(resultCode: code, message: "failed fts5_tokenizer.xCreate")
             }
             
-            if let tokenizerPointer = tokenizerPointer {
+            if let tokenizerPointer {
                 self.tokenizerPointer = tokenizerPointer
             } else {
                 throw DatabaseError(resultCode: code, message: "nil tokenizer")
@@ -203,9 +253,9 @@ extension Database {
             context: UnsafeMutableRawPointer?,
             tokenization: FTS5Tokenization,
             pText: UnsafePointer<Int8>?,
-            nText: Int32,
+            nText: CInt,
             tokenCallback: @escaping FTS5TokenCallback)
-        -> Int32
+        -> CInt
         {
             guard let xTokenize = xTokenizer.xTokenize else {
                 return SQLITE_ERROR
@@ -216,21 +266,28 @@ extension Database {
     
     /// Creates an FTS5 tokenizer, given its descriptor.
     ///
-    ///     let unicode61 = try db.makeTokenizer(.unicode61())
+    /// For example:
+    ///
+    /// ```swift
+    /// let unicode61 = try db.makeTokenizer(.unicode61())
+    /// ```
+    ///
+    /// You can use this method when you implement a custom wrapper tokenizer
+    /// with ``FTS5WrapperTokenizer``:
+    ///
+    /// ```swift
+    /// final class MyTokenizer : FTS5WrapperTokenizer {
+    ///     var wrappedTokenizer: FTS5Tokenizer
+    ///
+    ///     init(db: Database, arguments: [String]) throws {
+    ///         wrappedTokenizer = try db.makeTokenizer(.unicode61())
+    ///     }
+    /// }
+    /// ```
     ///
     /// It is a programmer error to use the tokenizer outside of a protected
     /// database queue, or after the database has been closed.
-    ///
-    /// Use this method when you implement a custom wrapper tokenizer:
-    ///
-    ///     final class MyTokenizer : FTS5WrapperTokenizer {
-    ///         var wrappedTokenizer: FTS5Tokenizer
-    ///
-    ///         init(db: Database, arguments: [String]) throws {
-    ///             wrappedTokenizer = try db.makeTokenizer(.unicode61())
-    ///         }
-    ///     }
-    public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
+    public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> any FTS5Tokenizer {
         let api = FTS5.api(self)
         
         let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)

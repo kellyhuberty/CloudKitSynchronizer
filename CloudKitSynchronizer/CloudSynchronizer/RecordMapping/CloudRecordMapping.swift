@@ -86,6 +86,8 @@ extension CloudRecordMapper: CloudRecordMapping {
         var allKeys = Set(data.keys)
         allKeys.formUnion(transforms.keys)
         
+        let newRecord: CKRecord = record.copy() as! CKRecord
+        
         for (key) in allKeys {
             
             let value: DatabaseValue? = data[key] ?? nil
@@ -95,37 +97,38 @@ extension CloudRecordMapper: CloudRecordMapping {
 //                continue
 //            }
             
+            
             if let transform = transforms[key] {
                 if let transformedValue = transform.transformToRemote(value, to: record) {
-                    record.setValue(transformedValue, forKey: key)
+                    newRecord.setValue(transformedValue, forKey: key)
                 }
                 else {
-                    record.setValue(nil, forKey: key)
+                    newRecord.setValue(nil, forKey: key)
                 }
                 continue
             }
             
             guard let value = value else {
-                record.setValue(nil, forKey: key)
+                newRecord.setValue(nil, forKey: key)
                 continue
             }
             
             switch value.storage {
             case .blob(let data):
-                record.setValue(data, forKey: key)
+                newRecord.setValue(data, forKey: key)
             case .double(let double):
-                record.setValue(double, forKey: key)
+                newRecord.setValue(double, forKey: key)
             case .int64(let integer):
-                record.setValue(integer, forKey: key)
+                newRecord.setValue(integer, forKey: key)
             case .string(let string):
-                record.setValue(string, forKey: key)
+                newRecord.setValue(string, forKey: key)
             case .null:
-                record.setValue(nil, forKey: key)
+                newRecord.setValue(nil, forKey: key)
             }
             
         }
 
-        return record
+        return newRecord
     }
     
     func map(record:CKRecord) -> [String:DatabaseValue?]?{

@@ -883,11 +883,12 @@ extension CloudSynchronizer: TableObserverDelegate {
             guard let ckRecord = ckRecordsDictionary[row.identifier] else {
                 continue
             }
-
+            
             let mappedCKRecord = mapper.map(data: row.dict, to: ckRecord)
 
-            mappedCkRecords.append(mappedCKRecord)
-
+            if mappedCKRecord.changedKeys().count > 0 {
+                mappedCkRecords.append(mappedCKRecord)
+            }
         }
         
         try? cloudRecordStore.checkinCloudRecords(mappedCkRecords, with: .pushingUpdate, having: nil, error: nil, using: db)
@@ -895,11 +896,11 @@ extension CloudSynchronizer: TableObserverDelegate {
         return mappedCkRecords
     }
     
-    func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow]) {
+    func tableObserver(_ observer: TableObserving, created: [TableRow], updated: [TableRow], deleted: [TableRow.Identifier]) {
         
         let table = observer.tableName
         
-        let deletedIdentifiers = deleted.map{ $0.identifier }
+        let deletedIdentifiers = deleted
         
         var recordsToDelete: [CKRecord] = []
         var recordsToUpdate: [CKRecord] = []

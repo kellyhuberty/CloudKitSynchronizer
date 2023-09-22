@@ -30,6 +30,10 @@ class SQLiteTableObserver {
     private var currentRowsUpdatingUp:[TableRow] = []
     private var currentRowsDeletingUp:[TableRow] = []
     
+    private var currentRowsIDsCreatingUp:[TableRow.RawIdentifier] = []
+    private var currentRowsIDsUpdatingUp:[TableRow.RawIdentifier] = []
+    private var currentRowsIDsDeletingUp:[TableRow.Identifier] = []
+    
     private var databaseQueue: DatabaseQueue
     
     
@@ -124,17 +128,45 @@ class SQLiteTableObserver {
         DispatchQueue(label: "TableObserver", qos: .default, attributes: [], autoreleaseFrequency: .inherit, target: nil)
     }()
     
-    private func sendTableRowsAndReset() {
+    private func fetchTableRowsForPopulatedIds(_ db: Database) {
+        
+        let rowIDColumn = Column("ROWID")
+        let currentTable = Table<TableRow>(tableConfiguration.tableName)
+        
+        let identifierColumn = Column("ROWID")
+        let recordTable = Table<TableRow>(TableNames.CloudRecords)
+        
+        currentRowsCreatingUp = try! currentTable.filter(currentRowsIDsCreatingUp.contains(rowIDColumn)).fetchAll(db)
+        currentRowsUpdatingUp = try! currentTable.filter(currentRowsIDsUpdatingUp.contains(rowIDColumn)).fetchAll(db)
+        
+        let selectQuery = """
+        SELECT
+            \(TableNames.CloudRecords).identifier
+        FROM
+            \(TableNames.CloudRecords) LEFT JOIN \(tableConfiguration.tableName)
+            ON \(tableConfiguration.tableName).identifier = \(TableNames.CloudRecords).identifier
+        WHERE
+            \(TableNames.CloudRecords).tableName == '\(tableConfiguration.tableName)'
+            AND \(tableConfiguration.tableName).identifier IS NULL
+            AND \(TableNames.CloudRecords).status = '\(CloudRecordMutationType.synced.rawValue)'
+        """
+        let request = SQLRequest<CloudRecord>(sql: selectQuery)
+        currentRowsIDsDeletingUp = try! TableRow.Identifier.fetchAll(db, request)
+    }
+    
+    private func sendTableRowsAndReset(_ db: Database) {
+        
+        fetchTableRowsForPopulatedIds(db)
         
         guard currentRowsCreatingUp.count > 0 ||
                 currentRowsUpdatingUp.count > 0 ||
-                    currentRowsDeletingUp.count > 0 else {
+                currentRowsIDsDeletingUp.count > 0 else {
             return
         }
         
         let creatingUp = currentRowsCreatingUp
         let updatingUp = currentRowsUpdatingUp
-        let deletingUp = currentRowsDeletingUp
+        let deletingUp = currentRowsIDsDeletingUp
 
         resetForNextTransaction()
         
@@ -149,13 +181,16 @@ class SQLiteTableObserver {
         currentRowsCreatingUp = []
         currentRowsUpdatingUp = []
         currentRowsDeletingUp = []
+    
+        currentRowsIDsCreatingUp = []
+        currentRowsIDsUpdatingUp = []
+        currentRowsIDsDeletingUp = []
     }
     
 }
 
 extension SQLiteTableObserver : TableObserving {
 }
-
 
 extension SQLiteTableObserver : TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
@@ -169,14 +204,25 @@ extension SQLiteTableObserver : TransactionObserver {
     
     /// Cannot touch the database.
     func databaseDidChange(with event: DatabaseEvent) {
+        guard self.isObserving else {
+            return
+        }
         
+        switch event.kind {
+        case .insert:
+            currentRowsIDsCreatingUp.append(event.rowID)
+        case .update:
+            currentRowsIDsUpdatingUp.append(event.rowID)
+        default:
+            break
+        }
     }
     
     func databaseDidCommit(_ db: Database) {
         guard self.isObserving else {
             return
         }
-        sendTableRowsAndReset()
+        sendTableRowsAndReset(db)
     }
     
     func databaseDidRollback(_ db: Database) {
@@ -186,6 +232,10 @@ extension SQLiteTableObserver : TransactionObserver {
         resetForNextTransaction()
     }
     
+     // This is legacy code from when CKS depended on the sqlite preupdate hook.
+     // This isn't the case any longer. It may become important to restore preupde
+     // ability for performance reasons so this is being left for historical reasons.
+    /*
     func databaseWillChange(with event: DatabasePreUpdateEvent) {
         guard self.isObserving else {
             return
@@ -206,8 +256,13 @@ extension SQLiteTableObserver : TransactionObserver {
             }
         }
     }
+    */
 }
 
+// This is legacy code from when CKS depended on the sqlite preupdate hook.
+// This isn't the case any longer. It may become important to restore preupde
+// ability for performance reasons so this is being left for historical reasons.
+/**
 extension DatabasePreUpdateEvent {
     
     func initialTableRow(for columnNames: [String]) -> TableRow? {
@@ -241,3 +296,4 @@ extension DatabasePreUpdateEvent {
     }
     
 }
+*/

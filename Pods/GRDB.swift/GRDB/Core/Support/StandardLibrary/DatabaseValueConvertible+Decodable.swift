@@ -1,6 +1,8 @@
+import Foundation
+
 private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     let dbValue: DatabaseValue
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     
     /// Decodes a null value.
     ///
@@ -134,7 +136,7 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     ///   cannot be converted to the requested type.
     /// - throws: `DecodingError.valueNotFound` if the encountered encoded value is null.
     func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
-        if let type = T.self as? DatabaseValueConvertible.Type {
+        if let type = T.self as? any DatabaseValueConvertible.Type {
             // Prefer DatabaseValueConvertible decoding over Decodable.
             // This allows custom database decoding, such as decoding Date from
             // String, for example.
@@ -151,19 +153,17 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
 
 private struct DatabaseValueDecoder: Decoder {
     let dbValue: DatabaseValue
-    let codingPath: [CodingKey]
+    let codingPath: [any CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
-        throw DecodingError.typeMismatch(
-            type,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "keyed decoding is not supported"))
+        // We need to switch to JSON decoding
+        throw JSONRequiredError()
     }
     
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
-        throw DecodingError.typeMismatch(
-            UnkeyedDecodingContainer.self,
-            DecodingError.Context(codingPath: codingPath, debugDescription: "unkeyed decoding is not supported"))
+        // We need to switch to JSON decoding
+        throw JSONRequiredError()
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
@@ -173,7 +173,20 @@ private struct DatabaseValueDecoder: Decoder {
 
 extension DatabaseValueConvertible where Self: Decodable {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        try? self.init(from: DatabaseValueDecoder(dbValue: databaseValue, codingPath: []))
+        do {
+            return try self.init(from: DatabaseValueDecoder(dbValue: databaseValue, codingPath: []))
+        } catch is JSONRequiredError {
+            guard let data = Data.fromDatabaseValue(databaseValue) else {
+                return nil
+            }
+            let decoder = JSONDecoder()
+            decoder.dataDecodingStrategy = .base64
+            decoder.dateDecodingStrategy = .millisecondsSince1970
+            decoder.nonConformingFloatDecodingStrategy = .throw
+            return try? decoder.decode(Self.self, from: data)
+        } catch {
+            return nil
+        }
     }
 }
 

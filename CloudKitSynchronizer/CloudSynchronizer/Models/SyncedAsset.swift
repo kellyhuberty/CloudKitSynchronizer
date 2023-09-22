@@ -74,9 +74,9 @@ public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
             self?.assetDidChange()
         }
         
-        fileObserver.resume()
-        
         fsObject = fileObserver
+
+        fileObserver.resume()
     }
     
     public func write(_ block: @escaping (_ url: URL) -> Void ) {
@@ -239,6 +239,7 @@ public extension SyncedAsset {
 #endif
 
 #if os(macOS) && canImport(AppKit)
+import AppKit
 public extension SyncedAsset {
     var nsimage: NSImage? {
         get {
