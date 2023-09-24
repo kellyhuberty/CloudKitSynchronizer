@@ -39,8 +39,12 @@ class SQLiteTableObserver {
     
     // MARK: - inits
     init(tableConfiguration: TableConfigurable, databaseQueue:DatabaseQueue) {
+        var columns = try! SQLiteTableObserver.columnNames(for: tableConfiguration.tableName, in: databaseQueue)
+        
+        columns.removeAll { (tableConfiguration.excludedColumns ?? []).contains($0) }
+        
         self.tableConfiguration = tableConfiguration
-        self.columnNames = try! SQLiteTableObserver.columnNames(for: tableConfiguration.tableName, in: databaseQueue)
+        self.columnNames = columns
         self.databaseQueue = databaseQueue
         self.databaseQueue.add(transactionObserver: self)
     }
