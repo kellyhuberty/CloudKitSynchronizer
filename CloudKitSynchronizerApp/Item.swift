@@ -21,10 +21,11 @@ struct Item : IdentifiableModel, Codable {
     }
     
     var identifier: String
-    var text:String?
-    var nextIdentifier:String?
+    var text: String?
+    var nextIdentifier: String?
     var imagePath: String? //SyncedAsset = SyncedAsset()
-
+    var localNumber: Int?
+    
     lazy var imageAsset: SyncedAsset = {
         SyncedAsset(self, configuration: AssetConfigs.imagePath)
     }()

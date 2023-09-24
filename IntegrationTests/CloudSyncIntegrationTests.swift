@@ -66,7 +66,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         }
     }
     
-    func repo(identifier: String) -> (Repo, URL) {
+    func repo(identifier: String, excludedColumns: [String]? = nil) -> (Repo, URL) {
         
         let directory = URL(fileURLWithPath: Directories.testing).appendingPathComponent("\(cleanedClassName()).\(cleanedTestName())--\(identifier)")
         
@@ -89,7 +89,8 @@ class CloudSyncIntegrationTests: XCTestCase {
                         path: dbFile.path,
                         migrator: LSTDatabaseMigrator.setupMigrator(),
                         synchronizedTables: [TableConfiguration(table:"Item",
-                                                                assets: [assetConfig])] )
+                                                                assets: [assetConfig],
+                                                                excludedColumns: excludedColumns)] )
                 
         return (repo, assetsDirectoryFile)
     }
@@ -163,6 +164,57 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
 
         XCTAssertEqual(Set(items1), Set(items2))
+    }
+    
+    func testCloudKitAddTransient() {
+        
+        (repo1, repo1AssetURL) = repo(identifier: "1", excludedColumns: ["localNumber"])
+        (repo2, repo2AssetURL)  = repo(identifier: "2", excludedColumns: ["localNumber"])
+        
+        
+        waitUntilSyncing(repo1)
+        waitUntilSyncing(repo2)
+
+        var daphne = Item()
+        daphne.text = "Daphne"
+        daphne.localNumber = 411
+        
+        var shaggy = Item()
+        shaggy.text = "Shaggy"
+        shaggy.localNumber = 234
+        
+        var scooby = Item()
+        scooby.text = "Scooby"
+        scooby.localNumber = 800
+        
+        
+        try! repo1.databaseQueue.write { (db) in
+            try! daphne.save(db)
+            try! shaggy.save(db)
+            try! scooby.save(db)
+        }
+        
+        var items1:[Item] = []
+        var items2:[Item] = []
+
+        try! repo1.databaseQueue.read { (db) in
+            items1 = try! Item.fetchAll(db)
+        }
+        
+        waitReload(repo2) { (db) -> Bool in
+            items2 = try! Item.fetchAll(db)
+            return Set(items1) == Set(items2)
+        }
+        XCTAssertEqual(items1.count, 3)
+        XCTAssertEqual(items2.count, 3)
+        
+        XCTAssertNotNil(items1[0].localNumber)
+        XCTAssertNotNil(items1[1].localNumber)
+        XCTAssertNotNil(items1[2].localNumber)
+        
+        XCTAssertNil(items2[0].localNumber)
+        XCTAssertNil(items2[1].localNumber)
+        XCTAssertNil(items2[2].localNumber)
     }
     
     func testCloudKitAddEdit() {
