@@ -15,6 +15,7 @@ protocol CloudRecordMapping: AnyObject {
     var sortedColumns:[String] { get }
     func map(data:[String:DatabaseValue?], to record:CKRecord) -> CKRecord
     func map(record:CKRecord) -> [String:DatabaseValue?]?
+    func finishMap(record: CKRecord)
 }
 
 extension CloudRecordMapping {
@@ -115,14 +116,19 @@ extension CloudRecordMapper: CloudRecordMapping {
             
             switch value.storage {
             case .blob(let data):
+                if data == record.value(forKey: key) as? Data { continue }
                 newRecord.setValue(data, forKey: key)
             case .double(let double):
+                if double == record.value(forKey: key) as? Double { continue }
                 newRecord.setValue(double, forKey: key)
             case .int64(let integer):
+                if integer == record.value(forKey: key) as? Int64 { continue }
                 newRecord.setValue(integer, forKey: key)
             case .string(let string):
+                if string == record.value(forKey: key) as? String { continue }
                 newRecord.setValue(string, forKey: key)
             case .null:
+                if nil == record.value(forKey: key) { continue }
                 newRecord.setValue(nil, forKey: key)
             }
             
@@ -181,6 +187,21 @@ extension CloudRecordMapper: CloudRecordMapping {
         return allValues
     }
     
+    func finishMap(record: CKRecord) {
+                 
+        var allKeys = Set(record.allKeys())
+        allKeys.formUnion(transforms.keys)
+    
+        for key in allKeys {
+
+            let value = record[key]
+            
+            if let transform = transforms[key] {
+                transform.transformToRemoteDidFinish(value, on: record)
+            }
+        }
+    }
+    
     func isRecordEmpty(_ data: [String:DatabaseValue?]) -> Bool {
         let valuesCopy = data.reduce(into: [String:DatabaseValue?]()) { partialResult, keyValue in
             if keyValue.value != nil {
@@ -190,7 +211,6 @@ extension CloudRecordMapper: CloudRecordMapping {
         return valuesCopy.count == 0
     }
 }
-
 
 class CloudRecordMapper {
     

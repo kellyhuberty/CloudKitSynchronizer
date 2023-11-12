@@ -777,6 +777,8 @@ extension CloudSynchronizer: CloudRecordPushOperationDelegate {
                                                       having: CloudRecordMutationType.All,
                                                       error: nil,
                                                       using: db)
+            
+            
         }
 
     }
@@ -878,6 +880,8 @@ extension CloudSynchronizer: TableObserverDelegate {
 
         var mappedCkRecords = [CKRecord]()
 
+        var ignoredCkRecords = [CKRecord]()
+        
         for row in tableRows {
 
             guard let ckRecord = ckRecordsDictionary[row.identifier] else {
@@ -889,9 +893,15 @@ extension CloudSynchronizer: TableObserverDelegate {
             if mappedCKRecord.changedKeys().count > 0 {
                 mappedCkRecords.append(mappedCKRecord)
             }
+            else {
+                ignoredCkRecords.append(ckRecord)
+            }
         }
         
         try? cloudRecordStore.checkinCloudRecords(mappedCkRecords, with: .pushingUpdate, having: nil, error: nil, using: db)
+        
+        try? cloudRecordStore.checkinCloudRecords(ignoredCkRecords, with: .synced, having: nil, error: nil, using: db)
+
         
         return mappedCkRecords
     }

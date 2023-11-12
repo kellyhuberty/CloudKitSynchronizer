@@ -133,9 +133,6 @@ class SQLiteTableObserver {
         let rowIDColumn = Column("ROWID")
         let currentTable = Table<TableRow>(tableConfiguration.tableName)
         
-        let identifierColumn = Column("ROWID")
-        let recordTable = Table<TableRow>(TableNames.CloudRecords)
-        
         currentRowsCreatingUp = try! currentTable.filter(currentRowsIDsCreatingUp.contains(rowIDColumn)).fetchAll(db)
         currentRowsUpdatingUp = try! currentTable.filter(currentRowsIDsUpdatingUp.contains(rowIDColumn)).fetchAll(db)
         
