@@ -1,0 +1,25 @@
+{
+  "name": "CloudKitSynchronizer",
+  "platforms": {
+    "ios": "14.0",
+    "osx": "11.0"
+  },
+  "version": "0.1.0",
+  "license": {
+    "type": "Unavailable"
+  },
+  "source": {
+    "git": "git@github.com:kellyhuberty/CloudKitSynchronizer.git"
+  },
+  "homepage": "https://github.com/kellyhuberty/CloudKitSynchronizer",
+  "authors": {
+    "Kelly Huberty": "kellyhuberty@gmail.com"
+  },
+  "summary": "Cloud Kit Synchronizer (CKS) is an addition to a Cocoa app's data stack for syncing data between tables in an SQLite database to corresponding entities in CloudKit. CKS is based off of features of GRDB, and is written in Swift.",
+  "source_files": "src/**/*.{swift}",
+  "dependencies": {
+    "GRDB.swift": [
+
+    ]
+  }
+}

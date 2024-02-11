@@ -1,0 +1,23 @@
+{
+  "pins" : [
+    {
+      "identity" : "csqlite",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sbooth/CSQLite",
+      "state" : {
+        "revision" : "a4670913d2fe6ac7452e817f76b6f20b047d9b6c",
+        "version" : "3.45.1"
+      }
+    },
+    {
+      "identity" : "grdb.swift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/groue/GRDB.swift",
+      "state" : {
+        "branch" : "master",
+        "revision" : "0437c0fed60c290360371b9619ff07d9e9fef759"
+      }
+    }
+  ],
+  "version" : 2
+}

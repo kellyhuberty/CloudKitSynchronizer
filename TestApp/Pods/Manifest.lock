@@ -1,0 +1,26 @@
+PODS:
+  - CloudKitSynchronizer (0.1.0):
+    - GRDB.swift
+  - GRDB.swift (6.12.0):
+    - GRDB.swift/standard (= 6.12.0)
+  - GRDB.swift/standard (6.12.0)
+
+DEPENDENCIES:
+  - CloudKitSynchronizer (from `../`)
+  - GRDB.swift
+
+SPEC REPOS:
+  trunk:
+    - GRDB.swift
+
+EXTERNAL SOURCES:
+  CloudKitSynchronizer:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  CloudKitSynchronizer: b9023f63d920ce1f8a152b8b0bc666d450ef2b1c
+  GRDB.swift: ee55fa14104edfee5f3c260837f82494e0516716
+
+PODFILE CHECKSUM: 67848336e5bb253e0a217b965c6f71abc8ff1f5f
+
+COCOAPODS: 1.12.1
