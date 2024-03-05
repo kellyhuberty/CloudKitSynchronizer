@@ -17,6 +17,8 @@
 		C7653B832243396F000CDABB /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
 		C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
 		C7653B9B2243F72C000CDABB /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B9A2243F72C000CDABB /* Item.swift */; };
+		C78306B22B85BCF500E44FF3 /* CloudKitSynchronizer in Frameworks */ = {isa = PBXBuildFile; productRef = C78306B12B85BCF500E44FF3 /* CloudKitSynchronizer */; };
+		C78306B52B85CCF100E44FF3 /* CloudKitSynchronizer in Frameworks */ = {isa = PBXBuildFile; productRef = C78306B42B85CCF100E44FF3 /* CloudKitSynchronizer */; };
 		C787591D267D1BD70030C77C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */; };
 		C787591E267D1BD70030C77C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
 		C797B28B268B9337009194F1 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B9A2243F72C000CDABB /* Item.swift */; };
@@ -25,12 +27,8 @@
 		C797B28E268B9340009194F1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
 		C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
 		C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
-		C7B10FC62B783551004D429C /* CloudKitSynchronizer in Frameworks */ = {isa = PBXBuildFile; productRef = C7B10FC52B783551004D429C /* CloudKitSynchronizer */; };
-		C7B10FCE2B7836A9004D429C /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = C7B10FCD2B7836A9004D429C /* GRDB */; };
 		C7B10FD52B7836BD004D429C /* CloudSyncIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */; };
-		C7B10FD72B7836BD004D429C /* Pods_CloudKitSynchronizerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */; };
 		C7B10FD92B7836BD004D429C /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7D18418275D224A0078C575 /* Media.xcassets */; };
-		C7B10FE22B783B0C004D429C /* CSQLite in Frameworks */ = {isa = PBXBuildFile; productRef = C7B10FE12B783B0C004D429C /* CSQLite */; };
 		C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
 		C7D18419275D224A0078C575 /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7D18418275D224A0078C575 /* Media.xcassets */; };
 /* End PBXBuildFile section */
@@ -54,10 +52,11 @@
 
 /* Begin PBXFileReference section */
 		42B97A459565AC8128C3CFDF /* Pods-CloudKitSynchronizerAppPod.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerAppPod.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerAppPod/Pods-CloudKitSynchronizerAppPod.release.xcconfig"; sourceTree = "<group>"; };
+		76433BABA986F99EA5A9B729 /* Pods-CloudKitSynchronizerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.release.xcconfig"; sourceTree = "<group>"; };
 		803731224376C15A79FE7566 /* Pods_CloudKitSynchronizerAppPod.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizerAppPod.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		941E07D8A90264EFC81D257E /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSyncIntegrationTests.swift; sourceTree = "<group>"; };
+		C729F686C139DA26A6197CDE /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		C7502A7C2B1399420075797E /* libsqlite3.0.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.0.tbd; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.0.sdk/usr/lib/libsqlite3.0.tbd; sourceTree = DEVELOPER_DIR; };
 		C7653B5E2243390B000CDABB /* CloudKitSynchronizerAppPod.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizerAppPod.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7653B612243390B000CDABB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -72,6 +71,7 @@
 		C7653B8722434191000CDABB /* WordListTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListTableCell.swift; sourceTree = "<group>"; };
 		C7653B9A2243F72C000CDABB /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudKitSynchronizerApp.entitlements; sourceTree = "<group>"; };
+		C78306B32B85C50300E44FF3 /* TestApp.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TestApp.xcconfig; sourceTree = "<group>"; };
 		C7875923267D1BD70030C77C /* CloudKitSynchronizerAppPkg.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizerAppPkg.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7B10FC32B7834F8004D429C /* CloudKitSynchronizer.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CloudKitSynchronizer.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7B10FC72B7835D3004D429C /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,7 +79,6 @@
 		C7B10FDF2B7836BD004D429C /* CloudKitSynchronizerTests copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "CloudKitSynchronizerTests copy-Info.plist"; path = "/Users/kellyhuberty/Projects/CloudKitSynchronizer/TestApp/CloudKitSynchronizerTests copy-Info.plist"; sourceTree = "<absolute>"; };
 		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
 		C7D18418275D224A0078C575 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
-		D9948AAA057E4EBF6937F742 /* Pods-CloudKitSynchronizerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.release.xcconfig"; sourceTree = "<group>"; };
 		F6F6FB29893F191171EC8330 /* Pods-CloudKitSynchronizerAppPod.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerAppPod.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerAppPod/Pods-CloudKitSynchronizerAppPod.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -104,8 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7B10FC62B783551004D429C /* CloudKitSynchronizer in Frameworks */,
-				C7B10FCE2B7836A9004D429C /* GRDB in Frameworks */,
+				C78306B22B85BCF500E44FF3 /* CloudKitSynchronizer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -113,8 +111,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7B10FE22B783B0C004D429C /* CSQLite in Frameworks */,
-				C7B10FD72B7836BD004D429C /* Pods_CloudKitSynchronizerTests.framework in Frameworks */,
+				C78306B52B85CCF100E44FF3 /* CloudKitSynchronizer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -138,8 +135,8 @@
 			children = (
 				F6F6FB29893F191171EC8330 /* Pods-CloudKitSynchronizerAppPod.debug.xcconfig */,
 				42B97A459565AC8128C3CFDF /* Pods-CloudKitSynchronizerAppPod.release.xcconfig */,
-				941E07D8A90264EFC81D257E /* Pods-CloudKitSynchronizerTests.debug.xcconfig */,
-				D9948AAA057E4EBF6937F742 /* Pods-CloudKitSynchronizerTests.release.xcconfig */,
+				C729F686C139DA26A6197CDE /* Pods-CloudKitSynchronizerTests.debug.xcconfig */,
+				76433BABA986F99EA5A9B729 /* Pods-CloudKitSynchronizerTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -156,6 +153,7 @@
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
+				C78306B32B85C50300E44FF3 /* TestApp.xcconfig */,
 				C78758FB267D1B370030C77C /* CloudKitSynchronizerApp */,
 				C7653B752243390D000CDABB /* CloudKitSynchronizerTests */,
 				C7653B5F2243390B000CDABB /* Products */,
@@ -262,8 +260,7 @@
 			);
 			name = CloudKitSynchronizerAppPkg;
 			packageProductDependencies = (
-				C7B10FC52B783551004D429C /* CloudKitSynchronizer */,
-				C7B10FCD2B7836A9004D429C /* GRDB */,
+				C78306B12B85BCF500E44FF3 /* CloudKitSynchronizer */,
 			);
 			productName = CloudKitSynchronizer;
 			productReference = C7875923267D1BD70030C77C /* CloudKitSynchronizerAppPkg.app */;
@@ -273,12 +270,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C7B10FDB2B7836BD004D429C /* Build configuration list for PBXNativeTarget "CloudKitSynchronizerPkgTests" */;
 			buildPhases = (
-				C7B10FD22B7836BD004D429C /* [CP] Check Pods Manifest.lock */,
 				C7B10FD32B7836BD004D429C /* Cuckoo Mocks */,
 				C7B10FD42B7836BD004D429C /* Sources */,
 				C7B10FD62B7836BD004D429C /* Frameworks */,
 				C7B10FD82B7836BD004D429C /* Resources */,
-				C7B10FDA2B7836BD004D429C /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -287,7 +282,7 @@
 			);
 			name = CloudKitSynchronizerPkgTests;
 			packageProductDependencies = (
-				C7B10FE12B783B0C004D429C /* CSQLite */,
+				C78306B42B85CCF100E44FF3 /* CloudKitSynchronizer */,
 			);
 			productName = CloudKitSynchronizerTests;
 			productReference = C7B10FDE2B7836BD004D429C /* CloudKitSynchronizerPkgTests.xctest */;
@@ -332,9 +327,7 @@
 			);
 			mainGroup = C7653B552243390B000CDABB;
 			packageReferences = (
-				C7B10FBE2B780E1F004D429C /* XCLocalSwiftPackageReference ".." */,
-				C7B10FCC2B7836A9004D429C /* XCRemoteSwiftPackageReference "GRDB" */,
-				C7B10FE02B783B0C004D429C /* XCRemoteSwiftPackageReference "CSQLite" */,
+				C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference ".." */,
 			);
 			productRefGroup = C7653B5F2243390B000CDABB /* Products */;
 			projectDirPath = "";
@@ -478,28 +471,6 @@
 			shellPath = /bin/sh;
 			shellScript = "#exit 0;\n#\n## Define output file. Change \"${PROJECT_DIR}/${PROJECT_NAME}Tests\" to your test's root source folder, if it's not the default name.\n#OUTPUT_FILE=\"${PROJECT_DIR}/${PROJECT_NAME}Tests/GeneratedMocks.swift\"\n#echo \"Generated Mocks File = ${OUTPUT_FILE}\"\n#\n## Define input directory. Change \"${PROJECT_DIR}/${PROJECT_NAME}\" to your project's root source folder, if it's not the default name.\n#INPUT_DIR=\"${PROJECT_DIR}/${PROJECT_NAME}\"\n#echo \"Mocks Input Directory = ${INPUT_DIR}\"\n#\n## Generate mock files, include as many input files as you'd like to create mocks for.\n#\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"${PROJECT_NAME}\" \\\n#--output \"${OUTPUT_FILE}\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/Operations/CloudOperationProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/TableObserver/TableObserverProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/CloudRecordStore/CloudRecordStoringProtocols.swift\"\n## ... and so forth, the last line should never end with a backslash\n#\n## After running once, locate `GeneratedMocks.swift` and drag it into your Xcode test target group.\n";
 		};
-		C7B10FD22B7836BD004D429C /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-CloudKitSynchronizerTests-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
 		C7B10FD32B7836BD004D429C /* Cuckoo Mocks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -517,23 +488,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "#exit 0;\n#\n## Define output file. Change \"${PROJECT_DIR}/${PROJECT_NAME}Tests\" to your test's root source folder, if it's not the default name.\n#OUTPUT_FILE=\"${PROJECT_DIR}/${PROJECT_NAME}Tests/GeneratedMocks.swift\"\n#echo \"Generated Mocks File = ${OUTPUT_FILE}\"\n#\n## Define input directory. Change \"${PROJECT_DIR}/${PROJECT_NAME}\" to your project's root source folder, if it's not the default name.\n#INPUT_DIR=\"${PROJECT_DIR}/${PROJECT_NAME}\"\n#echo \"Mocks Input Directory = ${INPUT_DIR}\"\n#\n## Generate mock files, include as many input files as you'd like to create mocks for.\n#\"${PODS_ROOT}/Cuckoo/run\" generate --testable \"${PROJECT_NAME}\" \\\n#--output \"${OUTPUT_FILE}\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/Operations/CloudOperationProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/TableObserver/TableObserverProtocols.swift\" \\\n#\"${INPUT_DIR}/CloudSynchronizer/CloudRecordStore/CloudRecordStoringProtocols.swift\"\n## ... and so forth, the last line should never end with a backslash\n#\n## After running once, locate `GeneratedMocks.swift` and drag it into your Xcode test target group.\n";
-		};
-		C7B10FDA2B7836BD004D429C /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -790,7 +744,7 @@
 		};
 		C7653B7F2243390D000CDABB /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 941E07D8A90264EFC81D257E /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
+			baseConfigurationReference = C729F686C139DA26A6197CDE /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -815,7 +769,7 @@
 		};
 		C7653B802243390D000CDABB /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D9948AAA057E4EBF6937F742 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
+			baseConfigurationReference = 76433BABA986F99EA5A9B729 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -895,7 +849,6 @@
 		};
 		C7B10FDC2B7836BD004D429C /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 941E07D8A90264EFC81D257E /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -920,7 +873,6 @@
 		};
 		C7B10FDD2B7836BD004D429C /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = D9948AAA057E4EBF6937F742 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
@@ -993,45 +945,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		C7B10FBE2B780E1F004D429C /* XCLocalSwiftPackageReference ".." */ = {
+		C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference ".." */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = ..;
 		};
 /* End XCLocalSwiftPackageReference section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		C7B10FCC2B7836A9004D429C /* XCRemoteSwiftPackageReference "GRDB" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/groue/GRDB.swift";
-			requirement = {
-				branch = master;
-				kind = branch;
-			};
-		};
-		C7B10FE02B783B0C004D429C /* XCRemoteSwiftPackageReference "CSQLite" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sbooth/CSQLite";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 3.45.1;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		C7B10FC52B783551004D429C /* CloudKitSynchronizer */ = {
+		C78306B12B85BCF500E44FF3 /* CloudKitSynchronizer */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CloudKitSynchronizer;
 		};
-		C7B10FCD2B7836A9004D429C /* GRDB */ = {
+		C78306B42B85CCF100E44FF3 /* CloudKitSynchronizer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = C7B10FCC2B7836A9004D429C /* XCRemoteSwiftPackageReference "GRDB" */;
-			productName = GRDB;
-		};
-		C7B10FE12B783B0C004D429C /* CSQLite */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = C7B10FE02B783B0C004D429C /* XCRemoteSwiftPackageReference "CSQLite" */;
-			productName = CSQLite;
+			productName = CloudKitSynchronizer;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
