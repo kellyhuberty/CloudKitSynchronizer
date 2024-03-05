@@ -43,15 +43,15 @@ To perform a resync of the latest changes, call `repo.cloudSyncrhonizer.refreshF
         }
 ```
 
-##Using CloudKit Assets
+## Using CloudKit Assets
 _More Info Coming Soon_
 
-##Subscribing to Data Changes
+## Subscribing to Data Changes
 _More Info Coming Soon_
 
-##Error Handling
+## Error Handling
 _In Dev_
 
-##Resolving Conflicts
+## Resolving Conflicts
 _In Dev_
 
