@@ -6,10 +6,10 @@ import PackageDescription
 let package = Package(
     name: "CloudKitSynchronizer",
     platforms: [
-        .iOS("14.0"),
-        .macOS("12"),
-        .tvOS("14.0"),
-        .watchOS("8.0"),
+        .iOS("16.0"),
+        .macOS("13.0"),
+        .tvOS("16.0"),
+        .watchOS("9.0"),
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
@@ -19,7 +19,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name:"GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "6.12.0")
+        .package(name:"GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "6.12.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -28,9 +28,10 @@ let package = Package(
             name: "CloudKitSynchronizer",
             dependencies: [
                 "GRDB"
-            ],
-            path: "src"
-            ),
+            ]
+        )
+// TODO: Need to figure out a good way to build a test target with the limitations of
+// a package.swift. (Provisioning, CloudKit integration)
 //        .testTarget(
 //            name: "CloudKitSynchronizerTests",
 //            dependencies: ["CloudKitSynchronizer"],
