@@ -99,7 +99,7 @@ struct TableNames{
     }
 }
 
-public class CloudSynchronizer {
+public class CloudSynchronizer: @unchecked Sendable {
 
     public enum Status {
         case unstarted
@@ -281,12 +281,14 @@ public class CloudSynchronizer {
             return
         }
         
-        _availability.checkAvailablity { [weak self] status in
-//            self?.setupSubscriptions {
-                self?.initilizeZones {
-                    self?.status = .syncing
+        _availability.checkAvailablity { [weak self] _ in
+            guard let self = self else { return }
+            Task {
+                await self.initilizeZones()
+                await MainActor.run {
+                    self.status = .syncing
                 }
-//            }
+            }
         }
     }
     
@@ -358,27 +360,23 @@ public class CloudSynchronizer {
         addTableObserver(tableObserver)
     }
     
-    func initilizeZones(completion:@escaping ()->Void) {
+    func initilizeZones() async {
         let createZoneOperation = _operationFactory.newZoneAvailablityOperation()
         createZoneOperation.zoneIdsToCreate = [zoneId]
-        
-        createZoneOperation.completionBlock = {
-            completion()
-        }
-        createZoneOperation.start()
+        await createZoneOperation.run()
     }
     
-    func setupSubscriptions(completion:@escaping ()->Void) {
+//    @MainActor
+    func setupSubscriptions() async {
         guard let createSubscriptionsOperation = _operationFactory.newSubscriptionSyncOperation() else{
             log.debug("Subscription Sync Unavailable")
-            completion()
             return
         }
         createSubscriptionsOperation.configurations = self.synchronizedTables
-        createSubscriptionsOperation.completionBlock = {
-            completion()
-        }
-        createSubscriptionsOperation.start()
+//        createSubscriptionsOperation.completionBlock = {
+//            completion()
+//        }
+        await createSubscriptionsOperation.run()
     }
     
     func runSynchronizerMigrations(_ db:Database) throws {
@@ -534,100 +532,52 @@ public class CloudSynchronizer {
         observer.isObserving = true
     }
     
-    public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
-
+    public func refreshFromCloud() async {
         guard isSyncing else {
-            completion()
             return
         }
-        
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else {
-                completion()
-                return
-            }
-            
-            let pullSemaphore = DispatchSemaphore(value: 0)
-            let pushSemaphore = DispatchSemaphore(value: 0)
-
-            self.pullFromCloud {
-                pullSemaphore.signal()
-            }
-            
-            self.retryFailedPushesToCloud {
-                pushSemaphore.signal()
-            }
-            
-            pullSemaphore.wait()
-            pushSemaphore.wait()
-
-            completion()
+  
+        Task {
+            await pullFromCloud()
+            await retryFailedPushesToCloud()
         }
     }
     
-    @available(macOS 10.15, iOS 13.0, *)
-    public func refreshFromCloud() async {
-        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
-            guard let self = self else {
-                continuation.resume()
-                return
-            }
-            self.refreshFromCloud {
-                continuation.resume()
-            }
-        }
-    }
-    
-    public func resetZones(_ completion: @escaping (() -> Void)) {
-
+    public func resetZones() async {
         let deleteZoneOperation = _operationFactory.newZoneAvailablityOperation()
         deleteZoneOperation.zoneIdsToDelete = [zoneId]
-        
-        deleteZoneOperation.completionBlock = {
-            completion()
-        }
-        deleteZoneOperation.start()
+        await deleteZoneOperation.run()
     }
     
-    public func pullFromCloud(_ completion: @escaping (() -> Void)) {
+    public func pullFromCloud() async {
         guard let operation = operationFactory?.newPullOperation(delegate: self) else {
-            completion()
             return
         }
         
         operation.zoneId = zoneId
         operation.previousServerChangeToken = currentChangeTag
         
-        operation.completionBlock = {
-            completion()
-        }
-        operation.start()
+        await operation.run()
     }
     
-    public func retryFailedPushesToCloud(_ completion: @escaping (() -> Void)) {
+    public func retryFailedPushesToCloud() async {
         
         let recordsToDeleteIds = recordsMarkedRetry(with: .pushingDelete).map{ $0.recordID }
         let recordsToUpdate = recordsMarkedRetry(with: .pushingUpdate)
 
         guard recordsToDeleteIds.count > 0 || recordsToUpdate.count > 0 else {
-            completion()
             return
         }
 
         guard let currentPushOperation =
             self.operationFactory?.newPushOperation(delegate: self) else {
-            completion()
                 return
         }
         
         currentPushOperation.updates = recordsToUpdate
         currentPushOperation.deleteIds = recordsToDeleteIds
         
-        currentPushOperation.completionBlock = {
-            completion()
-        }
-        
-        currentPushOperation.start()
+        await currentPushOperation.run()
     }
     
     private func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
@@ -979,5 +929,39 @@ extension Array where Element == String {
         }
         
         return quoteArr.joined(separator: ",")
+    }
+}
+
+extension CloudSynchronizer {
+    @MainActor
+    public func refreshFromCloud(_ completion: @escaping () -> Void) {
+        Task {
+            await refreshFromCloud()
+            completion()
+        }
+    }
+    
+    @MainActor
+    public func resetZones(_ completion: @escaping (() -> Void)) {
+        Task {
+            await resetZones()
+            completion()
+        }
+    }
+    
+    @MainActor
+    public func pullFromCloud(_ completion: @escaping (() -> Void)) {
+        Task {
+            await pullFromCloud()
+            completion()
+        }
+    }
+    
+    @MainActor
+    public func retryFailedPushesToCloud(_ completion: @escaping (() -> Void)) {
+        Task {
+            await retryFailedPushesToCloud()
+            completion()
+        }
     }
 }

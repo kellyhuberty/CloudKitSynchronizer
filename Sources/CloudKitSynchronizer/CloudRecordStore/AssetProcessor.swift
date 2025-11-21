@@ -24,11 +24,9 @@ public protocol AssetSyncing: AnyObject {
     func assetDidChange()
 }
 
-class AssetProcessor {
+class AssetProcessor: @unchecked Sendable {
     
-    static private(set) var shared: AssetProcessor = {
-        AssetProcessor()
-    }()
+    static let shared: AssetProcessor = AssetProcessor()
     
     private let center = NotificationCenter.default
     

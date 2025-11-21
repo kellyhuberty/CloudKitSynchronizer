@@ -43,8 +43,13 @@ public class Repo {
         }
     }
     
+    @MainActor
     public func refreshFromCloud(_ completion: @escaping (() -> Void)) {
-        cloudSynchronizer?.refreshFromCloud(completion)
+        Task {
+            await MainActor.run {
+                cloudSynchronizer?.refreshFromCloud(completion)
+            }
+        }
     }
 
     @available(iOS 13, macOS 10.15, watchOS 6, *)
@@ -56,9 +61,11 @@ public class Repo {
 
 extension Repo {
     
+    @MainActor
     public func registeredForRemoteNotifications(deviceTokens: Data) {
-        cloudSynchronizer?.setupSubscriptions {
-            
+        // Keep execution on the main actor; do not spawn a separate Task.
+        Task { @MainActor in
+            await cloudSynchronizer?.setupSubscriptions()
         }
     }
     

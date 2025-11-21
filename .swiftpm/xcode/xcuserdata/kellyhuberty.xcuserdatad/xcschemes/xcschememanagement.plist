@@ -44,7 +44,7 @@
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>8</integer>
+			<integer>2</integer>
 		</dict>
 		<key>CloudKitSynchronizer-Package.xcscheme_^#shared#^_</key>
 		<dict>
@@ -96,7 +96,7 @@
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>11</integer>
+			<integer>3</integer>
 		</dict>
 		<key>Tour (Playground) 1.xcscheme</key>
 		<dict>
@@ -138,7 +138,7 @@
 			<key>isShown</key>
 			<false/>
 			<key>orderHint</key>
-			<integer>2</integer>
+			<integer>4</integer>
 		</dict>
 		<key>TransactionObserver (Playground) 1.xcscheme</key>
 		<dict>

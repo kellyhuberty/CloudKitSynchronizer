@@ -117,7 +117,21 @@ class CloudKitOperationProducer: CloudOperationProducing {
 protocol Operating : AnyObject {
     var qualityOfService: QualityOfService { get set }
     func start()
-    var completionBlock: (() -> Void)? { get set }
+    var completionBlock: (@Sendable () -> Void)? { get set }
 }
+
+
+extension Operating {
+    func run() async {
+        await withCheckedContinuation { continuation in
+            self.completionBlock = {
+                continuation.resume()
+            }
+            start()
+        }
+    }
+}
+
+
 
 extension Operation: Operating {}

@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -19,7 +19,7 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        .package(name:"GRDB", url: "https://github.com/groue/GRDB.swift.git", from: "6.12.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.0.0"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -27,7 +27,16 @@ let package = Package(
         .target(
             name: "CloudKitSynchronizer",
             dependencies: [
-                "GRDB"
+//                "GRDB"
+//                .library(name: "GRDB", package: "GRDB.swift")
+                .product(name: "GRDB", package: "GRDB.swift")
+            ],
+            swiftSettings: [
+                /// Xcode 14:
+//                SwiftSetting.unsafeFlags(["-Xfrontend", "-strict-concurrency=complete"]),
+        
+                /// Xcode 15. Remove `=targeted` to use the default `complete`.
+//                .enableExperimentalFeature("StrictConcurrency=targeted")
             ]
         )
 // TODO: Need to figure out a good way to build a test target with the limitations of
@@ -36,6 +45,6 @@ let package = Package(
 //            name: "CloudKitSynchronizerTests",
 //            dependencies: ["CloudKitSynchronizer"],
 //            path: "IntegrationTests")
-    ]
+    ],
+    swiftLanguageModes: [.v5, .v6]
 )
-

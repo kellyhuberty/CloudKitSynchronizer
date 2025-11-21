@@ -7,7 +7,8 @@
 
 import Foundation
 
-public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
+
+public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable, @unchecked Sendable {
     
     private let enclosingObject: EnclosingType
     
@@ -19,11 +20,12 @@ public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
         return DispatchQueue(label: "com.kellyhuberty.CloudKitSynchronizer.SyncedAssetWriteQueue")
     }()
     
-    public var changed: (()->Void)? = nil {
+    public var changed: (@Sendable ()->Void)? = nil {
         didSet {
-            queue.async { [weak self] in
-                guard let self = self else { return }
-                self.changed?()
+            
+            let newValue = changed
+            queue.async {
+                newValue?()
             }
         }
     }

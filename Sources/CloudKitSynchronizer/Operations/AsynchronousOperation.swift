@@ -9,11 +9,11 @@
 import Foundation
 import CloudKit
 
-class AsynchronousOperation : Operation {    
+class AsynchronousOperation : Operation, @unchecked Sendable {    
     
-    class Token {
+    final class Token: @unchecked Sendable {
         
-        weak var operation: AsynchronousOperation?
+        private weak var operation: AsynchronousOperation?
         
         init(operation: AsynchronousOperation) {
             self.operation = operation
