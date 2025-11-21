@@ -114,7 +114,7 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
     
 }
 
-class CloudRecordError : Error{
+class CloudRecordError : Error, @unchecked Sendable {
     
     let description: String
     let status: CloudRecordErrorType?

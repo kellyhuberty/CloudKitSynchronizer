@@ -387,17 +387,9 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         
         let utType: String
         
-
-
-        if #available(iOS 14, tvOS 14, macOS 11, *) {
-            utType = UTType.jpeg.identifier
-        }
-        else {
-            utType = "UTType.jpeg.identifier"
-        }
-
+        utType = UTType.jpeg.identifier
+  
         print(utType)
-
         
         if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) &&
             UIImagePickerController.availableMediaTypes(for: .photoLibrary)?.contains(utType as String) ?? false {

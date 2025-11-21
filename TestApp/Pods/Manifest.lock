@@ -1,5 +1,5 @@
 PODS:
-  - CloudKitSynchronizer (0.1.0):
+  - CloudKitSynchronizer (0.2.0):
     - GRDB.swift
   - GRDB.swift (6.12.0):
     - GRDB.swift/standard (= 6.12.0)
@@ -18,7 +18,7 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  CloudKitSynchronizer: e94a1f4626e33786eb7e3d6f076581745b346999
+  CloudKitSynchronizer: 5582b35b5bffdcdf3d90f6c9cc81a2b212b29f34
   GRDB.swift: ee55fa14104edfee5f3c260837f82494e0516716
 
 PODFILE CHECKSUM: 67848336e5bb253e0a217b965c6f71abc8ff1f5f

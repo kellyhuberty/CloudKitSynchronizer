@@ -31,16 +31,13 @@ class CloudSyncIntegrationTests: XCTestCase {
         removeItemAtPath(URL(fileURLWithPath: Directories.testing))
     }
     
-    override func setUp() {
+    override func setUp() async throws {
         //Init repo 1
         (repo1, repo1AssetURL) = repo(identifier: "1")
         
         // Perform cleanup, since data from a previous test might be laying around.
-        let expectation = self.expectation(description: "resetZones")
-        repo1.cloudSynchronizer?.resetZones {
-            expectation.fulfill()
-        }
-        self.wait(for: [expectation], timeout: 60)
+        await repo1.cloudSynchronizer?.resetZones()
+        
         
         //Init repo 2
         (repo2, repo2AssetURL)  = repo(identifier: "2")
@@ -128,7 +125,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         return components
     }
 
-    func testCloudKitAdd() {
+    func testCloudKitAdd() async {
         
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
@@ -143,7 +140,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         scooby.text = "Scooby"
         
         
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
             try! shaggy.save(db)
             try! scooby.save(db)
@@ -152,11 +149,11 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1:[Item] = []
         var items2:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             return Set(items1) == Set(items2)
         }
@@ -166,7 +163,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(Set(items1), Set(items2))
     }
     
-    func testCloudKitAddTransient() {
+    func testCloudKitAddTransient() async {
         
         (repo1, repo1AssetURL) = repo(identifier: "1", excludedColumns: ["localNumber"])
         (repo2, repo2AssetURL)  = repo(identifier: "2", excludedColumns: ["localNumber"])
@@ -188,7 +185,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         scooby.localNumber = 800
         
         
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
             try! shaggy.save(db)
             try! scooby.save(db)
@@ -197,11 +194,11 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1:[Item] = []
         var items2:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             return Set(items1) == Set(items2)
         }
@@ -217,7 +214,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertNil(items2[2].localNumber)
     }
     
-    func testCloudKitAddEdit() {
+    func testCloudKitAddEdit() async {
         
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
@@ -232,7 +229,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         scooby.text = "Scooby"
         
         
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
             try! shaggy.save(db)
             try! scooby.save(db)
@@ -241,11 +238,11 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1:[Item] = []
         var items2:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             return Set(items1) == Set(items2)
         }
@@ -259,15 +256,15 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
         
-        try! repo2.databaseQueue.write { (db) in
+        try! await repo2.databaseQueue.write { (db) in
             try! editedItem.save(db)
         }
         
-        try! repo2.databaseQueue.read { (db) in
+        try! await repo2.databaseQueue.read { (db) in
             items2Edited = try! Item.fetchAll(db)
         }
         
-        waitReload(repo1) { (db) -> Bool in
+        await waitReload(repo1) { (db) -> Bool in
             items1Edited = try! Item.fetchAll(db)
             return Set(items1Edited) == Set(items2Edited)
         }
@@ -282,7 +279,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         
     }
     
-    func testCloudKitAddDelete() {
+    func testCloudKitAddDelete() async {
         
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
@@ -297,7 +294,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         scooby.text = "Scooby"
         
         
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
             try! shaggy.save(db)
             try! scooby.save(db)
@@ -306,11 +303,11 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1:[Item] = []
         var items2:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             return Set(items1) == Set(items2)
         }
@@ -323,15 +320,15 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items1Edited:[Item] = []
         var items2Edited:[Item] = []
         
-        _ = try! repo2.databaseQueue.write { (db) in
+        _ = try! await repo2.databaseQueue.write { (db) in
             try! deletedItem.delete(db)
         }
         
-        try! repo2.databaseQueue.read { (db) in
+        try! await repo2.databaseQueue.read { (db) in
             items2Edited = try! Item.fetchAll(db)
         }
         
-        waitReload(repo1) { (db) -> Bool in
+        await waitReload(repo1) { (db) -> Bool in
             items1Edited = try! Item.fetchAll(db)
             return Set(items1Edited) == Set(items2Edited)
         }
@@ -347,7 +344,7 @@ class CloudSyncIntegrationTests: XCTestCase {
 
     }
     
-    func testSyncedAssetAddSync() {
+    func testSyncedAssetAddSync() async {
         
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
@@ -359,18 +356,18 @@ class CloudSyncIntegrationTests: XCTestCase {
                 
         XCTAssertNotNil(image)
 
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
         }
         
         var items1:[Item] = []
         var items2:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             return items1.count == items2.count
         }
@@ -387,7 +384,7 @@ class CloudSyncIntegrationTests: XCTestCase {
 
     }
     
-    func testSyncedAssetRemoveSync() {
+    func testSyncedAssetRemoveSync() async {
         
         waitUntilSyncing(repo1)
         waitUntilSyncing(repo2)
@@ -400,7 +397,7 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertNotNil(image)
         XCTAssertNotNil(daphne.imageAsset.testing(repo1AssetURL).uiimage)
 
-        try! repo1.databaseQueue.write { (db) in
+        try! await repo1.databaseQueue.write { (db) in
             try! daphne.save(db)
         }
         
@@ -408,14 +405,14 @@ class CloudSyncIntegrationTests: XCTestCase {
         var items2:[Item] = []
         var items3:[Item] = []
 
-        try! repo1.databaseQueue.read { (db) in
+        try! await repo1.databaseQueue.read { (db) in
             items1 = try! Item.fetchAll(db)
         }
               
         var first1:Item?
         var first2:Item?
         
-        waitReload(repo2) { (db) -> Bool in
+        await waitReload(repo2) { (db) -> Bool in
             items2 = try! Item.fetchAll(db)
             
             first1 = items1.first
@@ -423,10 +420,6 @@ class CloudSyncIntegrationTests: XCTestCase {
             
             let data1 = first1?.imageAsset.testing(self.repo1AssetURL).data
             let data2 = first2?.imageAsset.testing(self.repo2AssetURL).data
-            
-//            print("\(items1) == \(items2)")
-//            print("\(first1) == \(first2)")
-//            print("\(data1) == \(data2)")
             
             return items1.count == items2.count &&
                     first1 == first2 &&
@@ -443,20 +436,20 @@ class CloudSyncIntegrationTests: XCTestCase {
         
         first2?.imageAsset.testing(repo2AssetURL).uiimage = nil
 
-        try! repo2.databaseQueue.write { (db) in
+        try! await repo2.databaseQueue.write { (db) in
             try! first2?.save(db)
         }
 
         var first3: Item? = nil
                 
-        waitReload(repo1) { (db) -> Bool in
+        await waitReload(repo1) { (db) -> Bool in
             items3 = try! Item.fetchAll(db)
             first3 = items3.first
             let data3 = first3?.imageAsset.testing(self.repo1AssetURL).data
             let data2 = first2?.imageAsset.testing(self.repo2AssetURL).data
 
-            print(data3)
-            print(data2)
+            print(data3 as Any)
+            print(data2 as Any)
 
             return data3 == data2
         }
@@ -485,26 +478,34 @@ class CloudSyncIntegrationTests: XCTestCase {
         }
     }
     
-    func waitReload(_ repo:Repo,  _ until: @escaping (_ db:Database) -> Bool ){
-        
+    // Make this async, remove Task wrapper, and use XCTest async API.
+    func waitReload(_ repo:Repo,  _ until: @escaping (_ db:Database) -> Bool ) async {
         var fulfilled = false
         var tryCount = 10
         
         while !fulfilled && tryCount > 0 {
-            let expectation = self.expectation(description: "waitReload")
-            
+
+            // Give some time for cloud propagation
             sleep(2)
             
-            repo.cloudSynchronizer?.refreshFromCloud {
-                fulfilled = try! repo.databaseQueue.write { (db) -> Bool in
-                    let expect = until(db)
-                    expectation.fulfill()
-                    return expect
-                }
+            // Await cloud refresh
+            await repo.cloudSynchronizer?.refreshFromCloud()
+            
+            // Evaluate condition within a write access to ensure consistency
+            fulfilled = try! await repo.databaseQueue.write { db -> Bool in
+                let expect = until(db)
+//                expectation.fulfill()
+                return expect
             }
             
-            self.wait(for: [expectation], timeout: 30)
-            tryCount = tryCount - 1
+//            repo.databaseQueue.write {
+            
+//            fulfilled = until(db)
+
+            
+            // Await expectation using async XCTest API
+//            await fulfillment(of: [expectation], timeout: 30)
+            tryCount -= 1
         }
     }
 

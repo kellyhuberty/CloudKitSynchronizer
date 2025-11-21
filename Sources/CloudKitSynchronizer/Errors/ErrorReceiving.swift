@@ -121,19 +121,19 @@ class WeakArray<Type> {
         }
     }
     
-    private struct WeakContainer<Type> {
+    private struct WeakContainer<Wrapped> {
         
-        let _valueFunction: () -> Type?
+        let _valueFunction: () -> Wrapped?
 
-        init (_ value: Type) {
+        init (_ value: Wrapped) {
             
             let reference = value as AnyObject
             _valueFunction = { [weak reference] in
-                return reference as? Type
+                return reference as? Wrapped
             }
         }
 
-        func get() -> Type? {
+        func get() -> Wrapped? {
             return _valueFunction()
         }
     }
