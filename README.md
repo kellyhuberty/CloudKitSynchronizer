@@ -9,6 +9,22 @@ CloudKit. CKS is based off of features of GRDB, and is written in Swift.
 using GRDB. * Error notifications using observers. * Conflict Resolution. *
 Tested for reliability.
 
+## Installation
+
+CKS is distributed with Swift Package Manager only (CocoaPods is no longer
+supported). Requires Swift 6.2, iOS 16 / macOS 13 or later, and GRDB 7.
+
+```swift
+.package(url: "https://github.com/kellyhuberty/CloudKitSynchronizer.git", branch: "main")
+```
+
+## Testing
+
+* Unit tests: `swift test`
+* CloudKit integration tests: open `TestApp/CloudKitSynchronizer.xcodeproj` and
+  test the `CloudKitSynchronizerApp` scheme. These need a signed build and a
+  device or simulator signed in to iCloud.
+
 ## Usage
 
 ### Getting started.

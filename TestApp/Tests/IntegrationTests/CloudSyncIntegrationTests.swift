@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import CloudKitSynchronizerAppPod
+@testable import CloudKitSynchronizerApp
 @testable import CloudKitSynchronizer
 import GRDB
 
