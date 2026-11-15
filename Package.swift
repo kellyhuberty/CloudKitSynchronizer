@@ -31,13 +31,13 @@ let package = Package(
 //                .library(name: "GRDB", package: "GRDB.swift")
                 .product(name: "GRDB", package: "GRDB.swift")
             ]
+        ),
+        // CloudKit-free logic tests. CloudKit integration tests need signing and an
+        // iCloud account, so they live in the TestApp's CloudKitSynchronizerIntegrationTests target.
+        .testTarget(
+            name: "CloudKitSynchronizerTests",
+            dependencies: ["CloudKitSynchronizer"]
         )
-// TODO: Need to figure out a good way to build a test target with the limitations of
-// a package.swift. (Provisioning, CloudKit integration)
-//        .testTarget(
-//            name: "CloudKitSynchronizerTests",
-//            dependencies: ["CloudKitSynchronizer"],
-//            path: "IntegrationTests")
     ],
     swiftLanguageModes: [.v6]
 )
