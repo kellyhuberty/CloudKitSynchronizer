@@ -1,5 +1,20 @@
-#if os(Linux)
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
+#if canImport(string_h)
+import string_h
+#elseif os(Linux)
 import Glibc
+#elseif os(macOS) || os(iOS) || os(watchOS) || os(tvOS) || os(visionOS)
+import Darwin
+#elseif os(Windows)
+import ucrt
 #endif
 
 /// `StatementAuthorizer` provides information about compiled database
@@ -25,6 +40,9 @@ final class StatementAuthorizer {
     /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction or
     /// savepoint statement.
     var transactionEffect: Statement.TransactionEffect?
+    
+    /// If true, the statement executes is a `PRAGMA QUERY_ONLY` statement.
+    var isQueryOnlyPragma = false
     
     private var isDropStatement = false
     
@@ -52,15 +70,16 @@ final class StatementAuthorizer {
         databaseEventKinds = []
         invalidatesDatabaseSchemaCache = false
         transactionEffect = nil
+        isQueryOnlyPragma = false
         isDropStatement = false
     }
     
     private func authorize(
         _ actionCode: CInt,
-        _ cString1: UnsafePointer<Int8>?,
-        _ cString2: UnsafePointer<Int8>?,
-        _ cString3: UnsafePointer<Int8>?,
-        _ cString4: UnsafePointer<Int8>?)
+        _ cString1: UnsafePointer<CChar>?,
+        _ cString2: UnsafePointer<CChar>?,
+        _ cString3: UnsafePointer<CChar>?,
+        _ cString4: UnsafePointer<CChar>?)
     -> CInt
     {
         // Uncomment when debugging
@@ -177,6 +196,11 @@ final class StatementAuthorizer {
             }
             return SQLITE_OK
             
+        case SQLITE_PRAGMA:
+            if let cString1 {
+                isQueryOnlyPragma = sqlite3_stricmp(cString1, "query_only") == 0
+            }
+            return SQLITE_OK
         default:
             return SQLITE_OK
         }

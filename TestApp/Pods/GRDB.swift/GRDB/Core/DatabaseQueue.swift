@@ -7,15 +7,15 @@ import UIKit
 public final class DatabaseQueue {
     private let writer: SerializedDatabase
     
+    /// If Database Suspension is enabled, this array contains the necessary `NotificationCenter` observers.
+    private var suspensionObservers: [NSObjectProtocol] = []
+    
     // MARK: - Configuration
     
     public var configuration: Configuration {
         writer.configuration
     }
     
-    /// The path to the database file.
-    ///
-    /// The path is `:memory:` for in-memory databases.
     public var path: String {
         writer.path
     }
@@ -46,6 +46,18 @@ public final class DatabaseQueue {
             path: path,
             configuration: configuration,
             defaultLabel: "GRDB.DatabaseQueue")
+        
+        // Set up journal mode unless readonly
+        if !configuration.readonly {
+            switch configuration.journalMode {
+            case .default:
+                break
+            case .wal:
+                try writer.sync {
+                    try $0.setUpWALMode()
+                }
+            }
+        }
         
         setupSuspension()
         
@@ -100,6 +112,9 @@ public final class DatabaseQueue {
     }
     
     deinit {
+        // Remove block-based Notification observers.
+        suspensionObservers.forEach(NotificationCenter.default.removeObserver(_:))
+        
         // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
@@ -107,6 +122,9 @@ public final class DatabaseQueue {
         NotificationCenter.default.removeObserver(self)
     }
 }
+
+// @unchecked because of suspensionObservers
+extension DatabaseQueue: @unchecked Sendable { }
 
 extension DatabaseQueue {
     
@@ -189,27 +207,19 @@ extension DatabaseQueue: DatabaseReader {
     private func setupSuspension() {
         if configuration.observesSuspensionNotifications {
             let center = NotificationCenter.default
-            center.addObserver(
-                self,
-                selector: #selector(DatabaseQueue.suspend(_:)),
-                name: Database.suspendNotification,
-                object: nil)
-            center.addObserver(
-                self,
-                selector: #selector(DatabaseQueue.resume(_:)),
-                name: Database.resumeNotification,
-                object: nil)
+            suspensionObservers.append(center.addObserver(
+                forName: Database.suspendNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.suspend() }
+            ))
+            suspensionObservers.append(center.addObserver(
+                forName: Database.resumeNotification,
+                object: nil,
+                queue: nil,
+                using: { [weak self] _ in self?.resume() }
+            ))
         }
-    }
-    
-    @objc
-    private func suspend(_ notification: Notification) {
-        suspend()
-    }
-    
-    @objc
-    private func resume(_ notification: Notification) {
-        resume()
     }
     
     // MARK: - Reading from Database
@@ -223,11 +233,29 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func read<T: Sendable>(
+        _ value: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute { db in
+            try db.isolated(readOnly: true) {
+                try value(db)
+            }
+        }
+    }
+    
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { db in
             defer {
-                // Ignore error because we can not notify it.
-                try? db.commit()
+                // Commit or rollback, but make sure we leave the read-only transaction
+                // (commit may fail with a CancellationError).
+                do {
+                    try db.commit()
+                } catch {
+                    try? db.rollback()
+                }
+                assert(!db.isInsideTransaction)
                 try? db.endReadOnly()
             }
             
@@ -244,11 +272,20 @@ extension DatabaseQueue: DatabaseReader {
         }
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try writer.sync(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func unsafeRead<T: Sendable>(
+        _ value: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(value)
+    }
+    
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { value(.success($0)) }
     }
     
@@ -256,28 +293,23 @@ extension DatabaseQueue: DatabaseReader {
         try writer.reentrantSync(value)
     }
     
-    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        // DatabaseQueue can't perform parallel reads.
-        // Perform a blocking read instead.
-        return DatabaseFuture(Result {
-            // Check that we're on the writer queue, as documented
-            try writer.execute { db in
-                try db.isolated(readOnly: true) {
-                    try value(db)
-                }
-            }
-        })
-    }
-    
-    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
             GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
 
             defer {
-                // Ignore error because we can not notify it.
-                try? db.commit()
+                // Commit or rollback, but make sure we leave the read-only transaction
+                // (commit may fail with a CancellationError).
+                do {
+                    try db.commit()
+                } catch {
+                    try? db.rollback()
+                }
+                assert(!db.isInsideTransaction)
                 try? db.endReadOnly()
             }
             
@@ -299,9 +331,8 @@ extension DatabaseQueue: DatabaseReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         if configuration.readonly {
             // The easy case: the database does not change
             return _addReadOnly(
@@ -342,9 +373,10 @@ extension DatabaseQueue: DatabaseWriter {
     /// ```
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is the ``Configuration/defaultTransactionKind`` of the
-    ///       the ``configuration``.
+    ///     - kind: The transaction type.
+    ///
+    ///       If nil, the transaction kind is DEFERRED when the database
+    ///       connection is read-only, and IMMEDIATE otherwise.
     ///     - updates: A function that updates the database.
     /// - throws: The error thrown by `updates`, or by the wrapping transaction.
     public func inTransaction(
@@ -364,12 +396,26 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.sync(updates)
     }
     
+    public func writeWithoutTransaction<T: Sendable>(
+        _ updates: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try writer.sync(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+    public func barrierWriteWithoutTransaction<T: Sendable>(
+        _ updates: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await writer.execute(updates)
+    }
+    
+    public func asyncBarrierWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         writer.async { updates(.success($0)) }
     }
     
@@ -415,7 +461,102 @@ extension DatabaseQueue: DatabaseWriter {
         try writer.reentrantSync(updates)
     }
     
-    public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncWriteWithoutTransaction(
+        _ updates: @escaping @Sendable (Database) -> Void
+    ) {
         writer.async(updates)
+    }
+}
+
+// MARK: - Temp Copy
+
+extension DatabaseQueue {
+    /// Returns a connection to an in-memory copy of the database at `path`.
+    ///
+    /// Changes performed on the returned connection do not impact the
+    /// original database at `path`.
+    ///
+    /// The database memory is released when the returned connection
+    /// is deallocated.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let path = "/path/to/database.sqlite"
+    /// let dbQueue = try DatabaseQueue.inMemoryCopy(fromPath: path)
+    /// ```
+    public static func inMemoryCopy(
+        fromPath path: String,
+        configuration: Configuration = Configuration())
+    throws -> DatabaseQueue
+    {
+        var sourceConfig = configuration
+        sourceConfig.readonly = true
+        let source = try DatabaseQueue(path: path, configuration: sourceConfig)
+        
+        var copyConfig = configuration
+        copyConfig.readonly = false
+        let result = try DatabaseQueue(configuration: copyConfig)
+        
+        try source.backup(to: result)
+        
+        if configuration.readonly {
+            // Result was not opened read-only so that we could perform the
+            // copy. And SQLITE_OPEN_READONLY has no effect on in-memory
+            // databases anyway.
+            //
+            // So let's simulate read-only with PRAGMA query_only.
+            try result.inDatabase { db in
+                try db.beginReadOnly()
+            }
+        }
+        
+        return result
+    }
+    
+    /// Returns a connection to a private, temporary, on-disk copy of the
+    /// database at `path`.
+    ///
+    /// Changes performed on the returned connection do not impact the
+    /// original database at `path`.
+    ///
+    /// The on-disk copy will be automatically deleted from disk as soon as
+    /// the returned connection is closed or deallocated.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let path = "/path/to/database.sqlite"
+    /// let dbQueue = try DatabaseQueue.temporaryCopy(fromPath: path)
+    /// ```
+    public static func temporaryCopy(
+        fromPath path: String,
+        configuration: Configuration = Configuration())
+    throws -> DatabaseQueue
+    {
+        var sourceConfig = configuration
+        sourceConfig.readonly = true
+        let source = try DatabaseQueue(path: path, configuration: sourceConfig)
+        
+        // <https://www.sqlite.org/c3ref/open.html>
+        // > If the filename is an empty string, then a private, temporary
+        // > on-disk database will be created. This private database will be
+        // > automatically deleted as soon as the database connection
+        // > is closed.
+        var copyConfig = configuration
+        copyConfig.readonly = false
+        let result = try DatabaseQueue(path: "", configuration: copyConfig)
+        
+        try source.backup(to: result)
+        
+        if configuration.readonly {
+            // Result was not opened read-only so that we could perform the
+            // copy. So let's simulate read-only with PRAGMA query_only.
+            try result.inDatabase { db in
+                try db.beginReadOnly()
+            }
+        }
+        
+        return result
     }
 }

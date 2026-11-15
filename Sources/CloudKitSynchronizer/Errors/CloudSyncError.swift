@@ -115,6 +115,8 @@ internal struct CloudKitError : Error {
 //        @available() case .accountTemporarilyUnavailable:
 //            code = .retryLater
 //        #endif
+        case .accountTemporarilyUnavailable:
+            code = .retryLater
         @unknown default:
             code = .haltSync
         }

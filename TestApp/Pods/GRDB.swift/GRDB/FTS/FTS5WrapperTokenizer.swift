@@ -1,10 +1,19 @@
 #if SQLITE_ENABLE_FTS5
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// Flags that tell SQLite how to register a token.
 ///
 /// See the `FTS5_TOKEN_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
-public struct FTS5TokenFlags: OptionSet {
+public struct FTS5TokenFlags: OptionSet, Sendable {
     public let rawValue: CInt
     
     public init(rawValue: CInt) {
@@ -87,7 +96,7 @@ extension FTS5WrapperTokenizer {
     public func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
-        pText: UnsafePointer<Int8>?,
+        pText: UnsafePointer<CChar>?,
         nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
     -> CInt
@@ -138,7 +147,7 @@ extension FTS5WrapperTokenizer {
                                     return
                                 }
                                 let pToken = UnsafeMutableRawPointer(mutating: addr)
-                                    .assumingMemoryBound(to: Int8.self)
+                                    .assumingMemoryBound(to: CChar.self)
                                 let nToken = CInt(buffer.count)
                                 
                                 // Inject token bytes into SQLite

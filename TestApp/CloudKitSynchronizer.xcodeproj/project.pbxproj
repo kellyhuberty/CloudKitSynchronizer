@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A1B2C3D4E5F6A7B8C9D0E1F1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */; };
 		B280E8BDABCC06D519920117 /* Pods_CloudKitSynchronizerAppPod.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 803731224376C15A79FE7566 /* Pods_CloudKitSynchronizerAppPod.framework */; };
 		C4CB4255FC76F4330F0878D2 /* Pods_CloudKitSynchronizerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */; };
 		C723C79D25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */; };
@@ -54,6 +56,7 @@
 		42B97A459565AC8128C3CFDF /* Pods-CloudKitSynchronizerAppPod.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerAppPod.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerAppPod/Pods-CloudKitSynchronizerAppPod.release.xcconfig"; sourceTree = "<group>"; };
 		76433BABA986F99EA5A9B729 /* Pods-CloudKitSynchronizerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.release.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.release.xcconfig"; sourceTree = "<group>"; };
 		803731224376C15A79FE7566 /* Pods_CloudKitSynchronizerAppPod.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizerAppPod.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		C62CE1CFFF11A0EF7772E4FF /* Pods_CloudKitSynchronizerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_CloudKitSynchronizerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSyncIntegrationTests.swift; sourceTree = "<group>"; };
 		C729F686C139DA26A6197CDE /* Pods-CloudKitSynchronizerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CloudKitSynchronizerTests.debug.xcconfig"; path = "Target Support Files/Pods-CloudKitSynchronizerTests/Pods-CloudKitSynchronizerTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -192,6 +195,7 @@
 				C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */,
 				C7653B9A2243F72C000CDABB /* Item.swift */,
 				C7653B612243390B000CDABB /* AppDelegate.swift */,
+				A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */,
 				C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */,
 				C7653B632243390B000CDABB /* ViewController.swift */,
 				C7653B812243396F000CDABB /* WordListViewController.swift */,
@@ -294,8 +298,9 @@
 		C7653B562243390B000CDABB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1010;
-				LastUpgradeCheck = 1250;
+				LastUpgradeCheck = 2700;
 				ORGANIZATIONNAME = "Kelly Huberty";
 				TargetAttributes = {
 					C7653B5D2243390B000CDABB = {
@@ -499,6 +504,7 @@
 				C7653B642243390B000CDABB /* ViewController.swift in Sources */,
 				C7653B9B2243F72C000CDABB /* Item.swift in Sources */,
 				C7653B622243390B000CDABB /* AppDelegate.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F1 /* SceneDelegate.swift in Sources */,
 				C7B8F4D323C108DC0067BDAF /* LSTDatabaseMigrator.swift in Sources */,
 				C7653B8822434191000CDABB /* WordListTableCell.swift in Sources */,
 				C7653B832243396F000CDABB /* WordListViewController.swift in Sources */,
@@ -519,6 +525,7 @@
 			files = (
 				C797B28B268B9337009194F1 /* Item.swift in Sources */,
 				C797B28C268B933A009194F1 /* AppDelegate.swift in Sources */,
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* SceneDelegate.swift in Sources */,
 				C797B28D268B933D009194F1 /* LSTDatabaseMigrator.swift in Sources */,
 				C797B28E268B9340009194F1 /* ViewController.swift in Sources */,
 				C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */,
@@ -598,8 +605,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = K8244XD42E;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -614,11 +623,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -662,8 +672,10 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = K8244XD42E;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -672,11 +684,12 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = NO;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -694,10 +707,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -708,6 +720,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -723,10 +736,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -737,6 +749,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SUPPORTS_MACCATALYST = YES;
+				SWIFT_STRICT_CONCURRENCY = complete;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -746,13 +759,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = C729F686C139DA26A6197CDE /* Pods-CloudKitSynchronizerTests.debug.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = tests/CloudKitSynchronizerTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -771,13 +782,11 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 76433BABA986F99EA5A9B729 /* Pods-CloudKitSynchronizerTests.release.xcconfig */;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = tests/CloudKitSynchronizerTests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -800,10 +809,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -828,10 +836,9 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				EXCLUDED_ARCHS = "";
 				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -850,13 +857,11 @@
 		C7B10FDC2B7836BD004D429C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = "CloudKitSynchronizerTests copy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -874,13 +879,11 @@
 		C7B10FDD2B7836BD004D429C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = K8244XD42E;
 				INFOPLIST_FILE = "CloudKitSynchronizerTests copy-Info.plist";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

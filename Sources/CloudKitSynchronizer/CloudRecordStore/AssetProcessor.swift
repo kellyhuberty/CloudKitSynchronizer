@@ -8,7 +8,7 @@
 import CloudKit
 import GRDB
 
-public protocol AssetProcessing {
+public protocol AssetProcessing: Sendable {
 //    func register(_ object: AnyObject, for assetId: String, changeBlock: @escaping () -> Void)
 //    func unregister(_ object: AnyObject, for assetId: String)
 //    func unregisterAll(for object: AnyObject)
@@ -19,20 +19,20 @@ public protocol AssetProcessing {
 
 }
 
-public protocol AssetSyncing: AnyObject {
+public protocol AssetSyncing: AnyObject, Sendable {
     var assetId: String? { get }
     func assetDidChange()
 }
 
-class AssetProcessor {
+final class AssetProcessor: Sendable {
     
-    static private(set) var shared: AssetProcessor = {
+    static let shared: AssetProcessor = {
         AssetProcessor()
     }()
     
     private let center = NotificationCenter.default
     
-    private func register(_ object: AnyObject, for assetId: String, changeBlock: @escaping () -> Void) {
+    private func register(_ object: AnyObject, for assetId: String, changeBlock: @escaping @Sendable () -> Void) {
         let name = name(for: assetId)
         center.addObserver(forName: name, object: object, queue: OperationQueue.main) { notification in
             changeBlock()

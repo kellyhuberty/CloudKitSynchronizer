@@ -318,6 +318,8 @@ class CloudSyncIntegrationTests: XCTestCase {
         XCTAssertEqual(items2.count, 3)
         XCTAssertEqual(Set(items1), Set(items2))
         
+        print(items2)
+        
         let deletedItem = (items2.first { $0.text == "Daphne" })!
         
         var items1Edited:[Item] = []

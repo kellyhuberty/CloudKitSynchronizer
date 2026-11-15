@@ -130,6 +130,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         return true
     }
     
+    @MainActor
     class KeyController {
                 
         weak var responder: UIViewController?

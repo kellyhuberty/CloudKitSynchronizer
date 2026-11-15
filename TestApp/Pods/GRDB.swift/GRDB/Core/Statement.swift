@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A raw SQLite statement, suitable for the SQLite C API.
@@ -26,7 +35,7 @@ extension String {
 }
 
 public final class Statement {
-    enum TransactionEffect {
+    enum TransactionEffect: Equatable {
         case beginTransaction
         case commitTransaction
         case rollbackTransaction
@@ -42,14 +51,15 @@ public final class Statement {
     public var sql: String {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        // trim white space and semicolumn for homogeneous output
+        // trim white space and semicolon for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
     }
     
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
+        // swiftlint:disable:next redundant_self_in_closure
         let sqliteStatement = self.sqliteStatement
-        return (0..<CInt(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
+        return (0..<CInt(columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
     // The database region is reported by `sqlite3_set_authorizer`, and maybe
@@ -82,6 +92,9 @@ public final class Statement {
     /// The effects on the database (reported by `sqlite3_set_authorizer`).
     private(set) var authorizerEventKinds: [DatabaseEventKind] = []
     
+    /// If true, the statement executes is a `PRAGMA QUERY_ONLY` statement.
+    private(set) var isQueryOnlyPragma = false
+    
     /// A boolean value indicating if the prepared statement makes no direct
     /// changes to the content of the database file.
     ///
@@ -90,8 +103,8 @@ public final class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
-    /// A boolean value indicating if the statement deletes some rows.
-    var isDeleteStatement: Bool {
+    /// A boolean value indicating if the statement can delete some rows.
+    var canDeleteRows: Bool {
         authorizerEventKinds.contains(where: \.isDelete)
     }
     
@@ -101,7 +114,7 @@ public final class Statement {
     /// Cache for index(ofColumn:). Keys are lowercase.
     private lazy var columnIndexes: [String: Int] = {
         Dictionary(
-            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+            columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
             uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
     }()
     
@@ -118,8 +131,8 @@ public final class Statement {
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
+        statementStart: UnsafePointer<CChar>,
+        statementEnd: UnsafeMutablePointer<UnsafePointer<CChar>?>,
         prepFlags: CUnsignedInt) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)
@@ -128,22 +141,10 @@ public final class Statement {
         let authorizer = database.authorizer
         authorizer.reset()
         
-        var sqliteStatement: SQLiteStatement? = nil
-        let code: CInt
-        // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-#if GRDBCUSTOMSQLITE || GRDBCIPHER
-        code = sqlite3_prepare_v3(
+        var sqliteStatement: SQLiteStatement?
+        let code = sqlite3_prepare_v3(
             database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
-#else
-        if #available(iOS 12, macOS 10.14, tvOS 12, watchOS 5, *) { // SQLite 3.20+
-            code = sqlite3_prepare_v3(
-                database.sqliteConnection, statementStart, -1, prepFlags,
-                &sqliteStatement, statementEnd)
-        } else {
-            code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
-        }
-#endif
         
         guard code == SQLITE_OK else {
             throw DatabaseError(
@@ -162,6 +163,7 @@ public final class Statement {
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.transactionEffect = authorizer.transactionEffect
         self.authorizerEventKinds = authorizer.databaseEventKinds
+        self.isQueryOnlyPragma = authorizer.isQueryOnlyPragma
     }
     
     deinit {
@@ -222,7 +224,7 @@ public final class Statement {
     private var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
-        Int(sqlite3_bind_parameter_count(self.sqliteStatement))
+        Int(sqlite3_bind_parameter_count(sqliteStatement))
     }()
     
     // Returns ["id", nil, "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
@@ -622,6 +624,11 @@ public final class Statement {
     }
 }
 
+// Explicit non-conformance to Sendable: statements must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension Statement: Sendable { }
+
 extension Statement: CustomStringConvertible {
     public var description: String {
         SchedulingWatchdog.allows(database) ? sql : "Statement"
@@ -704,7 +711,7 @@ extension Statement {
 /// [`sqlite3_reset`](https://www.sqlite.org/c3ref/reset.html) when the cursor
 /// is created, and when it is deallocated. Don't share the same prepared
 /// statement between two cursors!
-public protocol DatabaseCursor: Cursor {
+public protocol DatabaseCursor<Element>: Cursor {
     /// Must be initialized to false.
     var _isDone: Bool { get set }
     
@@ -850,14 +857,12 @@ func checkBindingSuccess(code: CInt, sqliteStatement: SQLiteStatement) throws {
 /// - parameter index: The index of the first binding.
 /// - parameter body: The closure to execute when arguments are bound.
 @usableFromInline
-func withBindings<C, T>(
-    _ bindings: C,
+func withBindings<T>(
+    _ bindings: some Collection<DatabaseValue>,
     to sqliteStatement: SQLiteStatement,
     from index: CInt = 1,
-    do body: () throws -> T)
-throws -> T
-where C: Collection, C.Element == DatabaseValue
-{
+    do body: () throws -> T
+) throws -> T {
     guard let binding = bindings.first else {
         return try body()
     }
@@ -923,7 +928,8 @@ where C: Collection, C.Element == DatabaseValue
 /// ## Concatenating Arguments
 ///
 /// Several arguments can be concatenated and mixed with the
-/// ``append(contentsOf:)`` method and the `+`, `&+`, `+=` operators:
+/// ``StatementArguments/append(contentsOf:)`` method and the `+`, `&+`,
+/// `+=` operators:
 ///
 /// ```swift
 /// var arguments: StatementArguments = ["Arthur"]
@@ -943,8 +949,8 @@ where C: Collection, C.Element == DatabaseValue
 /// arguments += ["name": "Barbara"]
 /// ```
 ///
-/// On the other side, `&+` and ``append(contentsOf:)`` allow overriding
-/// named arguments:
+/// On the other side, `&+` and ``StatementArguments/append(contentsOf:)``
+/// allow overriding named arguments:
 ///
 /// ```swift
 /// var arguments: StatementArguments = ["name": "Arthur"]
@@ -1003,10 +1009,8 @@ public struct StatementArguments: Hashable {
     /// let values: [(any DatabaseValueConvertible)?] = ["foo", 1, nil]
     /// db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
     /// ```
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element == (any DatabaseValueConvertible)?
-    {
-        values = sequence.map { $0?.databaseValue ?? .null }
+    public init(_ values: some Sequence<(any DatabaseValueConvertible)?>) {
+        self.values = values.map { $0?.databaseValue ?? .null }
         namedValues = .init()
     }
     
@@ -1018,10 +1022,8 @@ public struct StatementArguments: Hashable {
     /// let values: [String] = ["foo", "bar"]
     /// db.execute(sql: "INSERT ... (?,?)", arguments: StatementArguments(values))
     /// ```
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element: DatabaseValueConvertible
-    {
-        values = sequence.map(\.databaseValue)
+    public init(_ values: some Sequence<some DatabaseValueConvertible>) {
+        self.values = values.map(\.databaseValue)
         namedValues = .init()
     }
     
@@ -1062,11 +1064,11 @@ public struct StatementArguments: Hashable {
     
     /// Creates a `StatementArguments` of named arguments from a sequence of
     /// (key, value) pairs.
-    public init<S>(_ sequence: S)
-    where S: Sequence, S.Element == (String, (any DatabaseValueConvertible)?)
-    {
-        namedValues = .init(minimumCapacity: sequence.underestimatedCount)
-        for (key, value) in sequence {
+    public init(
+        _ keysAndValues: some Sequence<(String, (any DatabaseValueConvertible)?)>
+    ) {
+        namedValues = .init(minimumCapacity: keysAndValues.underestimatedCount)
+        for (key, value) in keysAndValues {
             namedValues[key] = value?.databaseValue ?? .null
         }
         values = .init()

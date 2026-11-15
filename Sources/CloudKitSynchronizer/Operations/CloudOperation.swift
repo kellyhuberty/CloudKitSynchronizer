@@ -9,18 +9,20 @@
 import Foundation
 import CloudKit
 
-class CloudOperation : AsyncCloudKitOperation {
+class CloudOperation : AsyncCloudKitOperation, @unchecked Sendable {
     
     private var _operation:CKDatabaseOperation!
 
     override func start(completionToken:Token){
         
-        _operation = createOperation()
-        _operation.completionBlock = {
-            print(self)
-            completionToken.finish()
+        syncQueue.sync {
+            _operation = createOperation()
+            _operation.completionBlock = {
+                print(self)
+                completionToken.finish()
+            }
+            _operation.start()
         }
-        _operation.start()
     }
 
     func createOperation() -> CKDatabaseOperation {

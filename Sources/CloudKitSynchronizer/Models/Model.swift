@@ -13,6 +13,6 @@ public protocol Model : Codable, FetchableRecord, PersistableRecord {
 
 }
 
-public protocol IdentifiableModel: Model {
+public protocol IdentifiableModel: Model, Sendable {
     var identifier: String { get }
 }

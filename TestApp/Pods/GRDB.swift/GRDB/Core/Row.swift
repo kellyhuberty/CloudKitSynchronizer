@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A database row.
@@ -43,6 +52,8 @@ import Foundation
 /// - ``subscript(_:)-9c1fw``
 /// - ``subscript(_:)-3jhwm``
 /// - ``subscript(_:)-7krrg``
+/// - ``decode(_:atIndex:)-33ykh``
+/// - ``decode(_:atIndex:)-3btwn``
 /// - ``withUnsafeData(atIndex:_:)``
 /// - ``dataNoCopy(atIndex:)``
 ///
@@ -51,6 +62,9 @@ import Foundation
 /// - ``subscript(_:)-3tp8o``
 /// - ``subscript(_:)-4k8od``
 /// - ``subscript(_:)-9rbo7``
+/// - ``coalesce(_:)-359k7``
+/// - ``decode(_:forColumn:)-4i1o4``
+/// - ``decode(_:forColumn:)-4rhs4``
 /// - ``withUnsafeData(named:_:)``
 /// - ``dataNoCopy(named:)``
 ///
@@ -59,6 +73,9 @@ import Foundation
 /// - ``subscript(_:)-9txgm``
 /// - ``subscript(_:)-2esg7``
 /// - ``subscript(_:)-wl9a``
+/// - ``coalesce(_:)-6nbah``
+/// - ``decode(_:forColumn:)-1ljuo``
+/// - ``decode(_:forColumn:)-47qeg``
 /// - ``withUnsafeData(at:_:)``
 /// - ``dataNoCopy(_:)``
 ///
@@ -73,6 +90,10 @@ import Foundation
 /// - ``subscript(_:)-8god3``
 /// - ``subscript(_:)-jwnx``
 /// - ``subscript(_:)-6ge6t``
+/// - ``decode(_:forKey:)-9bbd3``
+/// - ``decode(_:forKey:)-2w6lc``
+/// - ``decode(_:forKey:)-2soc2``
+/// - ``decodeIfPresent(_:forKey:)``
 /// - ``PrefetchedRowsView``
 /// - ``ScopesTreeView``
 /// - ``ScopesView``
@@ -107,6 +128,10 @@ import Foundation
 /// ### Adapting Rows
 ///
 /// - ``RowAdapter``
+///
+/// ### Errors
+///
+/// - ``RowDecodingError``
 ///
 /// ### Supporting Types
 ///
@@ -244,6 +269,12 @@ public final class Row {
         self.count = impl.count
     }
 }
+
+// Explicit non-conformance to Sendable: a row contains transient
+// information. TODO GRDB7: split non sendable statement rows from sendable
+// copied rows.
+@available(*, unavailable)
+extension Row: Sendable { }
 
 extension Row {
     
@@ -435,7 +466,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
-        try! decode(Value.self, forKey: columnName)
+        try! decode(Value.self, forColumn: columnName)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -472,7 +503,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
-        try! decode(Value.self, forKey: columnName)
+        try! decode(Value.self, forColumn: columnName)
     }
     
     /// Returns `Int64`, `Double`, `String`, `Data` or nil, depending on the
@@ -516,7 +547,7 @@ extension Row {
     /// ```
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ column: some ColumnExpression) -> Value {
-        try! decode(Value.self, forKey: column.name)
+        try! decode(Value.self, forColumn: column)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -556,7 +587,7 @@ extension Row {
     -> Value
     where Value: DatabaseValueConvertible & StatementColumnConvertible
     {
-        try! decode(Value.self, forKey: column.name)
+        try! decode(Value.self, forColumn: column)
     }
     
     /// Calls the given closure with the `Data` at given index.
@@ -656,6 +687,53 @@ extension Row {
     public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
         dataNoCopy(named: column.name)
     }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce(["nickname", "name"])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row["nickname"] ?? row["name"]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<String>
+    ) -> T? {
+        for column in columns {
+            if let value = self[column] as T? {
+                return value
+            }
+        }
+        return nil
+    }
+
+    /// Returns the first non-null value, if any. Identical to SQL `COALESCE` function.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let name: String? = row.coalesce([Column("nickname"), Column("name")])
+    /// ```
+    ///
+    /// Prefer `coalesce` to nil-coalescing row values, which does not
+    /// return the expected value:
+    ///
+    /// ```swift
+    /// // INCORRECT
+    /// let name: String? = row[Column("nickname")] ?? row[Column("name")]
+    /// ```
+    public func coalesce<T: DatabaseValueConvertible>(
+        _ columns: some Collection<any ColumnExpression>
+    ) -> T? {
+        return coalesce(columns.lazy.map { $0.name })
+    }
 }
 
 extension Row {
@@ -675,12 +753,13 @@ extension Row {
     
     // MARK: - Extracting Records
     
-    /// The record associated to the given scope.
+    /// Returns the record associated to the given key.
     ///
-    /// Row scopes can be defined manually, with ``ScopeAdapter``.
-    /// The ``JoinableRequest/including(required:)`` and
-    /// ``JoinableRequest/including(optional:)`` request methods define scopes
-    /// named after the key of included associations between record types.
+    /// The key is a row scope that was either defined manually, with
+    /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
+    /// and ``JoinableRequest/including(optional:)`` request methods. The
+    /// latter define row scopes named after the key of included
+    /// associations between record types.
     ///
     /// A breadth-first search is performed in all available scopes in the row,
     /// recursively.
@@ -705,26 +784,28 @@ extension Row {
     /// let request = Book
     ///     .including(required: Book.author
     ///         .including(required: Author.country))
-    /// let bookRow = try Row.fetchOne(db, request)!
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    /// let book = try Book(row: bookRow)
-    /// let author: Author = bookRow["author"]
-    /// let country: Country = bookRow["country"]
+    /// let book = try Book(row: row)
+    /// let author: Author = row["author"]
+    /// let country: Country = row["country"]
     /// ```
     ///
-    /// See also: ``scopesTree``
+    /// For more details about row scopes, see ``ScopeAdapter``,
+    /// ``splittingRowAdapters(columnCounts:)`` and ``scopesTree``.
     ///
     /// - parameter scope: A scope identifier.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         try! decode(Record.self, forKey: scope)
     }
     
-    /// The eventual record associated to the given scope.
+    /// Returns the eventual record associated to the given key.
     ///
-    /// Row scopes can be defined manually, with ``ScopeAdapter``.
-    /// The ``JoinableRequest/including(required:)`` and
-    /// ``JoinableRequest/including(optional:)`` request methods define scopes
-    /// named after the key of included associations between record types.
+    /// The key is a row scope that was either defined manually, with
+    /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
+    /// and ``JoinableRequest/including(optional:)`` request methods. The
+    /// latter define row scopes named after the key of included
+    /// associations between record types.
     ///
     /// A breadth-first search is performed in all available scopes in the row,
     /// recursively.
@@ -745,25 +826,26 @@ extension Row {
     ///
     /// struct Country: TableRecord, FetchableRecord { }
     ///
-    /// // Fetch a book, with its author, and the country of its author.
+    /// // Fetch a book, with its eventual author, and the country of its author.
     /// let request = Book
     ///     .including(optional: Book.author
     ///         .including(optional: Author.country))
-    /// let bookRow = try Row.fetchOne(db, request)!
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    /// let book = try Book(row: bookRow)
-    /// let author: Author? = bookRow["author"]
-    /// let country: Country? = bookRow["country"]
+    /// let book = try Book(row: row)
+    /// let author: Author? = row["author"]
+    /// let country: Country? = row["country"]
     /// ```
     ///
-    /// See also: ``scopesTree``
+    /// For more details about row scopes, see ``ScopeAdapter``,
+    /// ``splittingRowAdapters(columnCounts:)`` and ``scopesTree``.
     ///
     /// - parameter scope: A scope identifier.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
         try! decodeIfPresent(Record.self, forKey: scope)
     }
     
-    /// A collection of prefetched records associated to the given
+    /// Returns a collection of prefetched records associated to the given
     /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
@@ -779,10 +861,10 @@ extension Row {
     /// struct Book: TableRecord, FetchableRecord { }
     ///
     /// let request = Author.including(all: Author.books)
-    /// let authorRow = try Row.fetchOne(db, request)!
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    /// let author = try Author(row: authorRow)
-    /// let books: [Book] = author["books"]
+    /// let author = try Author(row: row)
+    /// let books: [Book] = row["books"]
     /// ```
     ///
     /// See also: ``prefetchedRows``
@@ -797,7 +879,8 @@ extension Row {
         try! decode(Records.self, forKey: key)
     }
     
-    /// A set prefetched records associated to the given association key.
+    /// Returns the set of prefetched records associated to the given
+    /// association key.
     ///
     /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
     /// request method.
@@ -812,10 +895,10 @@ extension Row {
     /// struct Book: TableRecord, FetchableRecord, Hashable { }
     ///
     /// let request = Author.including(all: Author.books)
-    /// let authorRow = try Row.fetchOne(db, request)!
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    /// let author = try Author(row: authorRow)
-    /// let books: Set<Book> = author["books"]
+    /// let author = try Author(row: row)
+    /// let books: Set<Book> = row["books"]
     /// ```
     ///
     /// See also: ``prefetchedRows``
@@ -871,7 +954,8 @@ extension Row {
     /// // Prints [code:"US" name:"United States of America"]
     /// ```
     ///
-    /// See also ``scopesTree``.
+    /// For more details about row scopes, see ``ScopeAdapter``,
+    /// ``splittingRowAdapters(columnCounts:)`` and ``scopesTree``.
     public var scopes: ScopesView {
         impl.scopes(prefetchedRows: prefetchedRows)
     }
@@ -1001,10 +1085,28 @@ extension Row {
     /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
-    /// If the SQLite value is NULL, or if the conversion fails, a
-    /// `RowDecodingError` is thrown.
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    /// let score = try row.decode(Int.self, atIndex: 0) // 42
+    /// let score: Int = try row.decode(atIndex: 0)      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    /// let name = try row.decode(String.self, atIndex: 0) // "Alice"
+    /// let name: String = try row.decode(atIndex: 0)      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    /// let name: String? = try row.decode(atIndex: 0) // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
     @inlinable
-    func decode<Value: DatabaseValueConvertible>(
+    public func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value
@@ -1018,13 +1120,37 @@ extension Row {
     /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, or if the SQLite value is NULL,
-    /// or if the SQLite value can not be converted to `Value`, a
-    /// `RowDecodingError` is thrown.
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score = try row.decode(Int.self, forColumn: "score") // 42
+    /// let score: Int = try row.decode(forColumn: "score")      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name = try row.decode(String.self, forColumn: "name") // "Alice"
+    /// let name: String = try row.decode(forColumn: "name")      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = try row.decode(forColumn: "name") // nil
+    /// ```
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = try row.decode(forColumn: "missing") // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
     @inlinable
-    func decode<Value: DatabaseValueConvertible>(
+    public func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn columnName: String)
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
@@ -1035,6 +1161,47 @@ extension Row {
             }
         }
         return try Value.decode(fromRow: self, atUncheckedIndex: index)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score = try row.decode(Int.self, forColumn: Column("score")) // 42
+    /// let score: Int = try row.decode(forColumn: Column("score"))      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name = try row.decode(String.self, forColumn: Column("name")) // "Alice"
+    /// let name: String = try row.decode(forColumn: Column("name"))      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = try row.decode(forColumn: Column("name")) // nil
+    /// ```
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = try row.decode(forColumn: Column("missing")) // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
+    @inlinable
+    public func decode<Value: DatabaseValueConvertible>(
+        _ type: Value.Type = Value.self,
+        forColumn column: some ColumnExpression)
+    throws -> Value
+    {
+        try decode(type, forColumn: column.name)
     }
 }
 
@@ -1050,11 +1217,29 @@ extension Row {
     /// Indexes span from `0` for the leftmost column to `row.count - 1` for the
     /// rightmost column.
     ///
-    /// If the SQLite value is NULL, or if the conversion fails, a
-    /// `RowDecodingError` is thrown.
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    /// let score = try row.decode(Int.self, atIndex: 0) // 42
+    /// let score: Int = try row.decode(atIndex: 0)      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    /// let name = try row.decode(String.self, atIndex: 0) // "Alice"
+    /// let name: String = try row.decode(atIndex: 0)      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    /// let name: String? = try row.decode(atIndex: 0) // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
     @inline(__always)
     @inlinable
-    func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value
@@ -1072,13 +1257,37 @@ extension Row {
     /// Column name lookup is case-insensitive. When several columns exist with
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, or if the SQLite value is NULL,
-    /// or if the SQLite value can not be converted to `Value`, a
-    /// `RowDecodingError` is thrown.
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score = try row.decode(Int.self, forColumn: "score") // 42
+    /// let score: Int = try row.decode(forColumn: "score")      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name = try row.decode(String.self, forColumn: "name") // "Alice"
+    /// let name: String = try row.decode(forColumn: "name")      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = try row.decode(forColumn: "name") // nil
+    /// ```
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = try row.decode(forColumn: "missing") // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
     @inlinable
-    func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn columnName: String)
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
@@ -1089,6 +1298,51 @@ extension Row {
             }
         }
         return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
+    }
+    
+    /// Returns the value at given column, converted to the requested type.
+    ///
+    /// This method exists as an optimization opportunity for types that adopt
+    /// ``StatementColumnConvertible``. It can trigger [SQLite built-in
+    /// conversions](https://www.sqlite.org/datatype3.html).
+    ///
+    /// Column name lookup is case-insensitive. When several columns exist with
+    /// the same name, the leftmost column is considered.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    /// let score = try row.decode(Int.self, forColumn: Column("score")) // 42
+    /// let score: Int = try row.decode(forColumn: Column("score"))      // 42
+    ///
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name = try row.decode(String.self, forColumn: Column("name")) // "Alice"
+    /// let name: String = try row.decode(forColumn: Column("name"))      // "Alice"
+    /// ```
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    /// let name: String? = try row.decode(forColumn: Column("name")) // nil
+    /// ```
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    /// ```swift
+    /// let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    /// let name: String? = try row.decode(forColumn: Column("missing")) // nil
+    /// ```
+    ///
+    /// - throws: Any error that happens during the decoding.
+    @inlinable
+    public func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type = Value.self,
+        forColumn column: some ColumnExpression)
+    throws -> Value
+    {
+        try decode(type, forColumn: column.name)
     }
     
     // Support for fast decoding in scoped rows
@@ -1123,37 +1377,51 @@ extension Row {
 // MARK: - Throwing Record Decoding Methods
 
 extension Row {
-    /// Returns the eventual record associated with the given scope.
+    /// Returns the eventual record associated to the given key.
+    ///
+    /// The key is a row scope that was either defined manually, with
+    /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
+    /// and ``JoinableRequest/including(optional:)`` request methods. The
+    /// latter define row scopes named after the key of included
+    /// associations between record types.
+    ///
+    /// A breadth-first search is performed in all available scopes in the row,
+    /// recursively.
+    ///
+    /// The result is nil if the scope is not available, or contains only
+    /// `NULL` values.
     ///
     /// For example:
     ///
-    ///     let request = Book.including(optional: Book.author)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    ///     let author: Author? = row["author"]
-    ///     print(author.name)
-    ///     // Prints "Herman Melville"
+    /// struct Country: TableRecord, FetchableRecord { }
     ///
-    /// Associated records stored in nested associations are available, too:
+    /// // Fetch a book, with its eventual author, and the country of its author.
+    /// let request = Book
+    ///     .including(optional: Book.author
+    ///         .including(optional: Author.country))
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     let request = Book.including(optional: Book.author.including(optional: Author.country))
-    ///     let row = try Row.fetchOne(db, request)!
+    /// let book = try Book(row: row)
+    /// let author: Author? = try row.decode(forKey: "author")
+    /// let country: Country? = try row.decode(forKey: "country")
+    /// ```
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// For more details about row scopes, see ``ScopeAdapter``,
+    /// ``splittingRowAdapters(columnCounts:)`` and ``scopesTree``.
     ///
-    ///     let country: Country? = row["country"]
-    ///     print(country.name)
-    ///     // Prints "United States"
-    ///
-    /// Nil is returned if the scope is not available, or contains only
-    /// null values.
-    ///
-    /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
-    func decodeIfPresent<Record: FetchableRecord>(
+    /// - parameter type: The decoded type.
+    /// - parameter scope: A scope identifier.
+    /// - throws: Any error that happens during the decoding.
+    public func decodeIfPresent<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record?
@@ -1164,37 +1432,48 @@ extension Row {
         return try Record(row: scopedRow)
     }
     
-    /// Returns the record associated with the given scope.
+    /// Returns the record associated to the given key.
+    ///
+    /// The key is a row scope that was either defined manually, with
+    /// ``ScopeAdapter``, or with the ``JoinableRequest/including(required:)``
+    /// and ``JoinableRequest/including(optional:)`` request methods. The
+    /// latter define row scopes named after the key of included
+    /// associations between record types.
+    ///
+    /// A breadth-first search is performed in all available scopes in the row,
+    /// recursively.
     ///
     /// For example:
     ///
-    ///     let request = Book.including(required: Book.author)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// struct Book: TableRecord, FetchableRecord {
+    ///     static let author = belongsTo(Author.self)
+    /// }
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let country = belongsTo(Country.self)
+    /// }
     ///
-    ///     let author: Author = row["author"]
-    ///     print(author.name)
-    ///     // Prints "Herman Melville"
+    /// struct Country: TableRecord, FetchableRecord { }
     ///
-    /// Associated records stored in nested associations are available, too:
+    /// // Fetch a book, with its author, and the country of its author.
+    /// let request = Book
+    ///     .including(required: Book.author
+    ///         .including(required: Author.country))
+    /// let row = try Row.fetchOne(db, request)!
     ///
-    ///     let request = Book.including(required: Book.author.including(required: Author.country))
-    ///     let row = try Row.fetchOne(db, request)!
+    /// let book = try Book(row: row)
+    /// let author: Author = try row.decode(forKey: "author")
+    /// let country: Country = try row.decode(forKey: "country")
+    /// ```
     ///
-    ///     try print(Book(row: row).title)
-    ///     // Prints "Moby-Dick"
+    /// For more details about row scopes, see ``ScopeAdapter``,
+    /// ``splittingRowAdapters(columnCounts:)`` and ``scopesTree``.
     ///
-    ///     let country: Country = row["country"]
-    ///     print(country.name)
-    ///     // Prints "United States"
-    ///
-    /// A fatal error is raised if the scope is not available, or contains only
-    /// null values.
-    ///
-    /// See ``splittingRowAdapters(columnCounts:)`` for a sample code.
-    func decode<Record: FetchableRecord>(
+    /// - parameter type: The decoded type.
+    /// - parameter scope: A scope identifier.
+    /// - throws: Any error that happens during the decoding.
+    public func decode<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record
@@ -1236,20 +1515,34 @@ extension Row {
 // MARK: - Throwing Record RangeReplaceableCollection and Set Methods
 
 extension Row {
-    /// Returns the records encoded in the given prefetched rows.
+    /// Returns a collection of prefetched records associated to the given
+    /// association key.
+    ///
+    /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
+    /// request method.
     ///
     /// For example:
     ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let books = hasMany(Book.self)
+    /// }
     ///
-    ///     try print(Author(row: row).name)
-    ///     // Prints "Herman Melville"
+    /// struct Book: TableRecord, FetchableRecord { }
     ///
-    ///     let books: [Book] = row["books"]
-    ///     print(books[0].title)
-    ///     // Prints "Moby-Dick"
-    func decode<Collection>(
+    /// let request = Author.including(all: Author.books)
+    /// let row = try Row.fetchOne(db, request)!
+    ///
+    /// let author = try Author(row: row)
+    /// let books: [Book] = try row.decode(forKey: "books")
+    /// ```
+    ///
+    /// See also: ``prefetchedRows``
+    ///
+    /// - parameter type: The type of the decoded collection.
+    /// - parameter key: An association key.
+    /// - throws: Any error that happens during the decoding.
+    public func decode<Collection>(
         _ type: Collection.Type = Collection.self,
         forKey key: String)
     throws -> Collection
@@ -1257,6 +1550,7 @@ extension Row {
         Collection: RangeReplaceableCollection,
         Collection.Element: FetchableRecord
     {
+        // TODO: test independently
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
@@ -1287,24 +1581,39 @@ extension Row {
         return collection
     }
     
-    /// Returns the set of records encoded in the given prefetched rows.
+    /// Returns the set of prefetched records associated to the given
+    /// association key.
+    ///
+    /// Prefetched rows are defined by the ``JoinableRequest/including(all:)``
+    /// request method.
     ///
     /// For example:
     ///
-    ///     let request = Author.including(all: Author.books)
-    ///     let row = try Row.fetchOne(db, request)!
+    /// ```swift
+    /// struct Author: TableRecord, FetchableRecord {
+    ///     static let books = hasMany(Book.self)
+    /// }
     ///
-    ///     try print(Author(row: row).name)
-    ///     // Prints "Herman Melville"
+    /// struct Book: TableRecord, FetchableRecord, Hashable { }
     ///
-    ///     let books: Set<Book> = row["books"]
-    ///     print(books.first!.title)
-    ///     // Prints "Moby-Dick"
-    func decode<Record: FetchableRecord & Hashable>(
+    /// let request = Author.including(all: Author.books)
+    /// let row = try Row.fetchOne(db, request)!
+    ///
+    /// let author = try Author(row: row)
+    /// let books: Set<Book> = try row.decode(forKey: "books")
+    /// ```
+    ///
+    /// See also: ``prefetchedRows``
+    ///
+    /// - parameter type: The type of the decoded set.
+    /// - parameter key: An association key.
+    /// - throws: Any error that happens during the decoding.
+    public func decode<Record: FetchableRecord & Hashable>(
         _ type: Set<Record>.Type = Set<Record>.self,
         forKey key: String)
     throws -> Set<Record>
     {
+        // TODO: test independently
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
@@ -1377,6 +1686,11 @@ public final class RowCursor: DatabaseCursor {
     public func _element(sqliteStatement: SQLiteStatement) -> Row { _row }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension RowCursor: Sendable { }
+
 extension Row {
     
     // MARK: - Fetching From Prepared Statement
@@ -1413,8 +1727,7 @@ extension Row {
     /// elements are undefined.
     ///
     /// - parameters:
-    ///     - db: A database connection.
-    ///     - sql: An SQL string.
+    ///     - statement: The statement to iterate.
     ///     - arguments: Optional statement arguments.
     ///     - adapter: Optional RowAdapter
     /// - returns: A ``RowCursor`` over fetched rows.
@@ -1667,11 +1980,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1702,7 +2021,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A ``RowCursor`` over fetched rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RowCursor {
@@ -1716,11 +2035,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1733,13 +2058,13 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An array of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
-        try request.supplementaryFetch?(db, rows)
+        try request.supplementaryFetch?(db, rows, nil)
         return rows
     }
     
@@ -1748,11 +2073,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1765,14 +2096,14 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: A set of rows.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Row> {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(db, rows)
+            try supplementaryFetch(db, rows, nil)
             return Set(rows)
         } else {
             return try fetchSet(request.statement, adapter: request.adapter)
@@ -1784,11 +2115,17 @@ extension Row {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let lastName = Column("lastName")
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
     ///     let lastName = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.lastName == lastName }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Row> = """
@@ -1801,7 +2138,7 @@ extension Row {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - request: A FetchRequest.
+    ///     - request: A fetch request.
     /// - returns: An optional row.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Row? {
@@ -1809,7 +2146,7 @@ extension Row {
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
         }
-        try request.supplementaryFetch?(db, [row])
+        try request.supplementaryFetch?(db, [row], nil)
         return row
     }
 }
@@ -2059,7 +2396,7 @@ typealias RowIndex = Row.Index
 
 extension Row {
     /// An index to a (column, value) pair in a ``Row``.
-    public struct Index {
+    public struct Index: Sendable {
         let index: Int
         init(_ index: Int) { self.index = index }
     }
@@ -2180,7 +2517,7 @@ extension Row {
         ///
         /// See ``Row/scopesTree`` for more information.
         ///
-        /// - parameter key: An association key.
+        /// - parameter name: The scope name.
         public subscript(_ name: String) -> Row? {
             var fifo = Array(scopes)
             while !fifo.isEmpty {
@@ -2376,9 +2713,7 @@ extension RowImpl {
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init<Columns>(columns: Columns)
-    where Columns: Collection, Columns.Element == (String, DatabaseValue)
-    {
+    init(columns: some Collection<(String, DatabaseValue)>) {
         self.columns = Array(columns)
     }
     

@@ -7,7 +7,7 @@
 
 import Foundation
 
-public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
+public final class SyncedAsset<EnclosingType: IdentifiableModel>: Codable, @unchecked Sendable {
     
     private let enclosingObject: EnclosingType
     
@@ -79,14 +79,14 @@ public class SyncedAsset<EnclosingType: IdentifiableModel>: Codable {
         fileObserver.resume()
     }
     
-    public func write(_ block: @escaping (_ url: URL) -> Void ) {
+    public func write(_ block: @escaping @Sendable (_ url: URL) -> Void ) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
             block(self.currentURL)
         }
     }
     
-    public func read(_ block: @escaping (_ url: URL) -> Void ) {
+    public func read(_ block: @escaping @Sendable (_ url: URL) -> Void ) {
         queue.async { [weak self] in
             guard let self = self else { return }
             block(self.currentURL)

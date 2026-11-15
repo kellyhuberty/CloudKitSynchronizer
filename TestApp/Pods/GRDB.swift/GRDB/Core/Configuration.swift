@@ -1,7 +1,19 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
+#if !canImport(Darwin)
+@preconcurrency
+#endif
 import Dispatch
 import Foundation
 
-public struct Configuration {
+public struct Configuration: Sendable {
     
     // MARK: - Misc options
     
@@ -75,7 +87,7 @@ public struct Configuration {
     ///   with the number of snapshots.
     ///
     /// The default configuration label is nil.
-    public var label: String? = nil
+    public var label: String?
     
     /// A boolean value indicating whether SQLite 3.29+ interprets
     /// double-quoted strings as string literals when they does not match any
@@ -132,7 +144,7 @@ public struct Configuration {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // By default, sensitive information is NOT printed
     ///     // when an error occurs:
@@ -161,7 +173,7 @@ public struct Configuration {
     /// do {
     ///     // The sensitive information to protect
     ///     let email = "..."
-    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     let player = try Player.filter { $0.email == email }.fetchOne(db)
     /// } catch {
     ///     // Sensitive information is printed in DEBUG builds:
     ///     print(error)
@@ -186,7 +198,7 @@ public struct Configuration {
     
     // MARK: - Managing SQLite Connections
     
-    private var setups: [(Database) throws -> Void] = []
+    private var setups: [@Sendable (Database) throws -> Void] = []
     
     /// Defines a function to run whenever an SQLite connection is opened.
     ///
@@ -223,33 +235,11 @@ public struct Configuration {
     ///
     /// On newly created databases files, ``DatabasePool`` activates the WAL
     /// mode after the preparation functions have run.
-    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+    public mutating func prepareDatabase(_ setup: @escaping @Sendable (Database) throws -> Void) {
         setups.append(setup)
     }
     
     // MARK: - Transactions
-    
-    /// The default kind of write transactions.
-    ///
-    /// The default is ``Database/TransactionKind/deferred``.
-    ///
-    /// You can change the default transaction kind. For example, you can force
-    /// all write transactions to be `IMMEDIATE`:
-    ///
-    /// ```swift
-    /// var config = Configuration()
-    /// config.defaultTransactionKind = .immediate
-    /// let dbQueue = try DatabaseQueue(configuration: config)
-    ///
-    /// // BEGIN IMMEDIATE TRANSACTION; ...; COMMIT TRANSACTION;
-    /// try dbQueue.write { db in ... }
-    /// ```
-    ///
-    /// This property is ignored for read-only transactions. Those always open
-    /// `DEFERRED` SQLite transactions.
-    ///
-    /// Related SQLite documentation: <https://www.sqlite.org/lang_transaction.html>
-    public var defaultTransactionKind: Database.TransactionKind = .deferred
     
     /// A boolean value indicating whether it is valid to leave a transaction
     /// opened at the end of a database access method.
@@ -288,6 +278,46 @@ public struct Configuration {
     /// of a read access.
     public var allowsUnsafeTransactions = false
     
+    // MARK: - Journal Mode
+    
+    /// Defines how the journal mode is configured when the database
+    /// connection is opened.
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
+    public enum JournalModeConfiguration: Sendable {
+        /// The default setup has ``DatabaseQueue`` perform no specific
+        /// configuration of the journal mode, and ``DatabasePool`` 
+        /// configure the database for the WAL mode (just like the
+        /// ``wal`` case).
+        case `default`
+        
+        /// The journal mode is set to WAL (plus extra configurations that
+        /// make life easier with WAL databases).
+        case wal
+    }
+    
+    /// Defines how the journal mode is configured when the database
+    /// connection is opened.
+    ///
+    /// This configuration is ignored when ``readonly`` is true.
+    ///
+    /// The default value has ``DatabaseQueue`` perform no specific
+    /// configuration of the journal mode, and ``DatabasePool`` configure
+    /// the database for the WAL mode.
+    ///
+    /// Applications that need to open a WAL database with a
+    /// ``DatabaseQueue`` should set the `journalMode` to `wal`:
+    ///
+    /// ```swift
+    /// // Open a WAL database with DatabaseQueue
+    /// var config = Configuration()
+    /// config.journalMode = .wal
+    /// let dbQueue = try DatabaseQueue(path: "...", configuration: config)
+    /// ```
+    ///
+    /// Related SQLite documentation: <https://www.sqlite.org/pragma.html#pragma_journal_mode>
+    public var journalMode = JournalModeConfiguration.default
+    
     // MARK: - Concurrency
     
     /// Defines the how `SQLITE_BUSY` errors are handled.
@@ -299,7 +329,7 @@ public struct Configuration {
     
     /// The behavior in case of SQLITE_BUSY error, for read-only connections.
     /// If nil, GRDB picks a default one.
-    var readonlyBusyMode: Database.BusyMode? = nil
+    var readonlyBusyMode: Database.BusyMode?
     
     /// The maximum number of concurrent reader connections.
     ///
@@ -357,7 +387,7 @@ public struct Configuration {
     /// ``qos`` property.
     ///
     /// The default is nil.
-    public var targetQueue: DispatchQueue? = nil
+    public var targetQueue: DispatchQueue?
     
     /// The target dispatch queue for write database accesses.
     ///
@@ -365,7 +395,7 @@ public struct Configuration {
     /// by ``targetQueue``.
     ///
     /// The default is nil.
-    public var writeTargetQueue: DispatchQueue? = nil
+    public var writeTargetQueue: DispatchQueue?
 
 #if os(iOS)
     /// A boolean value indicating whether the database connection releases
@@ -391,6 +421,22 @@ public struct Configuration {
     /// reveals that a lot of time is spent opening new SQLite connections.
     public var persistentReadOnlyConnections = false
     
+    // MARK: - Database Schema
+    
+    /// A custom schema source.
+    ///
+    /// The use case for a custom schema source is enabling GRDB features that
+    /// would not work with the built-in schema introspection that is provided
+    /// by SQLite. For example, a custom schema source can help record types
+    /// that read or write in a database view.
+    ///
+    /// The schema source is automatically disabled during database
+    /// migrations performed by ``DatabaseMigrator``: those access the raw
+    /// SQLite schema, unaltered. If a migration needs a schema source,
+    /// you may call ``Database/withSchemaSource(_:execute:)`` from within
+    /// the body of a migration.
+    public var schemaSource: (any DatabaseSchemaSource)?
+    
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration.
@@ -405,9 +451,25 @@ public struct Configuration {
     /// through a `SerializedDatabase`.
     var threadingMode = Database.ThreadingMode.default
     
-    var SQLiteConnectionDidOpen: (() -> Void)?
-    var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
-    var SQLiteConnectionDidClose: (() -> Void)?
+    private(set) var SQLiteConnectionDidOpen: (@Sendable () -> Void)?
+    private(set) var SQLiteConnectionWillClose: (@Sendable (SQLiteConnection) -> Void)?
+    private(set) var SQLiteConnectionDidClose: (@Sendable () -> Void)?
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidOpen(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidOpen = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionWillClose(_ callback: @escaping @Sendable (SQLiteConnection) -> Void) {
+        SQLiteConnectionWillClose = callback
+    }
+    
+    // Workaround https://github.com/apple/swift/issues/72727
+    mutating func onConnectionDidClose(_ callback: @escaping @Sendable () -> Void) {
+        SQLiteConnectionDidClose = callback
+    }
+    
     var SQLiteOpenFlags: CInt {
         var flags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         if sqlite3_libversion_number() >= 3037000 {

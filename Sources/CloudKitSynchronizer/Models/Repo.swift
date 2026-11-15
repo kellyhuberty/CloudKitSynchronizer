@@ -10,9 +10,9 @@ import Foundation
 import GRDB
 import CloudKit
 
-public protocol RepoManufacturing {
-    func loadRepo(for domain:String) -> Repo?
-}
+//public protocol RepoManufacturing {
+//    func loadRepo(for domain:String) -> Repo?
+//}
 
 public class Repo {
     
@@ -56,10 +56,8 @@ public class Repo {
 
 extension Repo {
     
-    public func registeredForRemoteNotifications(deviceTokens: Data) {
-        cloudSynchronizer?.setupSubscriptions {
-            
-        }
+    public func registeredForRemoteNotifications(deviceTokens: Data) async {
+        await cloudSynchronizer?.setupSubscriptions()
     }
     
     @available(iOS 13, macOS 10.15, watchOS 6, *)

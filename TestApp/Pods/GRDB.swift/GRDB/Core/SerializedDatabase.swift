@@ -5,6 +5,9 @@ final class SerializedDatabase {
     /// The database connection
     private let db: Database
     
+    /// The actor that performs asynchronous accesses
+    private let actor: DispatchQueueActor
+    
     /// The database configuration
     var configuration: Configuration { db.configuration }
     
@@ -55,6 +58,8 @@ final class SerializedDatabase {
         } else {
             self.queue = configuration.makeWriterDispatchQueue(label: identifier)
         }
+        self.actor = DispatchQueueActor(queue: queue)
+        
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {
@@ -133,7 +138,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
+            try SchedulingWatchdog.inheritingAllowedDatabases(watchdog.allowedDatabases) {
                 defer { preconditionNoUnsafeTransactionLeft(db) }
                 return try block(db)
             }
@@ -209,7 +214,7 @@ final class SerializedDatabase {
         
         // Case 3
         return try queue.sync {
-            try SchedulingWatchdog.current!.inheritingAllowedDatabases(from: watchdog) {
+            try SchedulingWatchdog.inheritingAllowedDatabases(watchdog.allowedDatabases) {
                 // Since we are reentrant, a transaction may already be opened.
                 // In this case, don't check for unsafe transaction at the end.
                 if db.isInsideTransaction {
@@ -223,7 +228,7 @@ final class SerializedDatabase {
     }
     
     /// Schedules database operations for execution, and returns immediately.
-    func async(_ block: @escaping (Database) -> Void) {
+    func async(_ block: @escaping @Sendable (Database) -> Void) {
         queue.async {
             block(self.db)
             self.preconditionNoUnsafeTransactionLeft(self.db)
@@ -241,6 +246,27 @@ final class SerializedDatabase {
     func execute<T>(_ block: (Database) throws -> T) rethrows -> T {
         preconditionValidQueue()
         return try block(db)
+    }
+    
+    /// Asynchrously executes the block.
+    func execute<T: Sendable>(
+        _ block: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        let cancelMutex = Mutex<(@Sendable () -> Void)?>(nil)
+        return try await withTaskCancellationHandler {
+            try await actor.execute {
+                defer {
+                    cancelMutex.store(nil)
+                    db.uncancel()
+                    preconditionNoUnsafeTransactionLeft(db)
+                }
+                cancelMutex.store(db.cancel)
+                try Task.checkCancellation()
+                return try block(db)
+            }
+        } onCancel: {
+            cancelMutex.withLock { $0?() }
+        }
     }
     
     func interrupt() {

@@ -1,45 +1,73 @@
 /// An internal struct that defines a migration.
-struct Migration {
+struct Migration: Sendable {
     enum ForeignKeyChecks {
         case deferred
         case immediate
         case disabled
     }
     
-    let identifier: String
-    var foreignKeyChecks: ForeignKeyChecks
-    let migrate: (Database) throws -> Void
+    typealias Migrate = @Sendable (_ db: Database, _ mergedIdentifiers: Set<String>) throws -> Void
     
-    func run(_ db: Database) throws {
-        if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
-            switch foreignKeyChecks {
-            case .deferred:
-                try runWithDeferredForeignKeysChecks(db)
-            case .immediate:
-                try runWithImmediateForeignKeysChecks(db)
-            case .disabled:
-                try runWithDisabledForeignKeysChecks(db)
+    let identifier: String
+    let mergedIdentifiers: Set<String>
+    var foreignKeyChecks: ForeignKeyChecks
+    // Private so that the guarantees of `run(_:)` are enforced.
+    private let migrate: Migrate
+    
+    init(
+        identifier: String,
+        mergedIdentifiers: Set<String>,
+        foreignKeyChecks: ForeignKeyChecks,
+        migrate: @escaping Migrate
+    ) {
+        self.identifier = identifier
+        self.mergedIdentifiers = mergedIdentifiers
+        self.foreignKeyChecks = foreignKeyChecks
+        self.migrate = migrate
+    }
+    
+    func run(_ db: Database, mergedIdentifiers: Set<String>) throws {
+        // Migrations access the raw SQLite schema, without alteration due
+        // to the schemaSource. The goal is to ensure that migrations are
+        // immutable, immune from spooky actions at a distance.
+        try db.withSchemaSource(nil) {
+            if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
+                switch foreignKeyChecks {
+                case .deferred:
+                    try runWithDeferredForeignKeysChecks(db, mergedIdentifiers: mergedIdentifiers)
+                case .immediate:
+                    try runWithImmediateForeignKeysChecks(db, mergedIdentifiers: mergedIdentifiers)
+                case .disabled:
+                    try runWithDisabledForeignKeysChecks(db, mergedIdentifiers: mergedIdentifiers)
+                }
+            } else {
+                try runWithImmediateForeignKeysChecks(db, mergedIdentifiers: mergedIdentifiers)
             }
-        } else {
-            try runWithImmediateForeignKeysChecks(db)
         }
     }
     
-    private func runWithImmediateForeignKeysChecks(_ db: Database) throws {
+    
+    func deleteMergedIdentifiers(_ db: Database) throws {
+        if mergedIdentifiers.isEmpty == false {
+            try db.execute(literal: "DELETE FROM grdb_migrations WHERE identifier IN \(mergedIdentifiers)")
+        }
+    }
+    
+    private func runWithImmediateForeignKeysChecks(_ db: Database, mergedIdentifiers: Set<String>) throws {
         try db.inTransaction(.immediate) {
-            try migrate(db)
-            try insertAppliedIdentifier(db)
+            try migrate(db, mergedIdentifiers)
+            try updateAppliedIdentifier(db)
             return .commit
         }
     }
     
-    private func runWithDisabledForeignKeysChecks(_ db: Database) throws {
+    private func runWithDisabledForeignKeysChecks(_ db: Database, mergedIdentifiers: Set<String>) throws {
         try db.execute(sql: "PRAGMA foreign_keys = OFF")
         try throwingFirstError(
             execute: {
                 try db.inTransaction(.immediate) {
-                    try migrate(db)
-                    try insertAppliedIdentifier(db)
+                    try migrate(db, mergedIdentifiers)
+                    try updateAppliedIdentifier(db)
                     return .commit
                 }
             },
@@ -48,7 +76,7 @@ struct Migration {
             })
     }
 
-    private func runWithDeferredForeignKeysChecks(_ db: Database) throws {
+    private func runWithDeferredForeignKeysChecks(_ db: Database, mergedIdentifiers: Set<String>) throws {
         // Support for database alterations described at
         // https://www.sqlite.org/lang_altertable.html#otheralter
         //
@@ -60,8 +88,8 @@ struct Migration {
             execute: {
                 // > 2. Start a transaction.
                 try db.inTransaction(.immediate) {
-                    try migrate(db)
-                    try insertAppliedIdentifier(db)
+                    try migrate(db, mergedIdentifiers)
+                    try updateAppliedIdentifier(db)
                     
                     // > 10. If foreign key constraints were originally enabled
                     // > then run PRAGMA foreign_key_check to verify that the
@@ -80,7 +108,8 @@ struct Migration {
             })
     }
     
-    private func insertAppliedIdentifier(_ db: Database) throws {
-        try db.execute(sql: "INSERT INTO grdb_migrations (identifier) VALUES (?)", arguments: [identifier])
+    private func updateAppliedIdentifier(_ db: Database) throws {
+        try deleteMergedIdentifiers(db)
+        try db.execute(literal: "INSERT INTO grdb_migrations (identifier) VALUES (\(identifier))")
     }
 }
