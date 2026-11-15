@@ -1472,7 +1472,7 @@
 			};
 			name = Release;
 		};
-		5724ED8D0BD4346D52FF0A5787CBBC33 /* Debug */ = {
+		3AEAE7EF49F5D191660B122B68BC8ED3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = BBEAF2B1406DB0C09B82C2358AEAA4EA /* CloudKitSynchronizer.debug.xcconfig */;
 			buildSettings = {
@@ -1500,7 +1500,7 @@
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -1538,6 +1538,42 @@
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		5DC4E4A0453F6135AACD922FF267BE78 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 919A2C8226564AD7BC8984ADE6B6AC16 /* CloudKitSynchronizer.release.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_PREFIX_HEADER = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer-prefix.pch";
+				INFOPLIST_FILE = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MODULEMAP_FILE = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer.modulemap";
+				PRODUCT_MODULE_NAME = CloudKitSynchronizer;
+				PRODUCT_NAME = CloudKitSynchronizer;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -1691,42 +1727,6 @@
 			};
 			name = Debug;
 		};
-		E7866FE7FFC4B9FAC30B3CEA3A9EBA78 /* Release */ = {
-			isa = XCBuildConfiguration;
-			baseConfigurationReference = 919A2C8226564AD7BC8984ADE6B6AC16 /* CloudKitSynchronizer.release.xcconfig */;
-			buildSettings = {
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				"CODE_SIGN_IDENTITY[sdk=appletvos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
-				"CODE_SIGN_IDENTITY[sdk=watchos*]" = "";
-				CURRENT_PROJECT_VERSION = 1;
-				DEFINES_MODULE = YES;
-				DYLIB_COMPATIBILITY_VERSION = 1;
-				DYLIB_CURRENT_VERSION = 1;
-				DYLIB_INSTALL_NAME_BASE = "@rpath";
-				GCC_PREFIX_HEADER = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer-prefix.pch";
-				INFOPLIST_FILE = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer-Info.plist";
-				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@loader_path/Frameworks",
-				);
-				MODULEMAP_FILE = "Target Support Files/CloudKitSynchronizer/CloudKitSynchronizer.modulemap";
-				PRODUCT_MODULE_NAME = CloudKitSynchronizer;
-				PRODUCT_NAME = CloudKitSynchronizer;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) ";
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-				VERSIONING_SYSTEM = "apple-generic";
-				VERSION_INFO_PREFIX = "";
-			};
-			name = Release;
-		};
 		F4FF6A0D1970CA9705974E3CB2134802 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1872,8 +1872,8 @@
 		D32A0DD6E9F03F7878F542F9DED03F92 /* Build configuration list for PBXNativeTarget "CloudKitSynchronizer" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				5724ED8D0BD4346D52FF0A5787CBBC33 /* Debug */,
-				E7866FE7FFC4B9FAC30B3CEA3A9EBA78 /* Release */,
+				3AEAE7EF49F5D191660B122B68BC8ED3 /* Debug */,
+				5DC4E4A0453F6135AACD922FF267BE78 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

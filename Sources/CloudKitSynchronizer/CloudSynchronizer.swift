@@ -18,10 +18,11 @@ struct TableNames{
     static let ChangeTags = "SyncChangeTags"
 }
 
-@propertyWrapper class CloudKitAvailablity {
-    
-    public struct Status {
-        enum Availablity {
+@MainActor
+@propertyWrapper final class CloudKitAvailablity {
+
+    public struct Status: Sendable {
+        enum Availablity: Sendable {
             init(_ accountStatus: CKAccountStatus) {
                 switch accountStatus {
                 case .available:
@@ -73,28 +74,34 @@ struct TableNames{
     }
 
     private let container: CKContainer
-    private let deliveryQueue: DispatchQueue
-    private let delivery: ((Status) -> Void)?
-    private var observer: NSObjectProtocol! = nil
-            
-    init(_ container: CKContainer, queue: DispatchQueue = .main, delivery: ((Status) -> Void)? ) {
-        
+    private let delivery: (@MainActor (Status) -> Void)?
+    private var observer: NSObjectProtocol?
+
+    nonisolated init(_ container: CKContainer, delivery: (@MainActor (Status) -> Void)? ) {
         self.container = container
-        self.deliveryQueue = queue
         self.delivery = delivery
-        
-        observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: nil) { _ in
-            self.checkAvailablity(nil)
-        }
     }
-    
+
     public func checkAvailablity(_ completion: ((Status) -> Void)? ){
-        container.accountStatus { [weak self] accountStatus, error in
-            self?.deliveryQueue.async {
-                let status = Status(Status.Availablity(accountStatus), error: error)
-                self?.currentStatus = status
-                completion?(status)
+        // Account change observation starts on first check, since the nonisolated
+        // initializer can't touch main actor state once `self` is initialized.
+        if observer == nil {
+            observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.checkAvailablity(nil)
+                }
             }
+        }
+
+        Task {
+            let status: Status
+            do {
+                status = Status(Status.Availablity(try await container.accountStatus()))
+            } catch {
+                status = Status(.couldNotDetermine, error: error)
+            }
+            currentStatus = status
+            completion?(status)
         }
     }
 }
@@ -162,7 +169,11 @@ public class CloudSynchronizer {
     
     private let cloudRecordStore: CloudRecordStoring
     
-    @CloudKitAvailablity var availability: CloudKitAvailablity.Status
+    private let availabilityMonitor: CloudKitAvailablity
+
+    @MainActor var availability: CloudKitAvailablity.Status {
+        availabilityMonitor.wrappedValue
+    }
     
     private var currentChangeTagCache:CKServerChangeToken?
     
@@ -257,7 +268,7 @@ public class CloudSynchronizer {
         
         self.assetProcessor = assetProcessor
         
-        _availability = CloudKitAvailablity(container) { status in
+        availabilityMonitor = CloudKitAvailablity(container) { status in
             
         }
         
@@ -286,12 +297,19 @@ public class CloudSynchronizer {
             return
         }
         
-        _availability.checkAvailablity { [weak self] status in
+        // CloudSynchronizer isn't Sendable yet, so its work is wrapped to cross onto the main actor.
+        let onAvailable = SendingWrapper { [weak self] in
 //            self?.setupSubscriptions {
                 self?.initilizeZones {
                     self?.status = .syncing
                 }
 //            }
+        }
+        let availability = availabilityMonitor
+        Task { @MainActor in
+            availability.checkAvailablity { _ in
+                onAvailable.invoke()
+            }
         }
     }
     

@@ -624,7 +624,7 @@ class CustomTableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierTyp
     }
 }
 
-@objc protocol CustomTableViewDiffableDataSourceDelegate: NSObjectProtocol {
+@MainActor @objc protocol CustomTableViewDiffableDataSourceDelegate: NSObjectProtocol {
     @objc optional func tableView(_ tableView: UITableView,
                    commit editingStyle: UITableViewCell.EditingStyle,
                    forRowAt indexPath: IndexPath)

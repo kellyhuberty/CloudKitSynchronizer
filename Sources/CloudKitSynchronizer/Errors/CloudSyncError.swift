@@ -8,7 +8,7 @@
 
 import CloudKit
 
-public enum RecoveryType: String {
+public enum RecoveryType: String, Sendable {
     /// This particular item isn't handled by this verson's scopr of CKS.
     case unhandled
     /// An issue occured that requires pausing syncing until a later date.
@@ -80,6 +80,8 @@ internal struct CloudKitError : Error {
         case .partialFailure:
             code = .retryLater
         case .participantMayNeedVerification:
+            code = .unhandled
+        case .participantAlreadyInvited:
             code = .unhandled
         case .permissionFailure:
             code = .unhandled

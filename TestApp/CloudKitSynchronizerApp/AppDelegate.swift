@@ -10,7 +10,7 @@ import UIKit
 import GRDB
 import CloudKitSynchronizer
 
-@UIApplicationMain
+@main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     lazy var repo:Repo! = {

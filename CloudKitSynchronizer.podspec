@@ -2,6 +2,7 @@ Pod::Spec.new do |spec|
   spec.name         = 'CloudKitSynchronizer'
   spec.ios.deployment_target  = '16.0'
   spec.osx.deployment_target  = '13.0'
+  spec.swift_versions = ['6.0']
   spec.version      = '0.1.0'
   spec.license      = { :type => 'Unavailable' }
   spec.source       = { :git => 'git@github.com:kellyhuberty/CloudKitSynchronizer.git' }

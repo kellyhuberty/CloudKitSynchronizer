@@ -30,13 +30,6 @@ let package = Package(
 //                "GRDB"
 //                .library(name: "GRDB", package: "GRDB.swift")
                 .product(name: "GRDB", package: "GRDB.swift")
-            ],
-            swiftSettings: [
-                /// Xcode 14:
-//                SwiftSetting.unsafeFlags(["-Xfrontend", "-strict-concurrency=complete"]),
-        
-                /// Xcode 15. Remove `=targeted` to use the default `complete`.
-//                .enableExperimentalFeature("StrictConcurrency=targeted")
             ]
         )
 // TODO: Need to figure out a good way to build a test target with the limitations of
