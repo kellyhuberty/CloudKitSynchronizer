@@ -106,15 +106,16 @@ extension MutablePersistableRecord {
     /// - parameter conflictResolution: A policy for conflict resolution. If
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
-    /// - returns: The saved record. The result can be nil when the
-    ///   conflict policy is `IGNORE`.
+    /// - returns: The saved record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     public func saveAndFetch(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil)
-    throws -> Self?
+    throws -> Self
     where Self: FetchableRecord
     {
         var result = self
@@ -133,26 +134,31 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`. The result can be nil when
-    ///   the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     public mutating func saveAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try willSave(db)
         
-        var success: (saved: PersistenceSuccess, returned: T?)?
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
+            let record = self
             success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
-                    try T.fetchOne($0)
+                    if let result = try T.fetchOne($0) {
+                        return result
+                    }
+                    throw record.recordNotFound(db)
                 })
             return success!.saved
         }
@@ -228,16 +234,17 @@ extension MutablePersistableRecord {
     /// - parameter conflictResolution: A policy for conflict resolution. If
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
-    /// - returns: The saved record. The result can be nil when the
-    ///   conflict policy is `IGNORE`.
+    /// - returns: The saved record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public func saveAndFetch(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil)
-    throws -> Self?
+    throws -> Self
     where Self: FetchableRecord
     {
         var result = self
@@ -256,27 +263,32 @@ extension MutablePersistableRecord {
     ///   nil, <doc:/MutablePersistableRecord/persistenceConflictPolicy-1isyv>
     ///   is used.
     /// - parameter returnedType: The type of the returned record.
-    /// - returns: A record of type `returnedType`. The result can be nil when
-    ///   the conflict policy is `IGNORE`.
+    /// - returns: A record of type `returnedType`.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs, or any
     ///   error thrown by the persistence callbacks defined by the record type.
+    ///   ``RecordError/recordNotFound(databaseTableName:key:)`` can be
+    ///   thrown if the database changes fail due to the IGNORE conflict policy.
     @inlinable // allow specialization so that empty callbacks are removed
     @available(iOS 15, macOS 12, tvOS 15, watchOS 8, *) // SQLite 3.35.0+
     public mutating func saveAndFetch<T: FetchableRecord & TableRecord>(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         as returnedType: T.Type)
-    throws -> T?
+    throws -> T
     {
         try willSave(db)
         
-        var success: (saved: PersistenceSuccess, returned: T?)?
+        var success: (saved: PersistenceSuccess, returned: T)?
         try aroundSave(db) {
+            let record = self
             success = try updateOrInsertAndFetchWithCallbacks(
                 db, onConflict: conflictResolution,
                 selection: T.databaseSelection,
                 fetch: {
-                    try T.fetchOne($0)
+                    if let result = try T.fetchOne($0) {
+                        return result
+                    }
+                    throw record.recordNotFound(db)
                 })
             return success!.saved
         }
@@ -397,7 +409,7 @@ extension MutablePersistableRecord {
         let primaryKeyInfo = try db.primaryKey(databaseTableName)
         let container = try PersistenceContainer(db, self)
         let primaryKey = Dictionary(uniqueKeysWithValues: primaryKeyInfo.columns.map {
-            ($0, container[caseInsensitive: $0]?.databaseValue ?? .null)
+            ($0, container.databaseValue(at: $0))
         })
         if primaryKey.allSatisfy({ $0.value.isNull }) {
             return nil

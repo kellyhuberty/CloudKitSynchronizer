@@ -1,4 +1,13 @@
 #if SQLITE_ENABLE_FTS5
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
@@ -7,7 +16,7 @@ import Foundation
 public typealias FTS5TokenCallback = @convention(c) (
     _ context: UnsafeMutableRawPointer?,
     _ flags: CInt,
-    _ pToken: UnsafePointer<Int8>?,
+    _ pToken: UnsafePointer<CChar>?,
     _ nToken: CInt,
     _ iStart: CInt,
     _ iEnd: CInt)
@@ -16,7 +25,7 @@ public typealias FTS5TokenCallback = @convention(c) (
 /// The reason why FTS5 is requesting tokenization.
 ///
 /// See the `FTS5_TOKENIZE_*` constants in <https://www.sqlite.org/fts5.html#custom_tokenizers>.
-public struct FTS5Tokenization: OptionSet {
+public struct FTS5Tokenization: OptionSet, Sendable {
     public let rawValue: CInt
     
     public init(rawValue: CInt) {
@@ -77,7 +86,7 @@ public protocol FTS5Tokenizer: AnyObject {
     func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
-        pText: UnsafePointer<Int8>?,
+        pText: UnsafePointer<CChar>?,
         nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
     -> CInt
@@ -143,7 +152,7 @@ extension FTS5Tokenizer {
             guard let addr = buffer.baseAddress else {
                 return []
             }
-            let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
+            let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: CChar.self)
             let nText = CInt(buffer.count)
             
             var context = TokenizeContext()
@@ -199,15 +208,15 @@ extension Database {
             
             self.xTokenizer = xTokenizer
             
-            var tokenizerPointer: OpaquePointer? = nil
+            var tokenizerPointer: OpaquePointer?
             let code: CInt
             if arguments.isEmpty {
                 code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
             } else {
                 func withArrayOfCStrings<Result>(
                     _ input: [String],
-                    _ output: inout ContiguousArray<UnsafePointer<Int8>>,
-                    _ accessor: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
+                    _ output: inout ContiguousArray<UnsafePointer<CChar>>,
+                    _ accessor: (ContiguousArray<UnsafePointer<CChar>>) -> Result)
                 -> Result
                 {
                     if output.count == input.count {
@@ -219,7 +228,7 @@ extension Database {
                         }
                     }
                 }
-                var cStrings = ContiguousArray<UnsafePointer<Int8>>()
+                var cStrings = ContiguousArray<UnsafePointer<CChar>>()
                 cStrings.reserveCapacity(arguments.count)
                 code = withArrayOfCStrings(arguments, &cStrings) { (cStrings) in
                     cStrings.withUnsafeBufferPointer { azArg in
@@ -252,7 +261,7 @@ extension Database {
         func tokenize(
             context: UnsafeMutableRawPointer?,
             tokenization: FTS5Tokenization,
-            pText: UnsafePointer<Int8>?,
+            pText: UnsafePointer<CChar>?,
             nText: CInt,
             tokenCallback: @escaping FTS5TokenCallback)
         -> CInt

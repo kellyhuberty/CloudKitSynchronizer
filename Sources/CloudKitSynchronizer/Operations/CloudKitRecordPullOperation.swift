@@ -12,7 +12,7 @@ import CloudKit
 
 
 
-class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
+class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation, @unchecked Sendable {
     
     var zoneId: CKRecordZone.ID?
     
@@ -81,9 +81,9 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
                                                       status: .error(CloudKitError(error: error)))
                 case .success(let record):
                     
-                    if record.recordID == nil  {
-                        print("wtf")
-                    }
+//                    if record.recordID == nil  {
+//                        print("wtf")
+//                    }
                     
                     self.delegate?.cloudPullOperation(self,
                                                       processedUpdatedRecords: [record],
@@ -131,5 +131,9 @@ class CloudKitRecordPullOperation : CloudOperation, CloudRecordPullOperation {
         return _pullOperation
         
     }
+    
+}
+
+actor CloudKitOperationQueue<T: Sendable> {
     
 }

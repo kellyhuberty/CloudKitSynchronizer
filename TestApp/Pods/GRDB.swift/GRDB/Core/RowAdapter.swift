@@ -183,9 +183,7 @@ public struct _LayoutedColumnMapping {
     ///
     ///     // [foo:"foo" bar: "bar"]
     ///     try Row.fetchOne(db, sql: "SELECT NULL, 'foo', 'bar'", adapter: FooBarAdapter())
-    init<S>(layoutColumns: S)
-    where S: Sequence, S.Element == (Int, String)
-    {
+    init(layoutColumns: some Collection<(Int, String)>) {
         self._layoutColumns = Array(layoutColumns)
         self.lowercaseColumnIndexes = Dictionary(
             layoutColumns
@@ -318,7 +316,7 @@ extension Statement: _RowLayout {
 /// - ``RenameColumnAdapter``
 /// - ``ScopeAdapter``
 /// - ``SuffixRowAdapter``
-public protocol RowAdapter {
+public protocol RowAdapter: Sendable {
     /// You never call this method directly. It is called for you whenever an
     /// adapter has to be applied.
     ///
@@ -378,7 +376,7 @@ extension RowAdapter {
 ///
 /// This limit adapter may turn out useful in some narrow use cases. You'll
 /// be happy to find it when you need it.
-public struct EmptyRowAdapter: RowAdapter {
+public struct EmptyRowAdapter: RowAdapter, Sendable {
     /// Creates an `EmptyRowAdapter`.
     public init() { }
     
@@ -403,7 +401,7 @@ public struct EmptyRowAdapter: RowAdapter {
 ///
 /// Note that columns that are not present in the dictionary are not present
 /// in the resulting adapted row.
-public struct ColumnMapping: RowAdapter {
+public struct ColumnMapping: RowAdapter, Sendable {
     /// A dictionary from mapped column names to column names in a base row.
     let mapping: [String: String]
     
@@ -444,7 +442,7 @@ public struct ColumnMapping: RowAdapter {
 /// // [c:2, d: 3]
 /// try Row.fetchOne(db, sql: sql, adapter: adapter)!
 /// ```
-public struct SuffixRowAdapter: RowAdapter {
+public struct SuffixRowAdapter: RowAdapter, Sendable {
     /// The suffix index
     let index: Int
     
@@ -473,7 +471,7 @@ public struct SuffixRowAdapter: RowAdapter {
 /// // [b:1 c:2]
 /// try Row.fetchOne(db, sql: sql, adapter: adapter)
 /// ```
-public struct RangeRowAdapter: RowAdapter {
+public struct RangeRowAdapter: RowAdapter, Sendable {
     /// The range
     let range: CountableRange<Int>
     
@@ -656,11 +654,11 @@ struct ChainedAdapter: RowAdapter {
 /// print(Array(adaptedRow.columnNames))
 /// ```
 public struct RenameColumnAdapter: RowAdapter {
-    let transform: (String) -> String
+    let transform: @Sendable (String) -> String
     
     /// Creates a `RenameColumnAdapter` adapter that renames columns according to the
     /// provided transform function.
-    public init(_ transform: @escaping (String) -> String) {
+    public init(_ transform: @escaping @Sendable (String) -> String) {
         self.transform = transform
     }
     

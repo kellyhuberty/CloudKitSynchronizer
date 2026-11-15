@@ -9,7 +9,7 @@
 import Foundation
 import CloudKit
 
-class CloudKitZoneAvailablityOperation: AsyncCloudKitOperation, CloudZoneAvailablityOperation {
+class CloudKitZoneAvailablityOperation: AsyncCloudKitOperation, CloudZoneAvailablityOperation, @unchecked Sendable {
     
     var zoneIdsToCreate: [CKRecordZone.ID] = []
     var zoneIdsToDelete: [CKRecordZone.ID] = []

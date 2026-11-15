@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// An SQLite result code.
@@ -396,11 +405,19 @@ public struct DatabaseError: Error {
     static func noSuchTable(_ tableName: String) -> Self {
         DatabaseError(message: "no such table: \(tableName)")
     }
+    
+    static func noSuchSchema(_ schemaName: String) -> Self {
+        DatabaseError(message: "no such schema: \(schemaName)")
+    }
 }
 
 extension DatabaseError {
     static func connectionIsClosed() -> Self {
         DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+    }
+    
+    static func snapshotIsLost() -> Self {
+        DatabaseError(resultCode: .SQLITE_ABORT, message: "Snapshot is lost.")
     }
 }
 
@@ -549,7 +566,7 @@ extension DatabaseError: CustomStringConvertible {
             description += ": \(message)"
         }
         if let sql {
-            description += " - while executing `\(sql)`"
+            description += " - while executing `\(sql.trimmedSQLStatement)`"
         }
         if publicStatementArguments, let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"
@@ -577,7 +594,7 @@ extension DatabaseError: CustomStringConvertible {
             description += ": \(message)"
         }
         if let sql {
-            description += " - while executing `\(sql)`"
+            description += " - while executing `\(sql.trimmedSQLStatement)`"
         }
         if let arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"

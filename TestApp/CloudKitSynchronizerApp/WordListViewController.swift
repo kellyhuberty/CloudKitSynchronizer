@@ -130,6 +130,7 @@ class WordListViewController: UIViewController, WordListTableCellDelegate {
         return true
     }
     
+    @MainActor
     class KeyController {
                 
         weak var responder: UIViewController?
@@ -623,7 +624,7 @@ class CustomTableViewDiffableDataSource<SectionIdentifierType, ItemIdentifierTyp
     }
 }
 
-@objc protocol CustomTableViewDiffableDataSourceDelegate: NSObjectProtocol {
+@MainActor @objc protocol CustomTableViewDiffableDataSourceDelegate: NSObjectProtocol {
     @objc optional func tableView(_ tableView: UITableView,
                    commit editingStyle: UITableViewCell.EditingStyle,
                    forRowAt indexPath: IndexPath)

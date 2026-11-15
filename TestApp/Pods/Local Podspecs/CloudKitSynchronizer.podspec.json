@@ -1,9 +1,12 @@
 {
   "name": "CloudKitSynchronizer",
   "platforms": {
-    "ios": "14.0",
-    "osx": "11.0"
+    "ios": "16.0",
+    "osx": "13.0"
   },
+  "swift_versions": [
+    "6.0"
+  ],
   "version": "0.1.0",
   "license": {
     "type": "Unavailable"
@@ -19,7 +22,8 @@
   "source_files": "Sources/CloudKitSynchronizer/**/*.{swift}",
   "dependencies": {
     "GRDB.swift": [
-
+      "~> 7.0"
     ]
-  }
+  },
+  "swift_version": "6.0"
 }

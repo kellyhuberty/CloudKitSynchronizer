@@ -59,10 +59,14 @@ import Dispatch
 /// let snapshot2 = try dbPool.makeSnapshot()
 ///
 /// // Guaranteed to be zero
-/// let count1 = try snapshot1.read(Player.fetchCount)
+/// let count1 = try snapshot1.read { db in
+///     try Player.fetchCount(db)
+/// }
 ///
 /// // Could be anything
-/// let count2 = try snapshot2.read(Player.fetchCount)
+/// let count2 = try snapshot2.read { db in
+///     try Player.fetchCount(db)
+/// }
 /// ```
 ///
 /// `DatabaseSnapshot` inherits its database access methods from the
@@ -109,7 +113,14 @@ public final class DatabaseSnapshot {
     deinit {
         // Leave snapshot isolation
         reader.reentrantSync { db in
-            try? db.commit()
+            // Commit or rollback, but make sure we leave the read-only transaction
+            // (commit may fail with a CancellationError).
+            do {
+                try db.commit()
+            } catch {
+                try? db.rollback()
+            }
+            assert(!db.isInsideTransaction)
         }
     }
     
@@ -121,10 +132,6 @@ public final class DatabaseSnapshot {
 
         // DatabaseSnapshot is read-only.
         configuration.readonly = true
-        
-        // DatabaseSnapshot uses deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        configuration.defaultTransactionKind = .deferred
         
         // DatabaseSnapshot keeps a long-lived transaction.
         configuration.allowsUnsafeTransactions = true
@@ -146,19 +153,41 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     
     // MARK: - Reading from Database
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         try reader.sync(block)
     }
     
-    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    public func read<T: Sendable>(
+        _ value: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await reader.execute(value)
+    }
+    
+    public func asyncRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         reader.async { value(.success($0)) }
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try reader.sync(value)
     }
     
-    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+    // There is no such thing as an unsafe access to a snapshot.
+    // We can't provide this as a default implementation in
+    // `DatabaseSnapshotReader`,  because of
+    // <https://github.com/apple/swift/issues/74469>.
+    public func unsafeRead<T: Sendable>(
+        _ value: @Sendable (Database) throws -> T
+    ) async throws -> T {
+        try await read(value)
+    }
+    
+    public func asyncUnsafeRead(
+        _ value: @escaping @Sendable (Result<Database, Error>) -> Void
+    ) {
         reader.async { value(.success($0)) }
     }
     
@@ -171,9 +200,8 @@ extension DatabaseSnapshot: DatabaseSnapshotReader {
     public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: some ValueObservationScheduler,
-        onChange: @escaping (Reducer.Value) -> Void)
-    -> AnyDatabaseCancellable
-    {
+        onChange: @escaping @Sendable (Reducer.Value) -> Void
+    ) -> AnyDatabaseCancellable {
         _addReadOnly(
             observation: observation,
             scheduling: scheduler,

@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 extension Database {
@@ -361,6 +370,11 @@ public class SQLStatementCursor {
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension SQLStatementCursor: Sendable { }
+
 extension SQLStatementCursor: Cursor {
     public func next() throws -> Statement? {
         guard offset < cString.count - 1 /* trailing \0 */ else {
@@ -373,7 +387,7 @@ extension SQLStatementCursor: Cursor {
             let baseAddress = buffer.baseAddress! // never nil because the buffer contains the trailing \0.
             
             // Compile next statement
-            var statementEnd: UnsafePointer<Int8>? = nil
+            var statementEnd: UnsafePointer<CChar>?
             let statement = try Statement(
                 database: database,
                 statementStart: baseAddress + offset,
@@ -425,6 +439,7 @@ extension Database {
         // documentation of this method for more information).
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         
+        // Cancelled database accesses must not execute.
         // Suspended databases must not execute statements that create the risk
         // of `0xdead10cc` exception (see the documentation of this method for
         // more information).
@@ -477,6 +492,15 @@ extension Database {
         // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
         
+        switch ResultCode(rawValue: resultCode) {
+        case .SQLITE_INTERRUPT, .SQLITE_ABORT:
+            // The only error that a user sees when a Task is cancelled
+            // is CancellationError.
+            try suspensionMutex.load().checkCancellation()
+        default:
+            break
+        }
+        
         // Throw statement failure
         throw DatabaseError(
             resultCode: resultCode,
@@ -526,19 +550,7 @@ struct StatementCache {
         // > time and probably reused many times.
         //
         // This looks like a perfect match for cached statements.
-        //
-        // However SQLITE_PREPARE_PERSISTENT was only introduced in
-        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
         let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        #else
-        let statement: Statement
-        if #available(iOS 12, macOS 10.14, watchOS 5, *) { // SQLite 3.20+
-            statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
-        } else {
-            statement = try db.makeStatement(sql: sql)
-        }
-        #endif
         statements[sql] = statement
         return statement
     }

@@ -26,10 +26,16 @@ import Foundation
 /// struct Player: FetchableRecord, TableRecord, Decodable {
 ///     var name: String
 ///     var score: Int
+///
+///     enum Columns {
+///         static let name = Column("name")
+///         static let score = Column("score")
+///     }
 /// }
 ///
 /// let players = try Player.fetchAll(db)
-/// let players = try Player.order(Column("score")).fetchAll(db)
+/// let player = try Player.filter { $0.name == "O'Brien" }.fetchOne(db)
+/// let players = try Player.order(\.score).fetchAll(db)
 /// ```
 ///
 /// ## Topics
@@ -71,9 +77,9 @@ import Foundation
 /// - ``fetchAll(_:ids:)``
 /// - ``fetchSet(_:ids:)``
 /// - ``fetchOne(_:id:)``
-/// - ``fetchCursor(_:keys:)-2jrm1``
-/// - ``fetchAll(_:keys:)-4c8no``
-/// - ``fetchSet(_:keys:)-e6uy``
+/// - ``fetchCursor(_:keys:)-1x4ja``
+/// - ``fetchAll(_:keys:)-60fah``
+/// - ``fetchSet(_:keys:)-7lhcn``
 /// - ``fetchOne(_:key:)-3f3hc``
 /// - ``find(_:id:)``
 /// - ``find(_:key:)-4kry5``
@@ -89,10 +95,12 @@ import Foundation
 /// ### Configuring Row Decoding for the Standard Decodable Protocol
 ///
 /// - ``databaseColumnDecodingStrategy-6uefz``
-/// - ``databaseDateDecodingStrategy-78y03``
-/// - ``databaseDecodingUserInfo-77jim``
+/// - ``databaseDataDecodingStrategy(for:)``
+/// - ``databaseDateDecodingStrategy(for:)``
 /// - ``databaseJSONDecoder(for:)-7lmxd``
+/// - ``databaseDecodingUserInfo-77jim``
 /// - ``DatabaseColumnDecodingStrategy``
+/// - ``DatabaseDataDecodingStrategy``
 /// - ``DatabaseDateDecodingStrategy``
 ///
 /// ### Supporting Types
@@ -127,7 +135,9 @@ public protocol FetchableRecord {
     /// // A FetchableRecord + Decodable record
     /// struct Player: FetchableRecord, Decodable {
     ///     // Customize the decoder name when decoding a database row
-    ///     static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    ///     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
+    ///         [decoderName: "Database"]
+    ///     }
     ///
     ///     init(from decoder: Decoder) throws {
     ///         // Print the decoder name
@@ -144,6 +154,23 @@ public protocol FetchableRecord {
     /// decoder.userInfo = [decoderName: "JSON"]
     /// let player = try decoder.decode(Player.self, from: ...)
     /// ```
+    ///
+    /// > Important: Make sure the `databaseDecodingUserInfo` property is
+    /// > explicitly declared as `[CodingUserInfoKey: Any]`. If it is not,
+    /// > the Swift compiler may silently miss the protocol requirement.
+    ///
+    /// > Important: Make sure the property is declared as a computed
+    /// > property (`static var`), instead of a stored property
+    /// > (`static let`). Computed properties avoid a compiler diagnostic
+    /// > with stored properties:
+    /// >
+    /// > ```swift
+    /// > // static property 'databaseDecodingUserInfo' is not
+    /// > // concurrency-safe because non-'Sendable' type
+    /// > // '[CodingUserInfoKey: Any]' may have shared
+    /// > // mutable state.
+    /// > static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "Database"]
+    /// > ```
     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
     
     /// Returns the `JSONDecoder` that decodes the value for a given column.
@@ -153,6 +180,31 @@ public protocol FetchableRecord {
     /// ``init(row:)-4ptlh`` implementation.
     static func databaseJSONDecoder(for column: String) -> JSONDecoder
     
+    /// The strategy for decoding `Data` columns.
+    ///
+    /// This property is dedicated to ``FetchableRecord`` types that also
+    /// conform to the standard `Decodable` protocol and use the default
+    /// ``init(row:)-4ptlh`` implementation.
+    ///
+    /// For example:
+    ///
+    /// ```swift
+    /// struct Player: FetchableRecord, Decodable {
+    ///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+    ///         .custom { dbValue
+    ///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+    ///                 return nil
+    ///             }
+    ///             return Data(base64Encoded: base64Data)
+    ///         }
+    ///     }
+    ///
+    ///     // Decoded from both database base64 strings and blobs
+    ///     var myData: Data
+    /// }
+    /// ```
+    static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy
+
     /// The strategy for decoding `Date` columns.
     ///
     /// This property is dedicated to ``FetchableRecord`` types that also
@@ -163,13 +215,15 @@ public protocol FetchableRecord {
     ///
     /// ```swift
     /// struct Player: FetchableRecord, Decodable {
-    ///     static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+    ///     static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+    ///         .timeIntervalSince1970
+    ///     }
     ///
     ///     // Decoded from an epoch timestamp
     ///     var creationDate: Date
     /// }
     /// ```
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy
     
     /// The strategy for converting column names to coding keys.
     ///
@@ -216,9 +270,15 @@ extension FetchableRecord {
         return decoder
     }
     
+    /// The default strategy for decoding `Data` columns is
+    /// ``DatabaseDataDecodingStrategy/deferredToData``.
+    public static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+        .deferredToData
+    }
+    
     /// The default strategy for decoding `Date` columns is
     /// ``DatabaseDateDecodingStrategy/deferredToDate``.
-    public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
+    public static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
         .deferredToDate
     }
     
@@ -498,20 +558,32 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchCursor(db, request)
     ///     while let player = try players.next() {
-    ///         print(player.name)
+    ///         print(player.score)
     ///     }
     /// }
     /// ```
@@ -524,7 +596,7 @@ extension FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: A ``RecordCursor`` over fetched records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchCursor(_ db: Database, _ request: some FetchRequest) throws -> RecordCursor<Self> {
@@ -538,15 +610,27 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchAll(db, request)
@@ -555,14 +639,14 @@ extension FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchAll(_ db: Database, _ request: some FetchRequest) throws -> [Self] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(db, rows)
+            try supplementaryFetch(db, rows, nil)
             return try rows.map(Self.init(row:))
         } else {
             return try fetchAll(request.statement, adapter: request.adapter)
@@ -574,15 +658,27 @@ extension FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         SELECT * FROM player WHERE name = \(name) LIMIT 1
     ///         """
     ///
     ///     let player = try Player.fetchOne(db, request)
@@ -590,7 +686,7 @@ extension FetchableRecord {
     /// ```
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, _ request: some FetchRequest) throws -> Self? {
@@ -599,7 +695,7 @@ extension FetchableRecord {
             guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
                 return nil
             }
-            try supplementaryFetch(db, [row])
+            try supplementaryFetch(db, [row], nil)
             return try .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)
@@ -613,15 +709,27 @@ extension FetchableRecord where Self: Hashable {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try Player.fetchSet(db, request)
@@ -630,14 +738,14 @@ extension FetchableRecord where Self: Hashable {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
+    ///     - request: a fetch request.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public static func fetchSet(_ db: Database, _ request: some FetchRequest) throws -> Set<Self> {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(db, rows)
+            try supplementaryFetch(db, rows, nil)
             return try Set(rows.lazy.map(Self.init(row:)))
         } else {
             return try fetchSet(request.statement, adapter: request.adapter)
@@ -657,15 +765,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchCursor(db)
@@ -683,7 +803,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: A ``RecordCursor`` over fetched records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
@@ -695,15 +814,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchAll(db)
@@ -712,7 +843,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: An array of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
@@ -724,15 +854,27 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName) LIMIT 1
+    ///         SELECT * FROM player WHERE name = \(name) LIMIT 1
     ///         """
     ///
     ///     let player = try request.fetchOne(db)
@@ -740,7 +882,6 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// ```
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: An optional record.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
@@ -754,15 +895,27 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     /// For example:
     ///
     /// ```swift
+    /// struct Player: FetchableRecord, TableRecord, Hashable {
+    ///     var id: Int64
+    ///     var name: String
+    ///     var score: Int
+    ///
+    ///     enum Columns {
+    ///         static let id = Column(CodingKeys.id)
+    ///         static let name = Column(CodingKeys.name)
+    ///         static let score = Column(CodingKeys.score)
+    ///     }
+    /// }
+    ///
     /// try dbQueue.read { db in
-    ///     let lastName = "O'Reilly"
+    ///     let name = "O'Reilly"
     ///
     ///     // Query interface request
-    ///     let request = Player.filter(Column("lastName") == lastName)
+    ///     let request = Player.filter { $0.name == name }
     ///
     ///     // SQL request
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE lastName = \(lastName)
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """
     ///
     ///     let players = try request.fetchSet(db)
@@ -771,7 +924,6 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     ///
     /// - parameters:
     ///     - db: A database connection.
-    ///     - sql: a FetchRequest.
     /// - returns: A set of records.
     /// - throws: A ``DatabaseError`` whenever an SQLite error occurs.
     public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
@@ -823,6 +975,46 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     }
 }
 
+// Explicit non-conformance to Sendable: database cursors must be used from
+// a serialized database access dispatch queue.
+@available(*, unavailable)
+extension RecordCursor: Sendable { }
+
+// MARK: - DatabaseDataDecodingStrategy
+
+/// `DatabaseDataDecodingStrategy` specifies how `FetchableRecord` types that
+/// also  adopt the standard `Decodable` protocol decode their
+/// `Data` properties.
+///
+/// For example:
+///
+/// ```swift
+/// struct Player: FetchableRecord, Decodable {
+///     static func databaseDataDecodingStrategy(for column: String) -> DatabaseDataDecodingStrategy {
+///         .custom { dbValue
+///             guard let base64Data = Data.fromDatabaseValue(dbValue) else {
+///                 return nil
+///             }
+///             return Data(base64Encoded: base64Data)
+///         }
+///     }
+///
+///     // Decoded from both database base64 strings and blobs
+///     var myData: Data
+/// }
+/// ```
+public enum DatabaseDataDecodingStrategy: Sendable {
+    /// Decodes `Data` columns from SQL blobs and UTF8 text.
+    case deferredToData
+    
+    /// Decodes `Data` columns according to the user-provided function.
+    ///
+    /// If the database value does not contain a suitable value, the function
+    /// must return nil (GRDB will interpret this nil result as a conversion
+    /// error, and react accordingly).
+    case custom(@Sendable (DatabaseValue) -> Data?)
+}
+
 // MARK: - DatabaseDateDecodingStrategy
 
 /// `DatabaseDateDecodingStrategy` specifies how `FetchableRecord` types that
@@ -832,12 +1024,19 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
+///         static func databaseDateDecodingStrategy(for column: String) -> DatabaseDateDecodingStrategy {
+///             .timeIntervalSince1970
+///         }
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp
 ///     }
-public enum DatabaseDateDecodingStrategy {
+public enum DatabaseDateDecodingStrategy: @unchecked Sendable {
+    // @unchecked Sendable because of `DateFormatter`, which lost its
+    // `Sendable` conformance with Xcode 16.3 beta. See
+    // <https://github.com/swiftlang/swift/issues/78635>.
+    // TODO: remove @unchecked when the compiler issue is fixed.
+    
     /// The strategy that uses formatting from the Date structure.
     ///
     /// It decodes numeric values as a number of seconds since Epoch
@@ -878,7 +1077,7 @@ public enum DatabaseDateDecodingStrategy {
     /// If the database value  does not contain a suitable value, the function
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
-    case custom((DatabaseValue) -> Date?)
+    case custom(@Sendable (DatabaseValue) -> Date?)
 }
 
 // MARK: - DatabaseColumnDecodingStrategy
@@ -895,7 +1094,7 @@ public enum DatabaseDateDecodingStrategy {
 ///         // Decoded from the player_id column
 ///         var playerID: Int
 ///     }
-public enum DatabaseColumnDecodingStrategy {
+public enum DatabaseColumnDecodingStrategy: Sendable {
     /// A key decoding strategy that doesn’t change key names during decoding.
     case useDefaultKeys
     
@@ -903,7 +1102,7 @@ public enum DatabaseColumnDecodingStrategy {
     case convertFromSnakeCase
     
     /// A key decoding strategy defined by the closure you supply.
-    case custom((String) -> CodingKey)
+    case custom(@Sendable (String) -> CodingKey)
     
     func key<K: CodingKey>(forColumn column: String) -> K? {
         switch self {

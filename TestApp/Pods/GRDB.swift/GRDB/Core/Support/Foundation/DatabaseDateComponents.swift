@@ -1,10 +1,19 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 import Foundation
 
 /// A database value that holds date components.
-public struct DatabaseDateComponents {
+public struct DatabaseDateComponents: Sendable {
     
     /// The SQLite formats for date components.
-    public enum Format: String {
+    public enum Format: String, Sendable {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"
@@ -75,7 +84,7 @@ extension DatabaseDateComponents: StatementColumnConvertible {
         }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
         let components = cString.withMemoryRebound(
-            to: Int8.self,
+            to: CChar.self,
             capacity: length + 1 /* trailing \0 */) { cString in
             SQLiteDateParser().components(cString: cString, length: length)
         }

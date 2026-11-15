@@ -9,7 +9,7 @@
 import Foundation
 import CloudKit
 
-class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
+class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation, @unchecked Sendable {
 
     
     weak var delegate: CloudRecordPushOperationDelegate?
@@ -114,7 +114,7 @@ class CloudKitRecordPushOperation : CloudOperation, CloudRecordPushOperation {
     
 }
 
-class CloudRecordError : Error{
+final class CloudRecordError : Error {
     
     let description: String
     let status: CloudRecordErrorType?

@@ -33,7 +33,7 @@ public protocol TableConfigurable {
     var subscriptions: [Subscription] { get }
 }
 
-public protocol AssetConfigurable {
+public protocol AssetConfigurable: Sendable {
     var column: String { get }
     func localFilePath(rowIdentifier: String, table: String, column: String) -> URL
     func stagedFilePath(rowIdentifier: String, table: String, column: String) -> URL
@@ -46,13 +46,13 @@ public extension AssetConfigurable {
     }
 }
 
-public class AssetConfiguration: AssetConfigurable {
+public final class AssetConfiguration: AssetConfigurable {
     
     public let column: String
-    private let filePathHandler: (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
+    private let filePathHandler: @Sendable (_ rowIdentifier: String, _ table: String, _ column: String) -> URL
     
     private static func newDefaultFilePathHandler(directory: URL, fileExtension: String? = nil)
-    -> ((_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
+    -> (@Sendable (_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
         return {(_ rowIdentifier: String, _ table: String, _ column: String) in
             /// Due to some narly cases with case sensitive files systems on iOS, going to enforce some items here to be lowercased.
             var url = directory.appendingPathComponent("\(table.lowercased())")
@@ -70,7 +70,7 @@ public class AssetConfiguration: AssetConfigurable {
                   filePathHandler: AssetConfiguration.newDefaultFilePathHandler(directory: directory, fileExtension: fileExtension))
     }
     
-    public init(column: String, filePathHandler: @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
+    public init(column: String, filePathHandler: @Sendable @escaping(_ rowIdentifier: String, _ table: String, _ column: String) -> URL) {
         self.column = column
         self.filePathHandler = filePathHandler
     }

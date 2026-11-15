@@ -1,3 +1,12 @@
+// Import C SQLite functions
+#if SWIFT_PACKAGE
+import GRDBSQLite
+#elseif GRDBCIPHER
+import SQLCipher
+#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
+import SQLite3
+#endif
+
 /// A custom SQL function or aggregate.
 ///
 /// ## Topics
@@ -20,19 +29,23 @@
 /// - ``localizedUppercase``
 /// - ``lowercase``
 /// - ``uppercase``
-public final class DatabaseFunction: Hashable {
-    // SQLite identifies functions by (name + argument count)
-    private struct Identity: Hashable {
+public final class DatabaseFunction: Identifiable, Sendable {
+    /// The identifier of an SQLite function.
+    ///
+    /// SQLite identifies functions by their name and argument count.
+    public struct ID: Hashable, Sendable {
         let name: String
         let nArg: CInt // -1 for variadic functions
     }
     
-    /// The name of the SQL function
-    public var name: String { identity.name }
-    private let identity: Identity
-    let pure: Bool
+    /// The name of the SQL function.
+    public var name: String { id.name }
+    
+    /// The identifier of the SQL function.
+    public let id: ID
+    let isPure: Bool
     private let kind: Kind
-    private var eTextRep: CInt { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var eTextRep: CInt { (SQLITE_UTF8 | (isPure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Creates an SQL function.
     ///
@@ -69,20 +82,43 @@ public final class DatabaseFunction: Hashable {
     ///       such as `Int`, `String`, `Date`, etc. The array is guaranteed to
     ///       have exactly `argumentCount` elements, provided `argumentCount` is
     ///       not nil.
-    public init(
+    public convenience init(
         _ name: String,
         argumentCount: Int? = nil,
         pure: Bool = false,
-        function: @escaping ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
+        function: @escaping @Sendable ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
-        self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
-        self.kind = .function{ (argc, argv) in
+        self.init(name, argumentCount: argumentCount, pure: pure) { (argc, argv, context) in
             let arguments = (0..<Int(argc)).map { index in
-                DatabaseValue(sqliteValue: argv.unsafelyUnwrapped[index]!)
+                DatabaseValue(sqliteValue: argv[index]!)
             }
-            return try function(arguments)
+            let result = try function(arguments)
+            switch result?.databaseValue.storage ?? .null {
+            case .null:
+                sqlite3_result_null(context)
+            case .int64(let int64):
+                sqlite3_result_int64(context, int64)
+            case .double(let double):
+                sqlite3_result_double(context, double)
+            case .string(let string):
+                sqlite3_result_text(context, string, -1, SQLITE_TRANSIENT)
+            case .blob(let data):
+                data.withUnsafeBytes {
+                    sqlite3_result_blob(context, $0.baseAddress, CInt($0.count), SQLITE_TRANSIENT)
+                }
+            }
         }
+    }
+    
+    init(
+        _ name: String,
+        argumentCount: Int? = nil,
+        pure: Bool = false,
+        xFunc: @escaping XFunc)
+    {
+        self.id = ID(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
+        self.isPure = pure
+        self.kind = .function(xFunc)
     }
     
     /// Creates an SQL aggregate function.
@@ -139,11 +175,12 @@ public final class DatabaseFunction: Hashable {
         pure: Bool = false,
         aggregate: Aggregate.Type)
     {
-        self.identity = Identity(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
-        self.pure = pure
+        self.id = ID(name: name, nArg: argumentCount.map(CInt.init) ?? -1)
+        self.isPure = pure
         self.kind = .aggregate { Aggregate() }
     }
     
+    // TODO: GRDB7 -> expose ORDER BY and FILTER when we have distinct types for simple functions and aggregates.
     /// Returns an SQL expression that applies the function.
     ///
     /// You can use a `DatabaseFunction` as a regular Swift function. It returns
@@ -159,25 +196,42 @@ public final class DatabaseFunction: Hashable {
     ///     }
     ///     return int * int
     /// }
+    ///
+    /// struct Player: TableRecord {
+    ///     enum Columns {
+    ///         static let score = Column("score")
+    ///     }
+    /// }
+    ///
     /// let dbQueue = try DatabaseQueue()
     /// try dbQueue.read { db in
     ///     db.add(function: square)
     ///
     ///     // SELECT square(score) FROM player
     ///     let squaredScores = let Player
-    ///         .select(square(Column("score")), as: Int.self)
+    ///         .select({ square($0.score) }, as: Int.self)
     ///         .fetchAll(db)
     /// }
     /// ```
     public func callAsFunction(_ arguments: any SQLExpressible...) -> SQLExpression {
         switch kind {
-        case .aggregate:
-            return .function(name, arguments.map(\.sqlExpression))
         case .function:
-            return .aggregate(name, arguments.map(\.sqlExpression))
+            return .simpleFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isPure: isPure,
+                isJSONValue: false)
+        case .aggregate:
+            return .aggregateFunction(
+                name,
+                arguments.map(\.sqlExpression),
+                isDistinct: false,
+                ordering: nil,
+                filter: nil,
+                isJSONValue: false)
         }
     }
-
+    
     /// Calls sqlite3_create_function_v2
     /// See <https://sqlite.org/c3ref/create_function.html>
     func install(in db: Database) {
@@ -187,8 +241,8 @@ public final class DatabaseFunction: Hashable {
         
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            identity.name,
-            identity.nArg,
+            id.name,
+            id.nArg,
             eTextRep,
             definitionP,
             kind.xFunc,
@@ -210,8 +264,8 @@ public final class DatabaseFunction: Hashable {
     func uninstall(in db: Database) {
         let code = sqlite3_create_function_v2(
             db.sqliteConnection,
-            identity.name,
-            identity.nArg,
+            id.name,
+            id.nArg,
             eTextRep,
             nil, nil, nil, nil, nil)
         
@@ -225,11 +279,10 @@ public final class DatabaseFunction: Hashable {
     /// Feeds the `pApp` parameter of sqlite3_create_function_v2
     /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private class FunctionDefinition {
-        let compute: (CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?
-        init(compute: @escaping (CInt, UnsafeMutablePointer<OpaquePointer?>?)
-             throws -> (any DatabaseValueConvertible)?)
+        let xFunc: XFunc
+        init(xFunc: @escaping XFunc)
         {
-            self.compute = compute
+            self.xFunc = xFunc
         }
     }
     
@@ -252,21 +305,29 @@ public final class DatabaseFunction: Hashable {
         }
     }
     
+    /// Feeds the `xFunc` parameter of sqlite3_create_function_v2
+    /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
+    typealias XFunc = @Sendable (
+        _ argc: CInt,
+        _ argv: UnsafeMutablePointer<OpaquePointer?>,
+        _ context: OpaquePointer?
+    ) throws -> Void
+    
     /// A function kind: an "SQL function" or an "aggregate".
     /// See <http://sqlite.org/capi3ref.html#sqlite3_create_function>
-    private enum Kind {
+    private enum Kind: Sendable {
         /// A regular function: SELECT f(1)
-        case function((CInt, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?)
+        case function(XFunc)
         
         /// An aggregate: SELECT f(foo) FROM bar GROUP BY baz
-        case aggregate(() -> any DatabaseAggregate)
+        case aggregate(@Sendable () -> any DatabaseAggregate)
         
         /// Feeds the `pApp` parameter of sqlite3_create_function_v2
         /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
         var definition: AnyObject {
             switch self {
-            case .function(let compute):
-                return FunctionDefinition(compute: compute)
+            case .function(let xFunc):
+                return FunctionDefinition(xFunc: xFunc)
             case .aggregate(let makeAggregate):
                 return AggregateDefinition(makeAggregate: makeAggregate)
             }
@@ -281,9 +342,7 @@ public final class DatabaseFunction: Hashable {
                     .fromOpaque(sqlite3_user_data(sqliteContext))
                     .takeUnretainedValue()
                 do {
-                    try DatabaseFunction.report(
-                        result: definition.compute(argc, argv),
-                        in: sqliteContext)
+                    try definition.xFunc(argc, argv.unsafelyUnwrapped, sqliteContext)
                 } catch {
                     DatabaseFunction.report(error: error, in: sqliteContext)
                 }
@@ -404,17 +463,6 @@ public final class DatabaseFunction: Hashable {
     }
 }
 
-extension DatabaseFunction {
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(identity)
-    }
-    
-    /// Two functions are equal if they share the same name and arity.
-    public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        lhs.identity == rhs.identity
-    }
-}
-
 /// The protocol for custom SQLite aggregates.
 ///
 /// For example:
@@ -444,7 +492,7 @@ extension DatabaseFunction {
 ///     try Int.fetchOne(db, sql: "SELECT mysum(i) FROM test")! // 3
 /// }
 /// ```
-public protocol DatabaseAggregate {
+public protocol DatabaseAggregate: GRDBSendableMetatype {
     /// Creates an aggregate.
     ///
     /// A new instance is created for each aggregation.

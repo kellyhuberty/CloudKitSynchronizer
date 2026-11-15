@@ -157,7 +157,7 @@ class WordListTableCell: UITableViewCell {
     
 }
 
-@objc protocol WordListTableCellDelegate{
+@MainActor @objc protocol WordListTableCellDelegate{
     
     func itemCellDidChange(_ itemCell:WordListTableCell)
     func itemCellDidBeginEditing(_ itemCell:WordListTableCell)

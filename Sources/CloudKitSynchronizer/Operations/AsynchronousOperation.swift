@@ -9,11 +9,13 @@
 import Foundation
 import CloudKit
 
-class AsynchronousOperation : Operation {    
+class AsynchronousOperation : Operation, @unchecked Sendable {
     
-    class Token {
+    let syncQueue = DispatchQueue(label: "com.kellyhuberty.CloudKitSynchronizer.AsynchronousOperation.syncQueue")
+    
+    final class Token: Sendable {
         
-        weak var operation: AsynchronousOperation?
+        private let operation: AsynchronousOperation?
         
         init(operation: AsynchronousOperation) {
             self.operation = operation
@@ -75,7 +77,7 @@ class AsynchronousOperation : Operation {
 }
 
 
-class AsyncCloudKitOperation : AsynchronousOperation {
+class AsyncCloudKitOperation : AsynchronousOperation, @unchecked Sendable  {
 
     let database: CKDatabase
 

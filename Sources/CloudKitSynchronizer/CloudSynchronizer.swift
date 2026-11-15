@@ -18,10 +18,11 @@ struct TableNames{
     static let ChangeTags = "SyncChangeTags"
 }
 
-@propertyWrapper class CloudKitAvailablity {
-    
-    public struct Status {
-        enum Availablity {
+@MainActor
+@propertyWrapper final class CloudKitAvailablity {
+
+    public struct Status: Sendable {
+        enum Availablity: Sendable {
             init(_ accountStatus: CKAccountStatus) {
                 switch accountStatus {
                 case .available:
@@ -73,28 +74,34 @@ struct TableNames{
     }
 
     private let container: CKContainer
-    private let deliveryQueue: DispatchQueue
-    private let delivery: ((Status) -> Void)?
-    private var observer: NSObjectProtocol! = nil
-            
-    init(_ container: CKContainer, queue: DispatchQueue = .main, delivery: ((Status) -> Void)? ) {
-        
+    private let delivery: (@MainActor (Status) -> Void)?
+    private var observer: NSObjectProtocol?
+
+    nonisolated init(_ container: CKContainer, delivery: (@MainActor (Status) -> Void)? ) {
         self.container = container
-        self.deliveryQueue = queue
         self.delivery = delivery
-        
-        observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: nil) { _ in
-            self.checkAvailablity(nil)
-        }
     }
-    
+
     public func checkAvailablity(_ completion: ((Status) -> Void)? ){
-        container.accountStatus { [weak self] accountStatus, error in
-            self?.deliveryQueue.async {
-                let status = Status(Status.Availablity(accountStatus), error: error)
-                self?.currentStatus = status
-                completion?(status)
+        // Account change observation starts on first check, since the nonisolated
+        // initializer can't touch main actor state once `self` is initialized.
+        if observer == nil {
+            observer = NotificationCenter.default.addObserver(forName: .CKAccountChanged, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.checkAvailablity(nil)
+                }
             }
+        }
+
+        Task {
+            let status: Status
+            do {
+                status = Status(Status.Availablity(try await container.accountStatus()))
+            } catch {
+                status = Status(.couldNotDetermine, error: error)
+            }
+            currentStatus = status
+            completion?(status)
         }
     }
 }
@@ -113,19 +120,22 @@ public class CloudSynchronizer {
         public static let testingZoneName = Domain.current + ".testing"
     }
     
+
     private static let defaultZoneIdDomain = Domain.current
     
     let log = OSLog(subsystem: Domain.current, category: "CloudSynchronizer")
     
     static let Prefix = "cloudRecord"
-        
+    
     var zoneId: CKRecordZone.ID
     
     private let localDatabasePool:DatabaseQueue
-
+    
     private let _operationFactory:CloudOperationProducing
-
+    
     private let _tableObserverFactory:TableObserverProducing
+
+    private let cloudDatabase: CKDatabase
 
     public private(set) var status: Status {
         didSet {
@@ -159,7 +169,11 @@ public class CloudSynchronizer {
     
     private let cloudRecordStore: CloudRecordStoring
     
-    @CloudKitAvailablity var availability: CloudKitAvailablity.Status
+    private let availabilityMonitor: CloudKitAvailablity
+
+    @MainActor var availability: CloudKitAvailablity.Status {
+        availabilityMonitor.wrappedValue
+    }
     
     private var currentChangeTagCache:CKServerChangeToken?
     
@@ -173,18 +187,18 @@ public class CloudSynchronizer {
                 let tag = try read { (db) -> CloudChangeTag? in
                     return try CloudChangeTag.fetchOne(db,
                                                        sql: """
-                                                        SELECT *
-                                                        FROM \(TableNames.ChangeTags)
-                                                       """)
+                                                    SELECT *
+                                                    FROM \(TableNames.ChangeTags)
+                                                   """)
                 }
-
+                
                 //Error: changeTokenSaveError
                 currentChangeTagCache = try! tag?.getChangeToken()
             } catch let error {
                 handleDatabaseError(error)
                 return nil
             }
-                
+            
             return currentChangeTagCache
         }
         set{
@@ -224,7 +238,9 @@ public class CloudSynchronizer {
         
         
         self.localDatabasePool = databaseQueue
-        
+
+        self.cloudDatabase = container.privateCloudDatabase
+
         if let operationFactory = operationFactory {
             self._operationFactory = operationFactory
         }
@@ -252,7 +268,7 @@ public class CloudSynchronizer {
         
         self.assetProcessor = assetProcessor
         
-        _availability = CloudKitAvailablity(container) { status in
+        availabilityMonitor = CloudKitAvailablity(container) { status in
             
         }
         
@@ -281,12 +297,19 @@ public class CloudSynchronizer {
             return
         }
         
-        _availability.checkAvailablity { [weak self] status in
+        // CloudSynchronizer isn't Sendable yet, so its work is wrapped to cross onto the main actor.
+        let onAvailable = SendingWrapper { [weak self] in
 //            self?.setupSubscriptions {
                 self?.initilizeZones {
                     self?.status = .syncing
                 }
 //            }
+        }
+        let availability = availabilityMonitor
+        Task { @MainActor in
+            availability.checkAvailablity { _ in
+                onAvailable.invoke()
+            }
         }
     }
     
@@ -362,23 +385,52 @@ public class CloudSynchronizer {
         let createZoneOperation = _operationFactory.newZoneAvailablityOperation()
         createZoneOperation.zoneIdsToCreate = [zoneId]
         
-        createZoneOperation.completionBlock = {
+        let completion = SendingWrapper {
             completion()
+        }
+        
+        createZoneOperation.completionBlock = {
+            completion.invoke()
         }
         createZoneOperation.start()
     }
+        
     
-    func setupSubscriptions(completion:@escaping ()->Void) {
-        guard let createSubscriptionsOperation = _operationFactory.newSubscriptionSyncOperation() else{
-            log.debug("Subscription Sync Unavailable")
-            completion()
+    func setupSubscriptions() async {
+        let requiredSubscriptions = generateCKSubscriptions()
+
+        guard requiredSubscriptions.count > 0 else {
             return
         }
-        createSubscriptionsOperation.configurations = self.synchronizedTables
-        createSubscriptionsOperation.completionBlock = {
-            completion()
+
+/// Eventually going to add diffing here and remove all unneded subscriptions, but for now we're just going to add all required.
+/// Current subscriptions can be fetched with `try await cloudDatabase.allSubscriptions()`.
+//                let subscriptionIdsToRemove = Set(currentSubscriptions.keys).subtracting(requiredSubscriptions.keys)
+//                let subscriptionsToRemove = currentSubscriptions.filter { id, sub in subscriptionIdsToRemove.contains(id) }.values
+//                let subscriptionIdsToAdd = Set(requiredSubscriptions.keys).subtracting(currentSubscriptions.keys)
+//                let subscriptionsToAdd = requiredSubscriptions.filter { id, sub in subscriptionIdsToAdd.contains(id) }.values
+
+        do {
+            let (saveResults, _) = try await cloudDatabase.modifySubscriptions(saving: Array(requiredSubscriptions.values),
+                                                                               deleting: [])
+
+            // Per-subscription failures are reported in the results rather than thrown.
+            for (id, result) in saveResults {
+                if case .failure(let error) = result {
+                    log.error("Unable to save subscription %{public}@: %{public}@", id, String(describing: error))
+                }
+            }
+        } catch {
+            log.error("Unable to save subscriptions: %{public}@", String(describing: error))
         }
-        createSubscriptionsOperation.start()
+    }
+
+    private func generateCKSubscriptions() -> SubscriptionDictionary {
+        var subscriptions = SubscriptionDictionary()
+        for table in synchronizedTables {
+            subscriptions.merge(table.ckSubscriptions) { lh, rh in return lh }
+        }
+        return subscriptions
     }
     
     func runSynchronizerMigrations(_ db:Database) throws {
@@ -583,10 +635,24 @@ public class CloudSynchronizer {
         let deleteZoneOperation = _operationFactory.newZoneAvailablityOperation()
         deleteZoneOperation.zoneIdsToDelete = [zoneId]
         
+        let complete = SendingWrapper { completion() }
+        
         deleteZoneOperation.completionBlock = {
-            completion()
+            complete.invoke()
         }
         deleteZoneOperation.start()
+    }
+    
+    public func resetZones() async {
+        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
+            guard let self = self else {
+                continuation.resume()
+                return
+            }
+            self.resetZones {
+                continuation.resume()
+            }
+        }
     }
     
     public func pullFromCloud(_ completion: @escaping (() -> Void)) {
@@ -598,11 +664,27 @@ public class CloudSynchronizer {
         operation.zoneId = zoneId
         operation.previousServerChangeToken = currentChangeTag
         
-        operation.completionBlock = {
+        let complete = SendingWrapper {
             completion()
+        }
+        
+        operation.completionBlock = {
+            complete.invoke()
         }
         operation.start()
     }
+    
+//    public func pullFromCloud() async {
+//        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
+//            guard let self = self else {
+//                continuation.resume()
+//                return
+//            }
+//            self.pullFromCloud {
+//                continuation.resume()
+//            }
+//        }
+//    }
     
     public func retryFailedPushesToCloud(_ completion: @escaping (() -> Void)) {
         
@@ -623,12 +705,26 @@ public class CloudSynchronizer {
         currentPushOperation.updates = recordsToUpdate
         currentPushOperation.deleteIds = recordsToDeleteIds
         
+        let complete = SendingWrapper { completion() }
+        
         currentPushOperation.completionBlock = {
-            completion()
+            complete.invoke()
         }
         
         currentPushOperation.start()
     }
+    
+//    public func retryFailedPushesToCloud() async {
+//        return await withCheckedContinuation { [weak self] (continuation: CheckedContinuation<Void, Never>) in
+//            guard let self = self else {
+//                continuation.resume()
+//                return
+//            }
+//            self.retryFailedPushesToCloud {
+//                continuation.resume()
+//            }
+//        }
+//    }
     
     private func write<T>(_ updates: (GRDB.Database) throws -> T) throws -> T {
         do {
@@ -965,7 +1061,6 @@ protocol CloudOperationProducing : AnyObject {
     func newPullOperation(delegate: CloudRecordPullOperationDelegate) -> CloudRecordPullOperation
     func newPushOperation(delegate: CloudRecordPushOperationDelegate) -> CloudRecordPushOperation
     func newZoneAvailablityOperation() -> CloudZoneAvailablityOperation
-    func newSubscriptionSyncOperation() -> CloudSubscriptionSyncOperation?
 }
 
 extension Array where Element == String {
@@ -979,5 +1074,52 @@ extension Array where Element == String {
         }
         
         return quoteArr.joined(separator: ",")
+    }
+}
+
+fileprivate typealias SubscriptionDictionary = [CKSubscription.ID: CKSubscription]
+
+fileprivate extension TableConfigurable {
+
+    var ckSubscriptions: SubscriptionDictionary {
+        guard subscriptions.count > 0 else {
+            return [:]
+        }
+
+        var returnedSubscriptions = SubscriptionDictionary()
+
+        for subscription in subscriptions {
+            var options: CKQuerySubscription.Options = []
+
+            var identifier = "\(self.tableName)"
+
+            if subscription.sendEvents.contains(.create) {
+                identifier = identifier + "Create"
+                options = options.union(.firesOnRecordCreation)
+            }
+            if subscription.sendEvents.contains(.update) {
+                identifier = identifier + "Update"
+                options = options.union(.firesOnRecordUpdate)
+            }
+            if subscription.sendEvents.contains(.delete) {
+                identifier = identifier + "Delete"
+                options = options.union(.firesOnRecordDeletion)
+            }
+
+            identifier = identifier + "_\(String(describing: subscription.hash))"
+
+            let newSubscription = CKQuerySubscription(recordType: self.tableName,
+                                                      predicate: NSPredicate(value: true),
+                                                      subscriptionID: identifier,
+                                                      options: options)
+
+            newSubscription.zoneID = CKRecordZone.ID(zoneName: CloudSynchronizer.ZoneName.defaultZoneName, ownerName: CKCurrentUserDefaultName)
+
+            newSubscription.notificationInfo = subscription.notificationInfo
+
+            returnedSubscriptions[newSubscription.subscriptionID] = newSubscription
+        }
+
+        return returnedSubscriptions
     }
 }

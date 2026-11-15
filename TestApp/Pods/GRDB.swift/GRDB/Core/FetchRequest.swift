@@ -58,10 +58,6 @@
 /// - ``makePreparedRequest(_:forSingleResult:)``
 /// - ``PreparedRequest``
 ///
-/// ### Database Observation Support
-///
-/// - ``databaseRegion(_:)``
-///
 /// ### Adapting the Fetched Rows
 ///
 /// - ``adapted(_:)``
@@ -111,6 +107,28 @@ extension FetchRequest {
 
 // MARK: - PreparedRequest
 
+/// A closure executed before a supplementary fetch is performed.
+///
+/// Support for `Database.dumpRequest`.
+///
+/// - parameter request: The supplementary request
+/// - parameter keyPath: The key path target of the supplementary fetch.
+typealias WillExecuteSupplementaryRequest = (_ request: AnyFetchRequest<Row>, _ keyPath: [String]) throws -> Void
+
+/// A closure that performs supplementary fetches.
+///
+/// Support for eager loading of hasMany associations.
+///
+/// - parameter db: A database connection.
+/// - parameter rows: The rows that are modified by the supplementary fetch.
+/// - parameter willExecuteSupplementaryRequest: A closure to execute before
+///   performing supplementary fetches.
+typealias SupplementaryFetch = (
+    _ db: Database,
+    _ rows: [Row],
+    _ willExecuteSupplementaryRequest: WillExecuteSupplementaryRequest?)
+throws -> Void
+
 /// A `PreparedRequest` is a request that is ready to be executed.
 public struct PreparedRequest {
     /// A prepared statement with bound parameters.
@@ -119,19 +137,25 @@ public struct PreparedRequest {
     /// An eventual adapter for rows fetched by the select statement.
     public var adapter: (any RowAdapter)?
     
+    /// A closure that performs supplementary fetches.
     /// Support for eager loading of hasMany associations.
-    var supplementaryFetch: ((Database, [Row]) throws -> Void)?
+    var supplementaryFetch: SupplementaryFetch?
     
     init(
         statement: Statement,
         adapter: (any RowAdapter)?,
-        supplementaryFetch: ((Database, [Row]) throws -> Void)? = nil)
+        supplementaryFetch: SupplementaryFetch? = nil)
     {
         self.statement = statement
         self.adapter = adapter
         self.supplementaryFetch = supplementaryFetch
     }
 }
+
+// Explicit non-conformance to Sendable: `PreparedRequest` contains
+// a statement.
+@available(*, unavailable)
+extension PreparedRequest: Sendable { }
 
 extension PreparedRequest: Refinable { }
 
@@ -147,7 +171,9 @@ extension FetchRequest {
     ///
     /// - parameter adapter: A closure that accepts a database connection and
     ///   returns a row adapter.
-    public func adapted(_ adapter: @escaping (Database) throws -> any RowAdapter) -> AdaptedFetchRequest<Self> {
+    public func adapted(
+        _ adapter: @escaping @Sendable (Database) throws -> any RowAdapter
+    ) -> AdaptedFetchRequest<Self> {
         AdaptedFetchRequest(self, adapter)
     }
 }
@@ -157,11 +183,11 @@ extension FetchRequest {
 /// See ``FetchRequest/adapted(_:)``.
 public struct AdaptedFetchRequest<Base: FetchRequest> {
     let base: Base
-    let adapter: (Database) throws -> any RowAdapter
+    let adapter: @Sendable (Database) throws -> any RowAdapter
     
     /// Creates an adapted request from a base request and a closure that builds
     /// a row adapter from a database connection.
-    init(_ base: Base, _ adapter: @escaping (Database) throws -> any RowAdapter) {
+    init(_ base: Base, _ adapter: @escaping @Sendable (Database) throws -> any RowAdapter) {
         self.base = base
         self.adapter = adapter
     }
@@ -217,8 +243,8 @@ public struct AnyFetchRequest<RowDecoder> {
     ///
     /// // AnyFetchRequest<Row>
     /// let rowRequest = playerRequest.asRequest(of: Row.self)
-    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> AnyFetchRequest<RowDecoder> {
-        AnyFetchRequest<RowDecoder>(request: request)
+    public func asRequest<T>(of type: T.Type) -> AnyFetchRequest<T> {
+        AnyFetchRequest<T>(request: request)
     }
 }
 
@@ -250,7 +276,7 @@ extension AnyFetchRequest: FetchRequest {
 }
 
 // Class-based type erasure, so that we preserve full type information.
-private class FetchRequestEraser: FetchRequest {
+private class FetchRequestEraser: FetchRequest, @unchecked Sendable {
     typealias RowDecoder = Void
     
     var sqlSubquery: SQLSubquery {
@@ -266,7 +292,7 @@ private class FetchRequestEraser: FetchRequest {
     }
 }
 
-private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser {
+private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser, @unchecked Sendable {
     let request: Request
     
     init(request: Request) {
