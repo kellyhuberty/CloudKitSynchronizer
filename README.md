@@ -21,9 +21,10 @@ supported). Requires Swift 6.2, iOS 16 / macOS 13 or later, and GRDB 7.
 ## Testing
 
 * Unit tests: `swift test`
-* CloudKit integration tests: open `TestApp/CloudKitSynchronizer.xcodeproj` and
-  test the `CloudKitSynchronizerApp` scheme. These need a signed build and a
-  device or simulator signed in to iCloud.
+* CloudKit integration tests: open `CloudKitSynchronizer.xcworkspace` and test
+  the `CloudKitSynchronizerApp` scheme. This scheme runs both the package unit
+  tests and the integration tests. The integration tests need a signed build and
+  a device or simulator signed in to iCloud.
 
 ## Usage
 
