@@ -3,23 +3,12 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */; };
 		C78306B22B85BCF500E44FF3 /* CloudKitSynchronizer in Frameworks */ = {isa = PBXBuildFile; productRef = C78306B12B85BCF500E44FF3 /* CloudKitSynchronizer */; };
-		C787591D267D1BD70030C77C /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */; };
-		C787591E267D1BD70030C77C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7653B682243390D000CDABB /* Assets.xcassets */; };
 		C7926C3889ADB3D642E0F136 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 00E5B5F73EAD093BEAE5C35E /* GRDB */; };
-		C797B28B268B9337009194F1 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B9A2243F72C000CDABB /* Item.swift */; };
-		C797B28C268B933A009194F1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B612243390B000CDABB /* AppDelegate.swift */; };
-		C797B28D268B933D009194F1 /* LSTDatabaseMigrator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */; };
-		C797B28E268B9340009194F1 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B632243390B000CDABB /* ViewController.swift */; };
-		C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B812243396F000CDABB /* WordListViewController.swift */; };
-		C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7653B8722434191000CDABB /* WordListTableCell.swift */; };
-		C7B10FD52B7836BD004D429C /* CloudSyncIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */; };
-		C7B10FD92B7836BD004D429C /* Media.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7D18418275D224A0078C575 /* Media.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,22 +22,36 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CloudSyncIntegrationTests.swift; sourceTree = "<group>"; };
-		C7653B612243390B000CDABB /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		C7653B632243390B000CDABB /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		C7653B682243390D000CDABB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		C7653B6B2243390D000CDABB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		C7653B6D2243390D000CDABB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C7653B812243396F000CDABB /* WordListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListViewController.swift; sourceTree = "<group>"; };
-		C7653B8722434191000CDABB /* WordListTableCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListTableCell.swift; sourceTree = "<group>"; };
-		C7653B9A2243F72C000CDABB /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
-		C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CloudKitSynchronizerApp.entitlements; sourceTree = "<group>"; };
 		C7875923267D1BD70030C77C /* CloudKitSynchronizerApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CloudKitSynchronizerApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C7B10FDE2B7836BD004D429C /* CloudKitSynchronizerIntegrationTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CloudKitSynchronizerIntegrationTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSTDatabaseMigrator.swift; sourceTree = "<group>"; };
-		C7D18418275D224A0078C575 /* Media.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Media.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		C7F5A0012C00000000000001 /* Exceptions for "TestApp" folder in "CloudKitSynchronizerApp" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = C78758FC267D1BD70030C77C /* CloudKitSynchronizerApp */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		C723C79B25FBEEC9006D2DBC /* CloudKitSynchronizerApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			name = CloudKitSynchronizerApp;
+			path = Tests/CloudKitSynchronizerApp;
+			sourceTree = "<group>";
+		};
+		C78758FB267D1B370030C77C /* TestApp */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				C7F5A0012C00000000000001 /* Exceptions for "TestApp" folder in "CloudKitSynchronizerApp" target */,
+			);
+			path = TestApp;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C7875919267D1BD70030C77C /* Frameworks */ = {
@@ -70,20 +73,11 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C723C79B25FBEEC9006D2DBC /* Tests/IntegrationTests */ = {
-			isa = PBXGroup;
-			children = (
-				C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */,
-				C7D18418275D224A0078C575 /* Media.xcassets */,
-			);
-			path = Tests/IntegrationTests;
-			sourceTree = "<group>";
-		};
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
 				C78758FB267D1B370030C77C /* TestApp */,
-				C723C79B25FBEEC9006D2DBC /* Tests/IntegrationTests */,
+				C723C79B25FBEEC9006D2DBC /* CloudKitSynchronizerApp */,
 				C7653B5F2243390B000CDABB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -95,24 +89,6 @@
 				C7B10FDE2B7836BD004D429C /* CloudKitSynchronizerIntegrationTests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		C78758FB267D1B370030C77C /* TestApp */ = {
-			isa = PBXGroup;
-			children = (
-				C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */,
-				C7653B9A2243F72C000CDABB /* Item.swift */,
-				C7653B612243390B000CDABB /* AppDelegate.swift */,
-				A1B2C3D4E5F6A7B8C9D0E1F0 /* SceneDelegate.swift */,
-				C7B8F4D223C108DC0067BDAF /* LSTDatabaseMigrator.swift */,
-				C7653B632243390B000CDABB /* ViewController.swift */,
-				C7653B812243396F000CDABB /* WordListViewController.swift */,
-				C7653B8722434191000CDABB /* WordListTableCell.swift */,
-				C7653B682243390D000CDABB /* Assets.xcassets */,
-				C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */,
-				C7653B6D2243390D000CDABB /* Info.plist */,
-			);
-			path = TestApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -129,6 +105,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				C78758FB267D1B370030C77C /* TestApp */,
 			);
 			name = CloudKitSynchronizerApp;
 			packageProductDependencies = (
@@ -152,6 +131,9 @@
 			dependencies = (
 				0DFB2308AE088B7C32D32ED3 /* PBXTargetDependency */,
 			);
+			fileSystemSynchronizedGroups = (
+				C723C79B25FBEEC9006D2DBC /* CloudKitSynchronizerApp */,
+			);
 			name = CloudKitSynchronizerIntegrationTests;
 			productName = CloudKitSynchronizerIntegrationTests;
 			productReference = C7B10FDE2B7836BD004D429C /* CloudKitSynchronizerIntegrationTests.xctest */;
@@ -174,7 +156,6 @@
 				};
 			};
 			buildConfigurationList = C7653B592243390B000CDABB /* Build configuration list for PBXProject "CloudKitSynchronizer" */;
-			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -186,6 +167,7 @@
 				C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference "." */,
 				327BDBE9F3AB4B36ED2ABAB4 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = C7653B5F2243390B000CDABB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -201,8 +183,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C787591D267D1BD70030C77C /* LaunchScreen.storyboard in Resources */,
-				C787591E267D1BD70030C77C /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,7 +190,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7B10FD92B7836BD004D429C /* Media.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,13 +200,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C797B28B268B9337009194F1 /* Item.swift in Sources */,
-				C797B28C268B933A009194F1 /* AppDelegate.swift in Sources */,
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* SceneDelegate.swift in Sources */,
-				C797B28D268B933D009194F1 /* LSTDatabaseMigrator.swift in Sources */,
-				C797B28E268B9340009194F1 /* ViewController.swift in Sources */,
-				C797B28F268B9343009194F1 /* WordListViewController.swift in Sources */,
-				C797B290268B9347009194F1 /* WordListTableCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,7 +207,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C7B10FD52B7836BD004D429C /* CloudSyncIntegrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -249,17 +220,6 @@
 			targetProxy = 85E63FC128282E1C8E853329 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				C7653B6B2243390D000CDABB /* Base */,
-			);
-			name = LaunchScreen.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		C7653B792243390D000CDABB /* Debug */ = {
