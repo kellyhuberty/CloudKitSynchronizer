@@ -18,7 +18,7 @@ concurrency checking. Public API changes were deliberately deferred.
       (`CloudOperator.swift` and the empty `CloudKitOperationQueue` actor are
       early scaffolding for this.)
 
-## Remove CocoaPods — branch `remove-cocoapods`
+## Remove CocoaPods — merged (#18)
 
 Goal: one supported distribution (Swift Package Manager) and a TestApp with a
 single app target, so there's no duplicate build configuration to keep in sync.
@@ -62,6 +62,32 @@ single app target, so there's no duplicate build configuration to keep in sync.
       pins GRDB 7.12.0 (was 7.8.0), matching the TestApp.
 - [x] Commit and open a PR. Note it as a breaking change for anyone installing
       with CocoaPods.
+
+## Flatten layout — branch `flatten-layout`
+
+Goal: with CocoaPods gone, drop the nested `TestApp/` project so the repo root
+holds the package, the Xcode project, and one workspace that runs every test.
+(Paths in the sections above are from before this change.)
+
+### Done
+
+- [x] Moved `TestApp/CloudKitSynchronizer.xcodeproj` → `CloudKitSynchronizer.xcodeproj`,
+      `TestApp/CloudKitSynchronizerApp/*` → `TestApp/*`, and
+      `TestApp/Tests/IntegrationTests/*` → `Tests/IntegrationTests/*`. The local
+      package reference is now `relativePath = .`.
+- [x] Added `CloudKitSynchronizer.xcworkspace` with the package root and the
+      project as roots, so one scheme can see the package's test targets.
+- [x] Moved the `CloudKitSynchronizerApp` scheme into the workspace and added
+      `CloudKitSynchronizerTests` to it.
+- [x] Shared the `CloudKitSynchronizer` package scheme (`.swiftpm/xcode/xcshareddata`).
+- [x] `.gitignore`: un-ignored the root `CloudKitSynchronizer.xcodeproj` (the
+      `/*.xcodeproj` rule matched it after the move).
+- [x] README: Testing section points at the workspace.
+
+### Remaining
+
+- [ ] ⌘U on `CloudKitSynchronizerApp` in the workspace runs both test bundles.
+- [ ] `swift build` / `swift test` still pass from the root.
 
 ### Follow-up PR
 
