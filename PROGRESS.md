@@ -79,6 +79,10 @@ holds the package, the Xcode project, and one workspace that runs every test.
       project as roots, so one scheme can see the package's test targets.
 - [x] Moved the `CloudKitSynchronizerApp` scheme into the workspace and added
       `CloudKitSynchronizerTests` to it.
+- [x] Converted the `TestApp` and `Tests/IntegrationTests` groups to
+      synchronized folders (project format `objectVersion = 77`, Xcode 16+), so
+      files added on disk join their target without editing `project.pbxproj`.
+      `TestApp/Info.plist` is excluded from the app target's membership.
 - [x] Shared the `CloudKitSynchronizer` package scheme (`.swiftpm/xcode/xcshareddata`).
 - [x] `.gitignore`: un-ignored the root `CloudKitSynchronizer.xcodeproj` (the
       `/*.xcodeproj` rule matched it after the move).
