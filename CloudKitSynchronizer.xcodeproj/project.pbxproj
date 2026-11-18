@@ -70,7 +70,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C723C79B25FBEEC9006D2DBC /* IntegrationTests */ = {
+		C723C79B25FBEEC9006D2DBC /* Tests/IntegrationTests */ = {
 			isa = PBXGroup;
 			children = (
 				C723C79C25FBEEC9006D2DBC /* CloudSyncIntegrationTests.swift */,
@@ -82,8 +82,8 @@
 		C7653B552243390B000CDABB = {
 			isa = PBXGroup;
 			children = (
-				C78758FB267D1B370030C77C /* CloudKitSynchronizerApp */,
-				C723C79B25FBEEC9006D2DBC /* IntegrationTests */,
+				C78758FB267D1B370030C77C /* TestApp */,
+				C723C79B25FBEEC9006D2DBC /* Tests/IntegrationTests */,
 				C7653B5F2243390B000CDABB /* Products */,
 			);
 			sourceTree = "<group>";
@@ -97,7 +97,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		C78758FB267D1B370030C77C /* CloudKitSynchronizerApp */ = {
+		C78758FB267D1B370030C77C /* TestApp */ = {
 			isa = PBXGroup;
 			children = (
 				C7653B9E2243FB10000CDABB /* CloudKitSynchronizerApp.entitlements */,
@@ -112,7 +112,7 @@
 				C7653B6A2243390D000CDABB /* LaunchScreen.storyboard */,
 				C7653B6D2243390D000CDABB /* Info.plist */,
 			);
-			path = CloudKitSynchronizerApp;
+			path = TestApp;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -183,7 +183,7 @@
 			);
 			mainGroup = C7653B552243390B000CDABB;
 			packageReferences = (
-				C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference ".." */,
+				C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference "." */,
 				327BDBE9F3AB4B36ED2ABAB4 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			productRefGroup = C7653B5F2243390B000CDABB /* Products */;
@@ -395,13 +395,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = CloudKitSynchronizerApp/CloudKitSynchronizerApp.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TestApp/CloudKitSynchronizerApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				EXCLUDED_ARCHS = "";
-				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/TestApp/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -422,13 +422,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = CloudKitSynchronizerApp/CloudKitSynchronizerApp.entitlements;
+				CODE_SIGN_ENTITLEMENTS = TestApp/CloudKitSynchronizerApp.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				EXCLUDED_ARCHS = "";
-				INFOPLIST_FILE = "$(SRCROOT)/CloudKitSynchronizerApp/Info.plist";
+				INFOPLIST_FILE = "$(SRCROOT)/TestApp/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 18.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -521,9 +521,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference ".." */ = {
+		C78306B02B85BCF500E44FF3 /* XCLocalSwiftPackageReference "." */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
+			relativePath = .;
 		};
 /* End XCLocalSwiftPackageReference section */
 
